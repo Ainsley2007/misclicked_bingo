@@ -63,13 +63,8 @@ class AppRouter {
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: child,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
-          child: child,
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 150),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+      transitionDuration: Duration.zero,
     );
   }
 }

@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:backend/config.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -57,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 2;
 
   static QueryExecutor _openConnection() {
-    final dbPath = Platform.environment['DB_PATH'] ?? 'darling-statue.db';
+    final dbPath = Config.dbPath;
     return NativeDatabase.opened(sqlite3.open(dbPath));
   }
 
@@ -84,7 +83,7 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'CREATE TABLE IF NOT EXISTS _migration_check (version INTEGER)',
       );
-      
+
       if (details.wasCreated == false) {
         try {
           await customStatement('SELECT avatar FROM users LIMIT 1');

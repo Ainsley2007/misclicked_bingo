@@ -1,10 +1,11 @@
 import 'dart:io';
 
+import 'package:backend/config.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 class CookieHelper {
   static Response setAuthCookie(Response response, String jwtToken) {
-    final domain = Platform.environment['COOKIE_DOMAIN'];
+    final domain = Config.cookieDomain;
     final cookie = Cookie('auth_token', jwtToken)
       ..httpOnly = true
       ..secure = true
@@ -12,7 +13,7 @@ class CookieHelper {
       ..path = '/'
       ..maxAge = 60 * 60 * 24 * 30;
 
-    if (domain != null && domain.isNotEmpty && domain != 'localhost') {
+    if (domain.isNotEmpty && domain != 'localhost') {
       cookie.domain = domain;
     }
 
@@ -25,7 +26,7 @@ class CookieHelper {
   }
 
   static Response clearAuthCookie(Response response) {
-    final domain = Platform.environment['COOKIE_DOMAIN'];
+    final domain = Config.cookieDomain;
     final cookie = Cookie('auth_token', '')
       ..httpOnly = true
       ..secure = true
@@ -33,7 +34,7 @@ class CookieHelper {
       ..path = '/'
       ..maxAge = 0;
 
-    if (domain != null && domain.isNotEmpty && domain != 'localhost') {
+    if (domain.isNotEmpty && domain != 'localhost') {
       cookie.domain = domain;
     }
 

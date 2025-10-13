@@ -7,7 +7,18 @@ import 'package:frontend/features/admin/data/games_repository.dart';
 final sl = GetIt.instance;
 
 void setupDi() {
-  final dio = Dio(BaseOptions(baseUrl: 'https://osrs-bingo.globeapp.dev', validateStatus: (code) => code != null && code < 500, headers: {'Content-Type': 'application/json'}));
+  const apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://osrs-bingo.globeapp.dev',
+  );
+
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: apiBaseUrl,
+      validateStatus: (code) => code != null && code < 500,
+      headers: {'Content-Type': 'application/json'},
+    ),
+  );
 
   dio.interceptors.add(
     InterceptorsWrapper(

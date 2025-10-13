@@ -15,29 +15,21 @@ class ProfileButton extends StatelessWidget {
     return PopupMenuButton<String>(
       tooltip: '',
       offset: const Offset(0, 56),
-      splashRadius: 0.1,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildAvatar(accent),
-            const SizedBox(width: 12),
-            _buildUserInfo(context, accent),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.arrow_drop_down,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ],
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 8,
+        children: [
+          _buildAvatar(accent),
+          _buildUserInfo(context, accent),
+          Icon(
+            Icons.arrow_drop_down,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ],
       ),
       itemBuilder: (context) => [
         PopupMenuItem<String>(

@@ -1,12 +1,11 @@
 import 'dart:developer' as developer;
-import 'dart:io';
-
+import 'package:backend/config.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 class JwtHelper {
   static String get _secret {
-    final secret = Platform.environment['JWT_SECRET'];
-    if (secret == null || secret.isEmpty) {
+    final secret = Config.jwtSecret;
+    if (secret.isEmpty) {
       throw Exception('JWT_SECRET environment variable not set');
     }
     return secret;

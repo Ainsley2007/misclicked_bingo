@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'dart:io';
 
+import 'package:backend/config.dart';
 import 'package:backend/database.dart';
 import 'package:backend/db.dart';
 import 'package:backend/helpers/cookies.dart';
@@ -33,8 +33,7 @@ Future<Response> onRequest(RequestContext context) async {
       'role': 'user',
     });
 
-    final frontendOrigin =
-        Platform.environment['FRONTEND_ORIGIN'] ?? 'http://localhost:3000';
+    final frontendOrigin = Config.frontendOrigin;
 
     final response = Response(
       statusCode: 302,
@@ -58,17 +57,17 @@ Future<Response> onRequest(RequestContext context) async {
 }
 
 Future<String> _exchangeCodeForToken(String code) async {
-  final clientId = Platform.environment['DISCORD_CLIENT_ID'];
-  final clientSecret = Platform.environment['DISCORD_CLIENT_SECRET'];
-  final redirectUri = Platform.environment['DISCORD_REDIRECT_URI'];
+  final clientId = Config.discordClientId;
+  final clientSecret = Config.discordClientSecret;
+  final redirectUri = Config.discordRedirectUri;
 
-  if (clientId == null || clientSecret == null || redirectUri == null) {
+  if (clientId.isEmpty || clientSecret.isEmpty || redirectUri.isEmpty) {
     developer.log(
       'Missing Discord OAuth environment variables',
       name: 'auth.discord',
       level: 1000,
       error:
-          'clientId: ${clientId != null}, clientSecret: ${clientSecret != null}, redirectUri: ${redirectUri != null}',
+          'clientId: ${clientId.isNotEmpty}, clientSecret: ${clientSecret.isNotEmpty}, redirectUri: ${redirectUri.isNotEmpty}',
     );
     throw Exception('Discord OAuth not properly configured');
   }

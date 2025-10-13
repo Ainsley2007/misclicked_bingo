@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:backend/config.dart';
 import 'package:backend/helpers/jwt.dart';
 import 'package:dart_frog/dart_frog.dart';
 
@@ -13,8 +12,7 @@ Handler middleware(Handler handler) {
 Middleware _corsMiddleware() {
   return (handler) {
     return (context) async {
-      final frontendOrigin =
-          Platform.environment['FRONTEND_ORIGIN'] ?? 'http://localhost:3000';
+      final frontendOrigin = Config.frontendOrigin;
 
       if (context.request.method == HttpMethod.options) {
         return Response(

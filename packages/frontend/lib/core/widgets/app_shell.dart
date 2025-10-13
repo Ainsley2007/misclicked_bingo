@@ -45,6 +45,9 @@ class AppShell extends StatelessWidget {
           builder: (context, state) {
             final user = state.user;
             if (user == null) return const SizedBox.shrink();
+            
+            print('User avatar field: ${user.avatar}');
+            print('User avatarUrl: ${user.avatarUrl}');
 
             return Padding(
               padding: const EdgeInsets.only(right: 24, top: 12, bottom: 12),
@@ -54,9 +57,9 @@ class AppShell extends StatelessWidget {
                 child: Material(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
+                  clipBehavior: Clip.hardEdge,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(24),
-                    onTap: () {},
+                    onTap: null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Row(
@@ -67,6 +70,9 @@ class AppShell extends StatelessWidget {
                                   radius: 16,
                                   backgroundImage: NetworkImage(user.avatarUrl!),
                                   backgroundColor: accent,
+                                  onBackgroundImageError: (exception, stackTrace) {
+                                    print('Failed to load avatar: $exception');
+                                  },
                                 )
                               : Container(
                                   decoration: BoxDecoration(

@@ -14,6 +14,9 @@ class GamesRepository {
 
   Future<Game> createGame(String name) async {
     final response = await _dio.post<Map<String, dynamic>>('/games', data: {'name': name});
+    if (response.data == null) {
+      throw Exception('Failed to create game: null response');
+    }
     return Game.fromJson(response.data!);
   }
 

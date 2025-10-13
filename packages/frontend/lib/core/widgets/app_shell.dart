@@ -27,7 +27,7 @@ class _NavigationSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentLocation = GoRouterState.of(context).matchedLocation;
-    final accent = Theme.of(context).extension<AppColors>()!.accent;
+    final accent = AppColors.of(context).accent;
 
     return Container(
       width: 280,
@@ -88,7 +88,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).extension<AppColors>()!.accent;
+    final accent = AppColors.of(context).accent;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
@@ -107,7 +107,7 @@ class _NavItem extends StatelessWidget {
 class _UserSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).extension<AppColors>()!.accent;
+    final accent = AppColors.of(context).accent;
 
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {

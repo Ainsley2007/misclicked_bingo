@@ -10,7 +10,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).extension<AppColors>()!.accent;
+    final accent = AppColors.of(context).accent;
 
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {

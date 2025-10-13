@@ -6,38 +6,43 @@ This project uses a Melos monorepo with `shared_models` used by both frontend an
 
 ```
 root/
-  ├── melos.yaml              # Monorepo config
+  ├── melos.yaml              # Monorepo config at ROOT
   ├── packages/
   │   ├── shared_models/      # Shared Dart models
   │   ├── backend/            # Dart Frog API
   │   └── frontend/           # Flutter Web
 ```
 
-## 🚀 Deployment Options
+## 🚀 Globe Dashboard Configuration
 
-### Option 1: Globe Dashboard (Recommended)
+**CRITICAL**: Root Directory must be the repo root for Melos to work!
 
-Globe supports Melos monorepos automatically!
+### Backend Project Settings:
 
-#### Backend Deployment:
-1. Go to Globe Dashboard → Create new project
-2. Connect your GitHub repo
-3. Set **Root Directory**: Leave empty (use repo root)
-4. Set **Package Directory**: `packages/backend`
-5. Globe will automatically:
-   - Detect `melos.yaml` at root
-   - Run `melos bootstrap` to link local packages
-   - Deploy `packages/backend`
+1. **Framework Preset**: Dart Frog
+2. **Root Directory**: `Ainsley2007/misclicked_bingo` (just your repo name - NOT `packages/backend`)
+3. **Build Command**: `cd packages/backend && dart_frog build`
+4. **Entrypoint**: `packages/backend/build/bin/server.dart`
+5. **Dart Version**: 3.9.4 (or latest)
+6. **Build Runner**: ✅ **ON** (backend needs Drift code generation)
+7. **Melos**: ✅ **ON** (required for shared_models)
 
-#### Frontend Deployment:
-1. Create another Globe project
-2. Connect same GitHub repo
-3. Set **Root Directory**: Leave empty
-4. Set **Package Directory**: `packages/frontend`
-5. Set **Framework**: Flutter Web
-6. Globe will:
-   - Run `melos bootstrap`
-   - Build Flutter web from `packages/frontend`
+### Frontend Project Settings:
+
+1. **Framework Preset**: Flutter
+2. **Root Directory**: `Ainsley2007/misclicked_bingo` (just your repo name - NOT `packages/frontend`)
+3. **Build Command**: `cd packages/frontend && flutter build web`
+4. **Entrypoint**: `packages/frontend/build/web` (or leave default)
+5. **Flutter Version**: 3.35.6 (or latest)
+6. **Build Runner**: ❌ **OFF** (frontend doesn't need it)
+7. **Melos**: ✅ **ON** (required for shared_models)
+
+### Why This Configuration Works:
+
+1. **Root Directory at repo root** → Melos finds `melos.yaml`
+2. **Melos ON** → Runs `melos bootstrap` before build
+3. **Build command with `cd`** → Navigates to correct package
+4. **`shared_models` path dependency** → Resolved by Melos
 
 ### Option 2: Globe CLI
 

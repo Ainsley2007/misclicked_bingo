@@ -131,7 +131,7 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
   }
 
   void _showGameCreatedDialog(BuildContext context, Game game) {
-    final accent = Theme.of(context).extension<AppColors>()!.accent;
+    final accent = AppColors.of(context).accent;
 
     showDialog(
       context: context,
@@ -200,7 +200,7 @@ class _GameListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).extension<AppColors>()!.accent;
+    final accent = AppColors.of(context).accent;
     final dateFormat = DateFormat('MMM d, y • h:mm a');
 
     return ListTile(

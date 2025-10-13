@@ -6,6 +6,10 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color accent;
   final Color accentLight;
 
+  static AppColors of(BuildContext context) {
+    return Theme.of(context).extension<AppColors>() ?? const AppColors(accent: Color(0xFFFF6E40), accentLight: Color(0xFFFF9E80));
+  }
+
   @override
   ThemeExtension<AppColors> copyWith({Color? accent, Color? accentLight}) {
     return AppColors(accent: accent ?? this.accent, accentLight: accentLight ?? this.accentLight);
@@ -14,7 +18,7 @@ class AppColors extends ThemeExtension<AppColors> {
   @override
   ThemeExtension<AppColors> lerp(ThemeExtension<AppColors>? other, double t) {
     if (other is! AppColors) return this;
-    return AppColors(accent: Color.lerp(accent, other.accent, t)!, accentLight: Color.lerp(accentLight, other.accentLight, t)!);
+    return AppColors(accent: Color.lerp(accent, other.accent, t) ?? accent, accentLight: Color.lerp(accentLight, other.accentLight, t) ?? accentLight);
   }
 }
 

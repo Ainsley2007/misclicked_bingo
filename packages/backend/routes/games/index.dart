@@ -71,10 +71,12 @@ Future<Response> _createGame(RequestContext context) async {
         'createdAt': now.toIso8601String(),
       },
     );
-  } catch (e) {
+  } catch (e, stackTrace) {
+    print('Error creating game: $e');
+    print('Stack trace: $stackTrace');
     return Response.json(
       statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to create game'},
+      body: {'error': 'Failed to create game: $e'},
     );
   }
 }

@@ -115,33 +115,72 @@ Future<String> _upsertUser(Map<String, dynamic> discordUser) async {
   )..where((u) => u.discordId.equals(discordId))).getSingleOrNull();
 
   if (existingUser != null) {
-    await (db.update(
-      db.users,
-    )..where((u) => u.id.equals(existingUser.id))).write(
-      UsersCompanion(
-        globalName: Value(discordUser['global_name'] as String?),
-        username: Value(discordUser['username'] as String?),
-        email: Value(discordUser['email'] as String?),
-        avatar: Value(discordUser['avatar'] as String?),
-      ),
-    );
-    return existingUser.id;
-  }
-
-  final userId = const Uuid().v4();
-  await db
-      .into(db.users)
-      .insert(
-        UsersCompanion.insert(
-          id: userId,
-          discordId: discordId,
+    try {
+      await (db.update(
+        db.users,
+      )..where((u) => u.id.equals(existingUser.id))).write(
+        UsersCompanion(
           globalName: Value(discordUser['global_name'] as String?),
           username: Value(discordUser['username'] as String?),
           email: Value(discordUser['email'] as String?),
           avatar: Value(discordUser['avatar'] as String?),
-          role: const Value('user'),
         ),
       );
+    } catch (e) {
+      // Fallback if avatar column doesn't exist yet
+      developer.log(
+        'Failed to update user with avatar, trying without avatar',
+        name: 'auth.discord',
+        error: e,
+      );
+      await (db.update(
+        db.users,
+      )..where((u) => u.id.equals(existingUser.id))).write(
+        UsersCompanion(
+          globalName: Value(discordUser['global_name'] as String?),
+          username: Value(discordUser['username'] as String?),
+          email: Value(discordUser['email'] as String?),
+        ),
+      );
+    }
+    return existingUser.id;
+  }
+
+  final userId = const Uuid().v4();
+  try {
+    await db
+        .into(db.users)
+        .insert(
+          UsersCompanion.insert(
+            id: userId,
+            discordId: discordId,
+            globalName: Value(discordUser['global_name'] as String?),
+            username: Value(discordUser['username'] as String?),
+            email: Value(discordUser['email'] as String?),
+            avatar: Value(discordUser['avatar'] as String?),
+            role: const Value('user'),
+          ),
+        );
+  } catch (e) {
+    // Fallback if avatar column doesn't exist yet
+    developer.log(
+      'Failed to insert user with avatar, trying without avatar',
+      name: 'auth.discord',
+      error: e,
+    );
+    await db
+        .into(db.users)
+        .insert(
+          UsersCompanion.insert(
+            id: userId,
+            discordId: discordId,
+            globalName: Value(discordUser['global_name'] as String?),
+            username: Value(discordUser['username'] as String?),
+            email: Value(discordUser['email'] as String?),
+            role: const Value('user'),
+          ),
+        );
+  }
 
   return userId;
 }

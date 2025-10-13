@@ -80,6 +80,19 @@ class AppDatabase extends _$AppDatabase {
         await customStatement('ALTER TABLE users ADD COLUMN avatar TEXT');
       }
     },
+    beforeOpen: (details) async {
+      await customStatement(
+        'CREATE TABLE IF NOT EXISTS _migration_check (version INTEGER)',
+      );
+      
+      if (details.wasCreated == false) {
+        try {
+          await customStatement('SELECT avatar FROM users LIMIT 1');
+        } catch (e) {
+          await customStatement('ALTER TABLE users ADD COLUMN avatar TEXT');
+        }
+      }
+    },
   );
 
   Future<List<Game>> getAllGames() async {

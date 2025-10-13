@@ -7,7 +7,7 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color accentLight;
 
   static AppColors of(BuildContext context) {
-    return Theme.of(context).extension<AppColors>() ?? const AppColors(accent: Color(0xFFFF6E40), accentLight: Color(0xFFFF9E80));
+    return Theme.of(context).extension<AppColors>() ?? const AppColors(accent: Color(0xFFF66739), accentLight: Color(0xFFE19E25));
   }
 
   @override
@@ -23,12 +23,12 @@ class AppColors extends ThemeExtension<AppColors> {
 }
 
 class AppTheme {
-  static const _blueAccent = Color(0xFF2196F3);
-  static const _orangeAccent = Color(0xFFFF6E40);
-  static const _orangeAccentLight = Color(0xFFFF9E80);
+  static const _green = Color(0xFF246131);
+  static const _gold = Color(0xFFE19E25);
+  static const _orange = Color(0xFFF66739);
 
   static ThemeData get lightTheme {
-    final colorScheme = ColorScheme.fromSeed(seedColor: _blueAccent, brightness: Brightness.light);
+    final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.light);
 
     return ThemeData(
       useMaterial3: true,
@@ -51,16 +51,18 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
+          backgroundColor: _orange,
+          foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.5),
         ),
       ),
       appBarTheme: AppBarTheme(centerTitle: true, elevation: 0, backgroundColor: colorScheme.surface, surfaceTintColor: Colors.transparent),
-      extensions: const [AppColors(accent: _orangeAccent, accentLight: _orangeAccentLight)],
+      extensions: const [AppColors(accent: _orange, accentLight: _gold)],
     );
   }
 
   static ThemeData get darkTheme {
-    final colorScheme = ColorScheme.fromSeed(seedColor: _blueAccent, brightness: Brightness.dark);
+    final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.dark);
 
     return ThemeData(
       useMaterial3: true,
@@ -84,13 +86,13 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
-          backgroundColor: _orangeAccent,
+          backgroundColor: _orange,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.5),
         ),
       ),
       appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0, backgroundColor: Color(0xFF0A0E27), surfaceTintColor: Colors.transparent),
-      extensions: const [AppColors(accent: _orangeAccent, accentLight: _orangeAccentLight)],
+      extensions: const [AppColors(accent: _orange, accentLight: _gold)],
     );
   }
 }

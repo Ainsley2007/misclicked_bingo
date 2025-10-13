@@ -16,37 +16,29 @@ class AppShell extends StatelessWidget {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final currentLocation = GoRouterState.of(context).matchedLocation;
     final accent = AppColors.of(context).accent;
 
     return AppBar(
       elevation: 0,
       scrolledUnderElevation: 1,
-      title: Row(
-        children: [
-          Icon(Icons.grid_3x3_rounded, color: accent, size: 28),
-          const SizedBox(width: 12),
-          Text('Misclicked Bingo', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, letterSpacing: -0.5)),
-          const SizedBox(width: 48),
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              final user = state.user;
-              if (user == null) return const SizedBox.shrink();
-
-              return Row(
-                children: [
-                  _NavButton(label: 'Lobby', icon: Icons.home_rounded, path: '/lobby', isSelected: currentLocation == '/lobby'),
-                  const SizedBox(width: 8),
-                  _NavButton(label: 'Profile', icon: Icons.person_rounded, path: '/profile', isSelected: currentLocation == '/profile'),
-                  if (user.role == UserRole.admin) ...[
-                    const SizedBox(width: 8),
-                    _NavButton(label: 'Admin', icon: Icons.admin_panel_settings_rounded, path: '/admin', isSelected: currentLocation == '/admin'),
-                  ],
-                ],
-              );
-            },
+      toolbarHeight: 72,
+      title: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: InkWell(
+          onTap: () => context.go('/lobby'),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.grid_3x3_rounded, color: accent, size: 28),
+                const SizedBox(width: 12),
+                Text('OSRS Bingo', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
       actions: [
         BlocBuilder<AuthBloc, AuthState>(
@@ -55,8 +47,10 @@ class AppShell extends StatelessWidget {
             if (user == null) return const SizedBox.shrink();
 
             return Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Center(
+              padding: const EdgeInsets.only(right: 24, top: 12, bottom: 12),
+              child: PopupMenuButton<String>(
+                offset: const Offset(0, 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(24)),
@@ -89,40 +83,46 @@ class AppShell extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(width: 8),
+                      Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
                     ],
                   ),
                 ),
+                itemBuilder: (context) => [
+                  PopupMenuItem<String>(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_rounded, size: 20, color: Theme.of(context).colorScheme.onSurface),
+                        const SizedBox(width: 12),
+                        const Text('Profile'),
+                      ],
+                    ),
+                  ),
+                  if (user.role == UserRole.admin)
+                    PopupMenuItem<String>(
+                      value: 'admin',
+                      child: Row(
+                        children: [
+                          Icon(Icons.admin_panel_settings_rounded, size: 20, color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          const Text('Admin Panel'),
+                        ],
+                      ),
+                    ),
+                ],
+                onSelected: (value) {
+                  if (value == 'profile') {
+                    context.go('/profile');
+                  } else if (value == 'admin') {
+                    context.go('/admin');
+                  }
+                },
               ),
             );
           },
         ),
       ],
-    );
-  }
-}
-
-class _NavButton extends StatelessWidget {
-  const _NavButton({required this.label, required this.icon, required this.path, required this.isSelected});
-
-  final String label;
-  final IconData icon;
-  final String path;
-  final bool isSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = AppColors.of(context).accent;
-
-    return TextButton.icon(
-      onPressed: () => context.go(path),
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: TextButton.styleFrom(
-        foregroundColor: isSelected ? accent : null,
-        backgroundColor: isSelected ? accent.withValues(alpha: 0.12) : Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:frontend/auth/auth_bloc.dart';
+import 'package:frontend/features/auth/logic/auth_bloc.dart';
+import 'package:frontend/features/admin/logic/games_bloc.dart';
+import 'package:frontend/features/admin/data/games_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -17,5 +19,11 @@ void setupDi() {
   );
 
   sl.registerSingleton<Dio>(dio);
+
+  // Repositories
+  sl.registerLazySingleton<GamesRepository>(() => GamesRepository(sl<Dio>()));
+
+  // BLoCs
   sl.registerLazySingleton<AuthBloc>(() => AuthBloc(sl<Dio>()));
+  sl.registerFactory<GamesBloc>(() => GamesBloc(sl<GamesRepository>()));
 }

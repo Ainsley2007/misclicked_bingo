@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/auth/auth_bloc.dart';
+import 'package:frontend/features/auth/logic/auth_bloc.dart';
 import 'package:shared_models/shared_models.dart';
-import 'package:frontend/widgets/widgets.dart';
+import 'package:frontend/core/widgets/widgets.dart';
 
 class LobbyScreen extends StatelessWidget {
   const LobbyScreen({super.key});

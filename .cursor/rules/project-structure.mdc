@@ -1,0 +1,346 @@
+---
+alwaysApply: true
+---
+# Flutter Project Architecture Rules
+
+## 🏗️ Project Structure - MUST FOLLOW
+
+This is a **feature-first architecture** Flutter project. ALL code MUST follow this structure:
+
+```
+lib/
+├── features/              # All features organized by domain
+│   ├── {feature_name}/
+│   │   ├── data/         # Repositories, data sources (API calls)
+│   │   ├── logic/        # BLoCs, Cubits (business logic)
+│   │   └── presentation/ # Screens, widgets (UI)
+├── core/                 # Shared infrastructure
+│   ├── di.dart          # Dependency injection (GetIt)
+│   └── widgets/         # Reusable widgets across features
+├── router/              # App navigation (GoRouter)
+├── theme/               # App theming (Material 3)
+└── main.dart
+```
+
+## 📂 File Placement Rules
+
+### Adding New Features
+When adding a new feature (e.g., "teams"), create:
+```
+lib/features/teams/
+├── data/
+│   └── teams_repository.dart      # API calls, data operations
+├── logic/
+│   ├── teams_bloc.dart            # Business logic
+│   ├── teams_event.dart           # Events (part of bloc file)
+│   └── teams_state.dart           # States (part of bloc file)
+└── presentation/
+    ├── teams_screen.dart          # Main screen
+    └── widgets/                   # Feature-specific widgets
+        └── team_card.dart
+```
+
+### Modifying Existing Features
+- Admin feature: `lib/features/admin/`
+- Auth feature: `lib/features/auth/`
+- Lobby feature: `lib/features/lobby/`
+
+### Shared Code
+- Reusable widgets → `lib/core/widgets/`
+- Dependency injection → `lib/core/di.dart`
+- Navigation → `lib/router/app_router.dart`
+- Theming → `lib/theme/app_theme.dart`
+
+## 🎯 Architecture Layers - STRICTLY ENFORCE
+
+### 1. Data Layer (`data/`)
+**Purpose**: Handle ALL data operations (API calls, database, caching)
+
+```dart
+// Example: games_repository.dart
+class GamesRepository {
+  final Dio _dio;  // ✅ Dio allowed here
+  
+  Future<List<Game>> getGames() async {
+    final response = await _dio.get('/games');
+    return response.data.map(...).toList();
+  }
+}
+```
+
+**Rules**:
+- ✅ CAN use Dio, HTTP clients
+- ✅ CAN parse JSON
+- ✅ CAN handle errors
+- ❌ NO business logic
+- ❌ NO UI code
+
+### 2. Logic Layer (`logic/`)
+**Purpose**: Business logic and state management ONLY
+
+```dart
+// Example: games_bloc.dart
+class GamesBloc extends Bloc<GamesEvent, GamesState> {
+  final GamesRepository _repository;  // ✅ Repository injection
+  
+  Future<void> _onLoad(...) async {
+    final games = await _repository.getGames();  // ✅ Use repository
+    emit(GamesState.loaded(games));
+  }
+}
+```
+
+**CRITICAL RULES**:
+- ✅ CAN use repositories
+- ✅ CAN emit states
+- ✅ CAN handle events
+- ❌ **NEVER make HTTP calls directly** (use repository!)
+- ❌ **NEVER import Dio** (that's for data layer!)
+- ❌ NO UI code
+
+### 3. Presentation Layer (`presentation/`)
+**Purpose**: UI rendering ONLY
+
+```dart
+// Example: admin_screen.dart
+class AdminScreen extends StatelessWidget {
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<GamesBloc>()..add(GamesLoadRequested()),
+      child: BlocBuilder<GamesBloc, GamesState>(
+        builder: (context, state) {
+          // Render UI based on state
+        },
+      ),
+    );
+  }
+}
+```
+
+**Rules**:
+- ✅ CAN use BlocProvider, BlocBuilder, BlocListener
+- ✅ CAN dispatch events
+- ✅ CAN read state
+- ❌ NO business logic
+- ❌ NO API calls
+
+## 🔗 Dependency Flow - MUST FOLLOW
+
+```
+Presentation → Logic → Data → Infrastructure (Dio)
+     ↓           ↓        ↓
+     └───────────┴────────┴─────→ Core (DI, Widgets, Theme)
+```
+
+**Rules**:
+- Presentation can import Logic and Core
+- Logic can import Data and Core
+- Data can import Core
+- Core CANNOT import from features (avoid circular deps)
+
+## 📝 Import Conventions
+
+### ✅ CORRECT Imports:
+```dart
+// Feature imports (use full paths)
+import 'package:frontend/features/admin/logic/games_bloc.dart';
+import 'package:frontend/features/admin/data/games_repository.dart';
+
+// Core imports
+import 'package:frontend/core/di.dart';
+import 'package:frontend/core/widgets/widgets.dart';
+
+// Shared models
+import 'package:shared_models/shared_models.dart';
+```
+
+### ❌ WRONG Imports:
+```dart
+// Don't use relative imports for features
+import '../../../features/admin/logic/games_bloc.dart';
+
+// Don't import across features directly
+import 'package:frontend/features/auth/logic/auth_bloc.dart';  // In admin code
+```
+
+## 🔧 Dependency Injection (GetIt)
+
+**File**: `lib/core/di.dart`
+
+**Pattern**:
+```dart
+void setupDi() {
+  // 1. Infrastructure
+  sl.registerSingleton<Dio>(dio);
+  
+  // 2. Repositories (data layer)
+  sl.registerLazySingleton<GamesRepository>(() => 
+    GamesRepository(sl<Dio>())
+  );
+  
+  // 3. BLoCs (logic layer)
+  sl.registerFactory<GamesBloc>(() => 
+    GamesBloc(sl<GamesRepository>())  // ✅ Inject repository, not Dio!
+  );
+}
+```
+
+**Rules**:
+- Repositories are `Lazy Singleton` (one instance)
+- BLoCs are `Factory` (new instance per use)
+- Infrastructure is `Singleton` (Dio, etc.)
+
+## 🎨 BLoC Pattern Rules
+
+### Event Naming:
+```dart
+sealed class GamesEvent extends Equatable {}
+
+final class GamesLoadRequested extends GamesEvent {}
+final class GamesCreateRequested extends GamesEvent {
+  const GamesCreateRequested(this.name);
+  final String name;
+}
+```
+
+### State Naming:
+```dart
+enum GamesStatus { initial, loading, loaded, error }
+
+final class GamesState extends Equatable {
+  const GamesState._({required this.status, this.games = const []});
+  
+  const GamesState.initial() : this._(status: GamesStatus.initial);
+  const GamesState.loading() : this._(status: GamesStatus.loading);
+  const GamesState.loaded(List<Game> games) : this._(status: GamesStatus.loaded, games: games);
+  
+  final GamesStatus status;
+  final List<Game> games;
+}
+```
+
+### BLoC Structure:
+```dart
+class GamesBloc extends Bloc<GamesEvent, GamesState> {
+  GamesBloc(this._repository) : super(const GamesState.initial()) {
+    on<GamesLoadRequested>(_onLoadRequested);
+    on<GamesCreateRequested>(_onCreateRequested);
+  }
+
+  final GamesRepository _repository;  // ✅ Only repository dependency
+  
+  Future<void> _onLoadRequested(GamesLoadRequested event, Emitter<GamesState> emit) async {
+    emit(const GamesState.loading());
+    try {
+      final games = await _repository.getGames();  // ✅ Use repository
+      emit(GamesState.loaded(games));
+    } catch (e) {
+      emit(GamesState.error(e.toString()));
+    }
+  }
+}
+```
+
+## 🚫 ANTI-PATTERNS - NEVER DO THIS
+
+### ❌ BLoC Making HTTP Calls Directly:
+```dart
+class GamesBloc extends Bloc {
+  final Dio _dio;  // ❌ WRONG! BLoC should NOT have Dio
+  
+  Future<void> load() async {
+    final response = await _dio.get('/games');  // ❌ WRONG!
+  }
+}
+```
+
+**Fix**: Create a repository and use it!
+
+### ❌ Random File Placement:
+```dart
+lib/
+├── games/              // ❌ WRONG! What is "games"?
+│   └── games_bloc.dart
+```
+
+**Fix**: Use feature-first structure!
+
+### ❌ Mixing Layers:
+```dart
+class GamesRepository {
+  Future<List<Game>> getGames() async {
+    final games = await _dio.get('/games');
+    if (games.isEmpty) {
+      emit(GamesState.empty());  // ❌ WRONG! Repository emitting BLoC states
+    }
+  }
+}
+```
+
+**Fix**: Repositories only return data. BLoCs handle state.
+
+## 📦 Backend Structure
+
+```
+packages/backend/
+├── lib/
+│   ├── database.dart        # Drift database
+│   └── helpers/            # JWT, cookies, etc.
+├── routes/
+│   ├── games/
+│   │   ├── index.dart      # GET /games, POST /games
+│   │   └── [id].dart       # DELETE /games/:id
+│   └── auth/
+└── main.dart
+```
+
+## 🧪 Testing Pattern (Future)
+
+```
+test/
+└── features/
+    └── admin/
+        ├── data/
+        │   └── games_repository_test.dart
+        ├── logic/
+        │   └── games_bloc_test.dart
+        └── presentation/
+            └── admin_screen_test.dart
+```
+
+## 📚 Shared Models
+
+**Location**: `packages/shared_models/`
+
+**Usage**: Both frontend and backend import from here:
+```dart
+import 'package:shared_models/shared_models.dart';
+```
+
+Models: `Game`, `Team`, `AppUser`
+
+## ✅ Checklist for New Features
+
+Before creating code, verify:
+1. [ ] Created feature folder in `lib/features/`
+2. [ ] Created `data/` folder for repository
+3. [ ] Created `logic/` folder for BLoC
+4. [ ] Created `presentation/` folder for screens
+5. [ ] Repository ONLY has Dio dependency
+6. [ ] BLoC ONLY has Repository dependency
+7. [ ] Screen ONLY uses BlocProvider/Builder
+8. [ ] Registered repository in `core/di.dart`
+9. [ ] Registered BLoC in `core/di.dart`
+10. [ ] Used proper import paths
+
+## 🎯 Summary
+
+**Golden Rule**: Each layer has ONE job!
+- **Data** = Fetch/save data (API calls)
+- **Logic** = Business logic (BLoCs)
+- **Presentation** = UI rendering (Screens)
+
+**Never cross these boundaries!**
+
+Keep the codebase clean, testable, and maintainable. 🚀
+

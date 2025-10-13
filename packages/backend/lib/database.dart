@@ -75,4 +75,37 @@ class AppDatabase extends _$AppDatabase {
       );
     },
   );
+
+  Future<List<Game>> getAllGames() async {
+    final query = select(games)
+      ..orderBy([
+        (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
+      ]);
+    return query.get();
+  }
+
+  Future<Game?> getGameByCode(String code) async {
+    final query = select(games)..where((t) => t.code.equals(code));
+    return query.getSingleOrNull();
+  }
+
+  Future<void> createGame({
+    required String id,
+    required String code,
+    required String name,
+    required DateTime createdAt,
+  }) async {
+    await into(games).insert(
+      GamesCompanion.insert(
+        id: id,
+        code: code,
+        name: name,
+        createdAt: createdAt.toIso8601String(),
+      ),
+    );
+  }
+
+  Future<void> deleteGame(String id) async {
+    await (delete(games)..where((t) => t.id.equals(id))).go();
+  }
 }

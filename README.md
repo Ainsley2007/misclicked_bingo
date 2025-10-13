@@ -1,73 +1,126 @@
-# Bingo Globe - Monorepo
+# Misclicked Bingo 🎯
 
-A three-package monorepo for a bingo application with Discord OAuth2 authentication.
+A Flutter Web + Dart Frog bingo game with Discord OAuth authentication.
 
-## Structure
+## 📁 Project Structure
 
 ```
-root/
-  melos.yaml              # Monorepo configuration
-  globe.yaml              # Globe deployment config
-  packages/
-    shared_models/        # Pure Dart models with json_serializable
-    backend/              # Dart Frog API server
-    frontend/             # Flutter Web application
+monorepo/
+├── packages/
+│   ├── shared_models/       # Shared Dart models
+│   ├── backend/             # Dart Frog API
+│   └── frontend/            # Flutter Web app
+├── melos.yaml               # Monorepo configuration
+└── globe.yaml               # Globe deployment config
 ```
 
-## Getting Started
+### Frontend Structure (Feature-First)
+
+```
+frontend/lib/
+├── features/
+│   ├── admin/              # Admin feature
+│   │   ├── data/           # Repositories
+│   │   ├── logic/          # BLoCs
+│   │   └── presentation/   # Screens
+│   ├── auth/               # Auth feature
+│   └── lobby/              # Lobby feature
+├── core/                   # Shared code
+│   ├── di.dart             # Dependency injection
+│   └── widgets/            # Reusable widgets
+├── router/                 # Navigation
+└── theme/                  # Styling
+```
+
+See `frontend/lib/PROJECT_STRUCTURE.md` for detailed docs.
+
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Flutter SDK (>=3.8.1)
-- Dart SDK (>=3.8.0)
+- Flutter 3.35.6+
+- Dart 3.9.4+
 - Melos (`dart pub global activate melos`)
-- Dart Frog CLI (`dart pub global activate dart_frog_cli`)
-- Globe CLI (`dart pub global activate globe_cli`)
 
-### Setup
-
-Bootstrap all packages:
+### Local Development
 
 ```bash
+# Bootstrap monorepo
 melos bootstrap
-```
 
-Generate JSON serialization code:
-
-```bash
-cd packages/shared_models
-dart run build_runner build -d
-```
-
-### Development
-
-**Backend:**
-```bash
+# Run backend
 cd packages/backend
 dart_frog dev
-```
 
-**Frontend:**
-```bash
+# Run frontend (in another terminal)
 cd packages/frontend
 flutter run -d chrome
 ```
 
-### Deployment
+## 🌐 Deployment (Globe.dev)
 
-Both frontend and backend will be deployed to Globe.dev using the Globe CLI or GitHub integration.
+### Backend
+1. Create Dart Frog project in Globe
+2. Enable **Melos** toggle
+3. Build Command: `cd packages/backend && dart_frog build`
+4. Entrypoint: `packages/backend/build/bin/server.dart`
+5. Set environment variables (Discord, JWT, etc.)
 
-## Tech Stack
+### Frontend
+1. Create Flutter Web project in Globe
+2. Enable **Melos** toggle
+3. Build Command: `cd packages/frontend && flutter build web --release --dart-define=API_BASE=<backend-url>`
+4. Entrypoint: `packages/frontend/lib/main.dart`
 
-- **Shared Models:** json_serializable, equatable
-- **Backend:** Dart Frog, Globe DB (SQLite), JWT authentication, Discord OAuth2
-- **Frontend:** Flutter Web, BLoC pattern, Material 3 dark theme, GoRouter
+See `DEPLOYMENT.md` for complete guide.
 
-## Next Steps
+## 🏗️ Architecture
 
-1. Set up database schema and migrations
-2. Implement Discord OAuth2 flow
-3. Create JWT authentication middleware
-4. Build role-based UI (user/captain/admin)
-5. Deploy to Globe.dev
+- **Frontend**: Flutter Web with BLoC pattern
+- **Backend**: Dart Frog REST API
+- **Database**: Drift (SQLite)
+- **Auth**: Discord OAuth2 + JWT cookies
+- **State**: BLoC for business logic
+- **DI**: GetIt for dependency injection
 
+See `ARCHITECTURE.md` and `STRUCTURE_REFACTOR.md` for details.
+
+## ✨ Features
+
+- ✅ Discord OAuth login
+- ✅ Role-based access (user/captain/admin)
+- ✅ Game management (admin)
+- ✅ Clean architecture with repositories
+- ✅ Web-native sidebar navigation
+- ✅ Material 3 dark theme
+
+## 📚 Documentation
+
+- `DEPLOYMENT.md` - Deployment guide
+- `ARCHITECTURE.md` - Clean architecture docs
+- `STRUCTURE_REFACTOR.md` - Why we reorganized
+- `frontend/lib/PROJECT_STRUCTURE.md` - Frontend structure
+- `FEATURES_ADDED.md` - Recent features
+
+## 🛠️ Tech Stack
+
+**Frontend:**
+- Flutter Web
+- flutter_bloc
+- go_router
+- dio
+- get_it
+- Material 3
+
+**Backend:**
+- Dart Frog
+- Drift (SQLite)
+- dart_jsonwebtoken
+- uuid
+
+**Shared:**
+- json_serializable
+- equatable
+
+## 📝 License
+
+MIT

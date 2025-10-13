@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/auth/auth_bloc.dart';
-import 'package:frontend/screens/admin_screen.dart';
-import 'package:frontend/screens/lobby_screen.dart';
-import 'package:frontend/screens/login_screen.dart';
-import 'package:frontend/screens/profile_screen.dart';
-import 'package:frontend/widgets/app_shell.dart';
+import 'package:frontend/features/auth/logic/auth_bloc.dart';
+import 'package:frontend/features/admin/presentation/admin_screen.dart';
+import 'package:frontend/features/lobby/presentation/lobby_screen.dart';
+import 'package:frontend/features/auth/presentation/login_screen.dart';
+import 'package:frontend/features/auth/presentation/profile_screen.dart';
+import 'package:frontend/core/widgets/app_shell.dart';
 
 class AppRouter {
   static GoRouter router(AuthBloc authBloc) {

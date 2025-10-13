@@ -35,17 +35,16 @@ class _JoinGameView extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 500),
           child: SectionCard(
             icon: Icons.sports_esports_rounded,
-            title: 'Join a Game',
             child: Column(
               children: [
                 const TextField(
-                  decoration: InputDecoration(labelText: 'Game Code', hintText: 'Enter 6-character code', prefixIcon: Icon(Icons.tag_rounded)),
+                  decoration: InputDecoration(labelText: 'Game Code', prefixIcon: Icon(Icons.tag_rounded)),
                   maxLength: 6,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
                 const TextField(
-                  decoration: InputDecoration(labelText: 'Team Name', hintText: 'Enter your team name', prefixIcon: Icon(Icons.people_rounded)),
+                  decoration: InputDecoration(labelText: 'Team Name', prefixIcon: Icon(Icons.people_rounded)),
                 ),
                 const SizedBox(height: 24),
                 FullWidthButton(

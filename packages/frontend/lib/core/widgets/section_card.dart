@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class SectionCard extends StatelessWidget {
-  const SectionCard({required this.icon, required this.title, required this.child, super.key});
+  const SectionCard({required this.icon, this.title, required this.child, super.key});
 
   final IconData icon;
-  final String title;
+  final String? title;
   final Widget child;
 
   @override
@@ -15,8 +15,13 @@ class SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionHeader(icon: icon, title: title),
-            const SizedBox(height: 24),
+            if (title != null) ...[
+              _SectionHeader(icon: icon, title: title!),
+              const SizedBox(height: 24),
+            ] else ...[
+              Icon(icon, color: Theme.of(context).colorScheme.primary, size: 32),
+              const SizedBox(height: 16),
+            ],
             child,
           ],
         ),

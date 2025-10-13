@@ -32,6 +32,7 @@ Future<Response> onRequest(RequestContext context) async {
         'globalName': user.globalName,
         'username': user.username,
         'email': user.email,
+        'avatar': user.avatar,
         'role': user.role,
         'teamId': user.teamId,
         'gameId': user.gameId,

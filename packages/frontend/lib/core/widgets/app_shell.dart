@@ -51,41 +51,54 @@ class AppShell extends StatelessWidget {
               child: PopupMenuButton<String>(
                 offset: const Offset(0, 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(24)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(colors: [accent, accent.withValues(alpha: 0.7)]),
-                        ),
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Colors.transparent,
-                          child: Text(
-                            user.globalName?.substring(0, 1).toUpperCase() ?? user.username?.substring(0, 1).toUpperCase() ?? 'U',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
+                child: Material(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(24),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () {},
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(user.globalName ?? user.username ?? 'Unknown', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                          Text(
-                            user.role.name.toUpperCase(),
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: accent, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                          user.avatarUrl != null
+                              ? CircleAvatar(
+                                  radius: 16,
+                                  backgroundImage: NetworkImage(user.avatarUrl!),
+                                  backgroundColor: accent,
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(colors: [accent, accent.withValues(alpha: 0.7)]),
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.transparent,
+                                    child: Text(
+                                      user.globalName?.substring(0, 1).toUpperCase() ?? user.username?.substring(0, 1).toUpperCase() ?? 'U',
+                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                          const SizedBox(width: 12),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(user.globalName ?? user.username ?? 'Unknown', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                              Text(
+                                user.role.name.toUpperCase(),
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: accent, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                              ),
+                            ],
                           ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
                         ],
                       ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
-                    ],
+                    ),
                   ),
                 ),
                 itemBuilder: (context) => [

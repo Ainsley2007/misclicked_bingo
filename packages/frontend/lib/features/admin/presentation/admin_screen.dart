@@ -63,7 +63,7 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                         children: [
                           TextFormField(
                             controller: _gameNameController,
-                            decoration: const InputDecoration(labelText: 'Game Name', hintText: 'Enter game name', prefixIcon: Icon(Icons.sports_esports_rounded)),
+                            decoration: const InputDecoration(labelText: 'Game Name', prefixIcon: Icon(Icons.sports_esports_rounded)),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Please enter a game name';

@@ -12,6 +12,7 @@ class Users extends Table {
   TextColumn get globalName => text().nullable()();
   TextColumn get username => text().nullable()();
   TextColumn get email => text().nullable()();
+  TextColumn get avatar => text().nullable()();
   TextColumn get role => text().withDefault(const Constant('user'))();
   TextColumn get teamId => text().nullable()();
   TextColumn get gameId => text().nullable()();
@@ -53,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   static QueryExecutor _openConnection() {
     final dbPath = Platform.environment['DB_PATH'] ?? 'darling-statue.db';
@@ -73,6 +74,11 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'CREATE INDEX IF NOT EXISTS idx_teams_game_id ON teams(game_id)',
       );
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        await customStatement('ALTER TABLE users ADD COLUMN avatar TEXT');
+      }
     },
   );
 

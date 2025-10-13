@@ -31,20 +31,26 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(32),
                       child: Column(
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [accent, accent.withValues(alpha: 0.7)]),
-                            ),
-                            child: CircleAvatar(
-                              radius: 56,
-                              backgroundColor: Colors.transparent,
-                              child: Text(
-                                user.globalName?.substring(0, 1).toUpperCase() ?? user.username?.substring(0, 1).toUpperCase() ?? 'U',
-                                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.white),
-                              ),
-                            ),
-                          ),
+                          user.avatarUrl != null
+                              ? CircleAvatar(
+                                  radius: 56,
+                                  backgroundImage: NetworkImage(user.avatarUrl!),
+                                  backgroundColor: accent,
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [accent, accent.withValues(alpha: 0.7)]),
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 56,
+                                    backgroundColor: Colors.transparent,
+                                    child: Text(
+                                      user.globalName?.substring(0, 1).toUpperCase() ?? user.username?.substring(0, 1).toUpperCase() ?? 'U',
+                                      style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
                           const SizedBox(height: 20),
                           Text(
                             user.globalName ?? user.username ?? 'Unknown',

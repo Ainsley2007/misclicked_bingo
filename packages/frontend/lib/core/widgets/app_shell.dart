@@ -13,37 +13,22 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          _buildHeader(context),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                const Spacer(),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    final user = state.user;
+                    if (user == null) return const SizedBox.shrink();
+                    return ProfileButton(user: user);
+                  },
+                ),
+              ],
+            ),
+          ),
           Expanded(child: child),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              final user = state.user;
-              if (user == null) return const SizedBox.shrink();
-              return ProfileButton(user: user);
-            },
-          ),
         ],
       ),
     );

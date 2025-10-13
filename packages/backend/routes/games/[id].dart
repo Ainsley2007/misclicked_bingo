@@ -1,6 +1,7 @@
 import 'dart:io';
-import 'package:dart_frog/dart_frog.dart';
+
 import 'package:backend/database.dart';
+import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
@@ -13,7 +14,7 @@ Future<Response> _deleteGame(RequestContext context, String id) async {
   try {
     final db = context.read<AppDatabase>();
     await db.deleteGame(id);
-    
+
     return Response(statusCode: HttpStatus.noContent);
   } catch (e) {
     return Response.json(
@@ -22,4 +23,3 @@ Future<Response> _deleteGame(RequestContext context, String id) async {
     );
   }
 }
-

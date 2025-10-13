@@ -61,3 +61,4 @@ packages/backend/**/*.g.dart
 *.freezed.dart
 *.mocks.dart
 
+*.db

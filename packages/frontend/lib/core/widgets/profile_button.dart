@@ -14,22 +14,26 @@ class ProfileButton extends StatelessWidget {
 
     return PopupMenuButton<String>(
       tooltip: '',
-      offset: const Offset(0, 56),
+      offset: const Offset(0, 64),
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 8,
-        children: [
-          _buildAvatar(accent),
-          _buildUserInfo(context, accent),
-          Icon(
-            Icons.arrow_drop_down,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            _buildAvatar(accent),
+            _buildUserInfo(context, accent),
+            Icon(
+              Icons.arrow_drop_down,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ],
+        ),
       ),
       itemBuilder: (context) => [
         PopupMenuItem<String>(
@@ -63,10 +67,21 @@ class ProfileButton extends StatelessWidget {
           ),
       ],
       onSelected: (value) {
+        final currentLocation = GoRouter.of(
+          context,
+        ).routerDelegate.currentConfiguration.uri.path;
+
+        // Don't navigate if already on the target page
+        if ((value == 'profile' && currentLocation == '/profile') ||
+            (value == 'admin' && currentLocation == '/admin')) {
+          return;
+        }
+
+        // Always use replace for profile/admin navigation to prevent history buildup
         if (value == 'profile') {
-          context.go('/profile');
+          context.replace('/profile');
         } else if (value == 'admin') {
-          context.go('/admin');
+          context.replace('/admin');
         }
       },
     );

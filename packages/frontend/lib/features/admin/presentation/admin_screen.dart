@@ -13,7 +13,10 @@ class AdminScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(create: (_) => sl<GamesBloc>()..add(const GamesLoadRequested()), child: const _AdminScreenContent());
+    return BlocProvider(
+      create: (_) => sl<GamesBloc>()..add(const GamesLoadRequested()),
+      child: const _AdminScreenContent(),
+    );
   }
 }
 
@@ -42,7 +45,12 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
           _showGameCreatedDialog(context, state.createdGame!);
           _gameNameController.clear();
         } else if (state.status == GamesStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error ?? 'An error occurred'), backgroundColor: Colors.red));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error ?? 'An error occurred'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       },
       builder: (context, state) {
@@ -63,7 +71,10 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                         children: [
                           TextFormField(
                             controller: _gameNameController,
-                            decoration: const InputDecoration(labelText: 'Game Name', prefixIcon: Icon(Icons.sports_esports_rounded)),
+                            decoration: const InputDecoration(
+                              labelText: 'Game Name',
+                              prefixIcon: Icon(Icons.sports_esports_rounded),
+                            ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Please enter a game name';
@@ -78,18 +89,30 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                                 ? null
                                 : () {
                                     if (_formKey.currentState!.validate()) {
-                                      context.read<GamesBloc>().add(GamesCreateRequested(_gameNameController.text.trim()));
+                                      context.read<GamesBloc>().add(
+                                        GamesCreateRequested(
+                                          _gameNameController.text.trim(),
+                                        ),
+                                      );
                                     }
                                   },
-                            icon: state.status == GamesStatus.creating ? Icons.hourglass_empty : Icons.add_rounded,
-                            label: state.status == GamesStatus.creating ? 'Creating...' : 'Create Game',
+                            icon: state.status == GamesStatus.creating
+                                ? Icons.hourglass_empty
+                                : Icons.add_rounded,
+                            label: state.status == GamesStatus.creating
+                                ? 'Creating...'
+                                : 'Create Game',
                           ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  SectionCard(icon: Icons.list_rounded, title: 'Manage Games', child: _buildGamesList(state)),
+                  SectionCard(
+                    icon: Icons.list_rounded,
+                    title: 'Manage Games',
+                    child: _buildGamesList(state),
+                  ),
                 ],
               ),
             ),
@@ -100,9 +123,13 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
   }
 
   Widget _buildGamesList(GamesState state) {
-    if (state.status == GamesStatus.loading || state.status == GamesStatus.initial) {
+    if (state.status == GamesStatus.loading ||
+        state.status == GamesStatus.initial) {
       return const Center(
-        child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()),
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -112,9 +139,20 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
           padding: const EdgeInsets.all(32),
           child: Column(
             children: [
-              Icon(Icons.sports_esports_outlined, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+              Icon(
+                Icons.sports_esports_outlined,
+                size: 48,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
               const SizedBox(height: 16),
-              Text('No games yet', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(
+                'No games yet',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
         ),
@@ -147,30 +185,52 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Game "${game.name}" has been created successfully.', style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              'Game "${game.name}" has been created successfully.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 children: [
-                  Text('Game Code', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Game Code',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         game.code,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold, letterSpacing: 8, color: accent, fontFeatures: [const FontFeature.tabularFigures()]),
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 8,
+                              color: accent,
+                              fontFeatures: [
+                                const FontFeature.tabularFigures(),
+                              ],
+                            ),
                       ),
                       const SizedBox(width: 12),
                       IconButton(
                         icon: const Icon(Icons.copy_rounded),
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: game.code));
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Code copied to clipboard!'), duration: Duration(seconds: 2)));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Code copied to clipboard!'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
                         },
                         tooltip: 'Copy code',
                       ),
@@ -182,12 +242,19 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
             const SizedBox(height: 16),
             Text(
               'Share this code with captains so they can join the game.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
@@ -207,10 +274,16 @@ class _GameListItem extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       leading: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Icon(Icons.grid_3x3_rounded, color: accent),
       ),
-      title: Text(game.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        game.name,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -219,27 +292,99 @@ class _GameListItem extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
                 child: Text(
                   game.code,
-                  style: TextStyle(color: accent, fontWeight: FontWeight.bold, letterSpacing: 2, fontFeatures: [const FontFeature.tabularFigures()]),
+                  style: TextStyle(
+                    color: accent,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.access_time, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.access_time,
+                size: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
-              Text(dateFormat.format(game.createdAt), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(
+                dateFormat.format(game.createdAt),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
         ],
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.content_copy_rounded),
-        tooltip: 'Copy code',
-        onPressed: () {
-          Clipboard.setData(ClipboardData(text: game.code));
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Code copied to clipboard!'), duration: Duration(seconds: 2)));
-        },
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.content_copy_rounded),
+            tooltip: 'Copy code',
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: game.code));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Code copied to clipboard!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded),
+            tooltip: 'Delete game',
+            color: Colors.red,
+            onPressed: () => _showDeleteDialog(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_rounded, color: Colors.red),
+            SizedBox(width: 12),
+            Text('Delete Game?'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${game.name}"? This action cannot be undone.',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<GamesBloc>().add(GamesDeleteRequested(game.id));
+              Navigator.of(dialogContext).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Game "${game.name}" deleted'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

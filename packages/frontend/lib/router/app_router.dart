@@ -33,7 +33,8 @@ class AppRouter {
       routes: [
         GoRoute(
           path: '/login',
-          pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LoginScreen()),
+          pageBuilder: (context, state) =>
+              _noTransitionPage(state: state, child: const LoginScreen()),
         ),
         ShellRoute(
           pageBuilder: (context, state, child) => _noTransitionPage(
@@ -43,15 +44,18 @@ class AppRouter {
           routes: [
             GoRoute(
               path: '/lobby',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LobbyScreen()),
+              pageBuilder: (context, state) =>
+                  _noTransitionPage(state: state, child: const LobbyScreen()),
             ),
             GoRoute(
               path: '/profile',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const ProfileScreen()),
+              pageBuilder: (context, state) =>
+                  _noTransitionPage(state: state, child: const ProfileScreen()),
             ),
             GoRoute(
               path: '/admin',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const AdminScreen()),
+              pageBuilder: (context, state) =>
+                  _noTransitionPage(state: state, child: const AdminScreen()),
             ),
           ],
         ),
@@ -59,11 +63,15 @@ class AppRouter {
     );
   }
 
-  static CustomTransitionPage<void> _noTransitionPage({required GoRouterState state, required Widget child}) {
+  static CustomTransitionPage<void> _noTransitionPage({
+    required GoRouterState state,
+    required Widget child,
+  }) {
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: child,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          child,
       transitionDuration: Duration.zero,
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:developer' as developer;
 
 import 'package:backend/database.dart';
 import 'package:dart_frog/dart_frog.dart';
@@ -72,11 +73,15 @@ Future<Response> _createGame(RequestContext context) async {
       },
     );
   } catch (e, stackTrace) {
-    print('Error creating game: $e');
-    print('Stack trace: $stackTrace');
+    developer.log(
+      'Failed to create game',
+      name: 'games',
+      error: e,
+      stackTrace: stackTrace,
+    );
     return Response.json(
       statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to create game: $e'},
+      body: {'error': 'Failed to create game'},
     );
   }
 }

@@ -7,7 +7,14 @@ class Config {
 
   static void init() {
     if (_initialized) return;
-    _env = DotEnv()..load();
+    _env = DotEnv();
+
+    try {
+      _env.load();
+    } catch (e) {
+      // Silently fall back to Platform.environment
+    }
+
     _initialized = true;
   }
 

@@ -31,16 +31,45 @@ class AppRouter {
         return null;
       },
       routes: [
-        GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+        GoRoute(
+          path: '/login',
+          pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LoginScreen()),
+        ),
         ShellRoute(
-          builder: (context, state, child) => AppShell(child: child),
+          pageBuilder: (context, state, child) => _noTransitionPage(
+            state: state,
+            child: AppShell(child: child),
+          ),
           routes: [
-            GoRoute(path: '/lobby', builder: (context, state) => const LobbyScreen()),
-            GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
-            GoRoute(path: '/admin', builder: (context, state) => const AdminScreen()),
+            GoRoute(
+              path: '/lobby',
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LobbyScreen()),
+            ),
+            GoRoute(
+              path: '/profile',
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const ProfileScreen()),
+            ),
+            GoRoute(
+              path: '/admin',
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const AdminScreen()),
+            ),
           ],
         ),
       ],
+    );
+  }
+
+  static CustomTransitionPage<void> _noTransitionPage({required GoRouterState state, required Widget child}) {
+    return CustomTransitionPage<void>(
+      key: state.pageKey,
+      child: child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 150),
     );
   }
 }

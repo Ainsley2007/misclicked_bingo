@@ -1,0 +1,7 @@
+name: bingo-globe
+packages:
+  - packages/**
+command:
+  bootstrap:
+    usePubspecOverrides: true
+

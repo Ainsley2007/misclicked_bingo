@@ -1,0 +1,28 @@
+name: backend
+description: Dart Frog API backend for Bingo Globe
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  dart_frog: ^1.1.0
+  json_annotation: ^4.9.0
+  dart_jsonwebtoken: ^2.14.2
+  crypto: ^3.0.3
+  uuid: ^4.5.1
+  http: ^1.2.2
+  shelf_cors_headers: ^0.1.5
+  dotenv: ^4.2.0
+  equatable: ^2.0.5
+  drift: ^2.20.0
+  sqlite3: ^2.4.0
+
+dev_dependencies:
+  dart_frog_lint: ^0.1.0
+  mocktail: ^1.0.3
+  test: ^1.25.5
+  build_runner: ^2.4.9
+  json_serializable: ^6.8.0
+  drift_dev: ^2.20.0

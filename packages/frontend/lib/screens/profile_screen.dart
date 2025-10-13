@@ -1,0 +1,134 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:frontend/auth/auth_bloc.dart';
+import 'package:frontend/core/di.dart';
+import 'package:frontend/theme/app_theme.dart';
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).extension<AppColors>()!.accent;
+
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        final user = state.user;
+        if (user == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [accent, accent.withValues(alpha: 0.7)]),
+                            ),
+                            child: CircleAvatar(
+                              radius: 56,
+                              backgroundColor: Colors.transparent,
+                              child: Text(
+                                user.globalName?.substring(0, 1).toUpperCase() ?? user.username?.substring(0, 1).toUpperCase() ?? 'U',
+                                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            user.globalName ?? user.username ?? 'Unknown',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(color: accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                            child: Text(
+                              user.role.name.toUpperCase(),
+                              style: TextStyle(color: accent, fontWeight: FontWeight.w600, letterSpacing: 1.2),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          Divider(color: accent.withValues(alpha: 0.2)),
+                          const SizedBox(height: 24),
+                          _InfoRow(icon: Icons.person_rounded, label: 'Username', value: user.username ?? 'N/A'),
+                          const SizedBox(height: 16),
+                          _InfoRow(icon: Icons.email_rounded, label: 'Email', value: user.email ?? 'N/A'),
+                          const SizedBox(height: 16),
+                          _InfoRow(icon: Icons.tag_rounded, label: 'Discord ID', value: user.discordId),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _logout(context),
+                      icon: const Icon(Icons.logout_rounded),
+                      label: const Text('Logout'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                        side: BorderSide(color: accent.withValues(alpha: 0.3)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    await sl<AuthBloc>().logout();
+    if (context.mounted) {
+      context.go('/login');
+    }
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.icon, required this.label, required this.value});
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 4),
+              Text(value, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

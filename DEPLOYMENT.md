@@ -13,6 +13,7 @@ root/
   │   └── frontend/           # Flutter Web
 ```
 
+
 ## 🚀 Globe Dashboard Configuration
 
 **CRITICAL**: Root Directory must be the repo root for Melos to work!

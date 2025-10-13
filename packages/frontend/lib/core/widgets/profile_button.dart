@@ -13,12 +13,12 @@ class ProfileButton extends StatelessWidget {
     final accent = AppColors.of(context).accent;
 
     return PopupMenuButton<String>(
+      tooltip: '',
       offset: const Offset(0, 56),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      splashRadius: 0.1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(24),
@@ -32,7 +32,9 @@ class ProfileButton extends StatelessWidget {
             const SizedBox(width: 8),
             Icon(
               Icons.arrow_drop_down,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ],
         ),
@@ -121,20 +123,19 @@ class ProfileButton extends StatelessWidget {
       children: [
         Text(
           user.globalName ?? user.username ?? 'Unknown',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         Text(
           user.role.name.toUpperCase(),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-              ),
+            color: accent,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
         ),
       ],
     );
   }
 }
-

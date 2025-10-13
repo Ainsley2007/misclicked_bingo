@@ -32,7 +32,7 @@ class AppShell extends StatelessWidget {
             if (user == null) return const SizedBox.shrink();
 
             return Padding(
-              padding: const EdgeInsets.only(right: 24, top: 12, bottom: 12),
+              padding: const EdgeInsets.all(24),
               child: ProfileButton(user: user),
             );
           },

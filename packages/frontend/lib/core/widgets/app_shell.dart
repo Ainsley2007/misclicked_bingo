@@ -54,17 +54,15 @@ class AppShell extends StatelessWidget {
               child: PopupMenuButton<String>(
                 offset: const Offset(0, 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Material(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(24),
-                  clipBehavior: Clip.hardEdge,
-                  child: InkWell(
-                    onTap: null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                           user.avatarUrl != null
                               ? CircleAvatar(
                                   radius: 16,
@@ -104,8 +102,6 @@ class AppShell extends StatelessWidget {
                           Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
                         ],
                       ),
-                    ),
-                  ),
                 ),
                 itemBuilder: (context) => [
                   PopupMenuItem<String>(

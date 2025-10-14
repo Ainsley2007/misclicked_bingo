@@ -37,6 +37,20 @@ class ProfileButton extends StatelessWidget {
       ),
       itemBuilder: (context) => [
         PopupMenuItem<String>(
+          value: 'home',
+          child: Row(
+            children: [
+              Icon(
+                Icons.home_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 12),
+              const Text('Home'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
           value: 'profile',
           child: Row(
             children: [
@@ -72,16 +86,20 @@ class ProfileButton extends StatelessWidget {
         ).routerDelegate.currentConfiguration.uri.path;
 
         // Don't navigate if already on the target page
-        if ((value == 'profile' && currentLocation == '/profile') ||
+        if ((value == 'home' && currentLocation == '/lobby') ||
+            (value == 'profile' && currentLocation == '/profile') ||
             (value == 'admin' && currentLocation == '/admin')) {
           return;
         }
 
-        // Always use replace for profile/admin navigation to prevent history buildup
-        if (value == 'profile') {
-          context.replace('/profile');
+        // Use neglect + go for all navigation to prevent adding to history stack
+        // This makes lobby the true home base
+        if (value == 'home') {
+          Router.neglect(context, () => context.go('/lobby'));
+        } else if (value == 'profile') {
+          Router.neglect(context, () => context.go('/profile'));
         } else if (value == 'admin') {
-          context.replace('/admin');
+          Router.neglect(context, () => context.go('/admin'));
         }
       },
     );

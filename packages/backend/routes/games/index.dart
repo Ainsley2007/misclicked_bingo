@@ -27,6 +27,8 @@ Future<Response> _getGames(RequestContext context) async {
               'code': g.code,
               'name': g.name,
               'teamSize': g.teamSize,
+              'hasChallenges': g.hasChallenges,
+              'boardSize': g.boardSize,
               'createdAt': g.createdAt,
             },
           )
@@ -45,6 +47,10 @@ Future<Response> _createGame(RequestContext context) async {
     final body = await context.request.json() as Map<String, dynamic>;
     final name = body['name'] as String?;
     final teamSize = body['teamSize'] as int? ?? 5;
+    final hasChallenges = body['hasChallenges'] as bool? ?? false;
+    final boardSize = body['boardSize'] as int? ?? 3;
+    final challenges = body['challenges'] as List<dynamic>? ?? [];
+    final tiles = body['tiles'] as List<dynamic>? ?? [];
 
     if (name == null || name.trim().isEmpty) {
       return Response.json(
@@ -60,6 +66,53 @@ Future<Response> _createGame(RequestContext context) async {
       );
     }
 
+    if (![2, 3, 4, 5].contains(boardSize)) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'error': 'Board size must be 2, 3, 4, or 5'},
+      );
+    }
+
+    final requiredTiles = boardSize * boardSize;
+
+    if (tiles.length != requiredTiles) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {
+          'error':
+              'Must have exactly $requiredTiles tiles for ${boardSize}x$boardSize board',
+        },
+      );
+    }
+
+    if (hasChallenges) {
+      if (challenges.isEmpty) {
+        return Response.json(
+          statusCode: HttpStatus.badRequest,
+          body: {
+            'error':
+                'At least one challenge required when challenges are enabled',
+          },
+        );
+      }
+
+      final totalUnlockAmount = challenges.fold<int>(
+        0,
+        (sum, c) =>
+            sum + ((c as Map<String, dynamic>)['unlockAmount'] as int? ?? 0),
+      );
+
+      if (totalUnlockAmount < requiredTiles) {
+        return Response.json(
+          statusCode: HttpStatus.badRequest,
+          body: {
+            'error':
+                'Total unlock amount ($totalUnlockAmount) must be at least $requiredTiles',
+          },
+        );
+      }
+    }
+
     final db = context.read<AppDatabase>();
     final id = const Uuid().v4();
     final code = _generateGameCode();
@@ -70,8 +123,34 @@ Future<Response> _createGame(RequestContext context) async {
       code: code,
       name: name.trim(),
       teamSize: teamSize,
+      hasChallenges: hasChallenges,
+      boardSize: boardSize,
       createdAt: now,
     );
+
+    for (final challengeData in challenges) {
+      final c = challengeData as Map<String, dynamic>;
+      await db.createChallenge(
+        id: const Uuid().v4(),
+        gameId: id,
+        title: c['title'] as String,
+        description: c['description'] as String,
+        imageUrl: c['imageUrl'] as String,
+        unlockAmount: c['unlockAmount'] as int,
+      );
+    }
+
+    for (var i = 0; i < tiles.length; i++) {
+      final t = tiles[i] as Map<String, dynamic>;
+      await db.createBingoTile(
+        id: const Uuid().v4(),
+        gameId: id,
+        title: t['title'] as String,
+        description: t['description'] as String,
+        imageUrl: t['imageUrl'] as String,
+        position: i,
+      );
+    }
 
     return Response.json(
       statusCode: HttpStatus.created,
@@ -80,6 +159,8 @@ Future<Response> _createGame(RequestContext context) async {
         'code': code,
         'name': name.trim(),
         'teamSize': teamSize,
+        'hasChallenges': hasChallenges,
+        'boardSize': boardSize,
         'createdAt': now.toIso8601String(),
       },
     );
@@ -92,7 +173,7 @@ Future<Response> _createGame(RequestContext context) async {
     );
     return Response.json(
       statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to create game'},
+      body: {'error': 'Failed to create game: $e'},
     );
   }
 }

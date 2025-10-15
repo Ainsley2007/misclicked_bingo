@@ -65,6 +65,20 @@ class AppShell extends StatelessWidget {
       return const _PageInfo(title: 'Game', icon: Icons.sports_esports_rounded);
     }
 
+    if (path.startsWith('/admin/games/create')) {
+      return const _PageInfo(
+        title: 'Create Game',
+        icon: Icons.add_circle_rounded,
+      );
+    }
+
+    if (path.startsWith('/admin/games') || path.startsWith('/admin')) {
+      return const _PageInfo(
+        title: 'Admin Panel',
+        icon: Icons.admin_panel_settings_rounded,
+      );
+    }
+
     switch (path) {
       case '/lobby':
         return const _PageInfo(title: 'Lobby', icon: Icons.home_rounded);
@@ -75,11 +89,6 @@ class AppShell extends StatelessWidget {
         );
       case '/profile':
         return const _PageInfo(title: 'Profile', icon: Icons.person_rounded);
-      case '/admin':
-        return const _PageInfo(
-          title: 'Admin Panel',
-          icon: Icons.admin_panel_settings_rounded,
-        );
       default:
         return const _PageInfo(title: 'Lobby', icon: Icons.home_rounded);
     }

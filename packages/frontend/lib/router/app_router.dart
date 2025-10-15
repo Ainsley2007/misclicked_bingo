@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/features/auth/logic/auth_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:frontend/features/auth/presentation/login_screen.dart';
 import 'package:frontend/features/auth/presentation/profile_screen.dart';
 import 'package:frontend/features/game/presentation/game_screen.dart';
 import 'package:frontend/features/manage_teams/presentation/manage_teams_screen.dart';
+import 'package:frontend/features/game_creation/presentation/game_creation_screen.dart';
 import 'package:frontend/core/widgets/app_shell.dart';
 
 class AppRouter {
@@ -78,8 +80,19 @@ class AppRouter {
             ),
             GoRoute(
               path: '/admin',
+              redirect: (context, state) => '/admin/games',
+            ),
+            GoRoute(
+              path: '/admin/games',
               pageBuilder: (context, state) =>
                   _noTransitionPage(state: state, child: const AdminScreen()),
+            ),
+            GoRoute(
+              path: '/admin/games/create',
+              pageBuilder: (context, state) => _noTransitionPage(
+                state: state,
+                child: const GameCreationScreen(),
+              ),
             ),
           ],
         ),
@@ -107,7 +120,7 @@ class _GoRouterRefreshStream extends ChangeNotifier {
     _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
   }
 
-  late final _subscription;
+  late final StreamSubscription<dynamic> _subscription;
 
   @override
   void dispose() {

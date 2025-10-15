@@ -1,48 +1,73 @@
 import 'dart:io';
+import 'dart:developer' as developer;
 
 import 'package:backend/database.dart';
 import 'package:dart_frog/dart_frog.dart';
-import 'package:drift/drift.dart';
-import 'package:shared_models/shared_models.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
-    HttpMethod.get => _getAllUsers(context),
+    HttpMethod.get => _getUsers(context),
+    HttpMethod.delete => _deleteUser(context),
     _ => Response(statusCode: HttpStatus.methodNotAllowed),
   };
 }
 
-Future<Response> _getAllUsers(RequestContext context) async {
+Future<Response> _getUsers(RequestContext context) async {
   try {
     final db = context.read<AppDatabase>();
-    final users =
-        await (db.select(db.users)..orderBy([
-              (u) => OrderingTerm(expression: u.globalName),
-            ]))
-            .get();
-
-    final userDtos = users.map((user) {
-      return AppUser(
-        id: user.id,
-        discordId: user.discordId,
-        globalName: user.globalName,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-        role: UserRole.values.byName(user.role),
-        teamId: user.teamId,
-        gameId: user.gameId,
-      );
-    }).toList();
+    final users = await db.getAllUsers();
 
     return Response.json(
-      statusCode: HttpStatus.ok,
-      body: userDtos.map((u) => u.toJson()).toList(),
+      body: users
+          .map(
+            (u) => {
+              'id': u.id,
+              'discordId': u.discordId,
+              'globalName': u.globalName,
+              'username': u.username,
+              'email': u.email,
+              'avatar': u.avatar,
+              'role': u.role,
+              'teamId': u.teamId,
+              'gameId': u.gameId,
+            },
+          )
+          .toList(),
     );
   } catch (e) {
     return Response.json(
       statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to get users: $e'},
+      body: {'error': 'Failed to fetch users'},
+    );
+  }
+}
+
+Future<Response> _deleteUser(RequestContext context) async {
+  try {
+    final body = await context.request.json() as Map<String, dynamic>;
+    final userId = body['userId'] as String?;
+
+    if (userId == null || userId.trim().isEmpty) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'error': 'User ID is required'},
+      );
+    }
+
+    final db = context.read<AppDatabase>();
+    await db.deleteUser(userId);
+
+    return Response(statusCode: HttpStatus.noContent);
+  } catch (e, stackTrace) {
+    developer.log(
+      'Failed to delete user',
+      name: 'users',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return Response.json(
+      statusCode: HttpStatus.internalServerError,
+      body: {'error': 'Failed to delete user'},
     );
   }
 }

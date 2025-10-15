@@ -9,6 +9,8 @@ class Game extends Equatable {
   final String code;
   final String name;
   final int teamSize;
+  final bool hasChallenges;
+  final int boardSize;
   final DateTime createdAt;
 
   const Game({
@@ -16,6 +18,8 @@ class Game extends Equatable {
     required this.code,
     required this.name,
     required this.teamSize,
+    required this.hasChallenges,
+    required this.boardSize,
     required this.createdAt,
   });
 
@@ -23,7 +27,14 @@ class Game extends Equatable {
   Map<String, dynamic> toJson() => _$GameToJson(this);
 
   @override
-  List<Object?> get props => [id, code, name, teamSize];
+  List<Object?> get props => [
+    id,
+    code,
+    name,
+    teamSize,
+    hasChallenges,
+    boardSize,
+  ];
 }
 
 @JsonSerializable()

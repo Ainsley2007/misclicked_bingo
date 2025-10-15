@@ -1,0 +1,169 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/widgets/widgets.dart';
+import 'package:frontend/features/game_creation/logic/game_creation_bloc.dart';
+import 'package:frontend/features/game_creation/logic/game_creation_event.dart';
+import 'package:frontend/features/game_creation/logic/game_creation_state.dart';
+import 'package:frontend/features/game_creation/presentation/widgets/challenge_form_card.dart';
+
+class Step5Challenges extends StatelessWidget {
+  const Step5Challenges({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<GameCreationBloc, GameCreationState>(
+      builder: (context, state) {
+        final requiredTiles = state.boardSize * state.boardSize;
+        final totalUnlock = state.challenges.fold<int>(
+          0,
+          (sum, c) => sum + ((c['unlockAmount'] as int?) ?? 0),
+        );
+
+        return SectionCard(
+          icon: Icons.emoji_events_rounded,
+          title: 'Challenges',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Define challenges that teams must complete to unlock tiles',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: totalUnlock >= requiredTiles
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withOpacity(0.5)
+                      : Theme.of(
+                          context,
+                        ).colorScheme.errorContainer.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: totalUnlock >= requiredTiles
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.error,
+                    width: 2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      totalUnlock >= requiredTiles
+                          ? Icons.check_circle_rounded
+                          : Icons.warning_rounded,
+                      color: totalUnlock >= requiredTiles
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Total unlock points: $totalUnlock / $requiredTiles required',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (state.validationError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  state.validationError!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              if (state.challenges.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.emoji_events_outlined,
+                          size: 48,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No challenges yet',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: state.challenges.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    return ChallengeFormCard(
+                      index: index,
+                      data: state.challenges[index],
+                      onUpdate: (data) {
+                        context.read<GameCreationBloc>().add(
+                          ChallengeUpdated(index, data),
+                        );
+                      },
+                      onRemove: () {
+                        context.read<GameCreationBloc>().add(
+                          ChallengeRemoved(index),
+                        );
+                      },
+                    );
+                  },
+                ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  context.read<GameCreationBloc>().add(const ChallengeAdded());
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Add Challenge'),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      context.read<GameCreationBloc>().add(
+                        const PreviousStepRequested(),
+                      );
+                    },
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Back'),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<GameCreationBloc>().add(
+                        const NextStepRequested(),
+                      );
+                    },
+                    icon: const Icon(Icons.arrow_forward),
+                    label: const Text('Next'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

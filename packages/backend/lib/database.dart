@@ -25,6 +25,9 @@ class Games extends Table {
   TextColumn get code => text().unique()();
   TextColumn get name => text()();
   IntColumn get teamSize => integer().withDefault(const Constant(5))();
+  BoolColumn get hasChallenges =>
+      boolean().withDefault(const Constant(false))();
+  IntColumn get boardSize => integer().withDefault(const Constant(3))();
   TextColumn get createdAt => text()();
 
   @override
@@ -49,7 +52,60 @@ class TeamMembers extends Table {
   Set<Column> get primaryKey => {teamId, userId};
 }
 
-@DriftDatabase(tables: [Users, Games, Teams, TeamMembers])
+class Challenges extends Table {
+  TextColumn get id => text()();
+  TextColumn get gameId => text()();
+  TextColumn get title => text()();
+  TextColumn get description => text()();
+  TextColumn get imageUrl => text()();
+  IntColumn get unlockAmount => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class BingoTiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get gameId => text()();
+  TextColumn get title => text()();
+  TextColumn get description => text()();
+  TextColumn get imageUrl => text()();
+  IntColumn get position => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class TeamBoardState extends Table {
+  TextColumn get teamId => text()();
+  TextColumn get tileId => text()();
+  TextColumn get status => text()();
+
+  @override
+  Set<Column> get primaryKey => {teamId, tileId};
+}
+
+class TeamChallengeState extends Table {
+  TextColumn get teamId => text()();
+  TextColumn get challengeId => text()();
+  BoolColumn get completed => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {teamId, challengeId};
+}
+
+@DriftDatabase(
+  tables: [
+    Users,
+    Games,
+    Teams,
+    TeamMembers,
+    Challenges,
+    BingoTiles,
+    TeamBoardState,
+    TeamChallengeState,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
@@ -118,6 +174,8 @@ class AppDatabase extends _$AppDatabase {
     required String code,
     required String name,
     required int teamSize,
+    required bool hasChallenges,
+    required int boardSize,
     required DateTime createdAt,
   }) async {
     await into(games).insert(
@@ -126,6 +184,8 @@ class AppDatabase extends _$AppDatabase {
         code: Value(code),
         name: Value(name),
         teamSize: Value(teamSize),
+        hasChallenges: Value(hasChallenges),
+        boardSize: Value(boardSize),
         createdAt: Value(createdAt.toIso8601String()),
       ),
     );
@@ -224,5 +284,64 @@ class AppDatabase extends _$AppDatabase {
     }
 
     await (delete(teams)..where((t) => t.id.equals(teamId))).go();
+  }
+
+  Future<void> createChallenge({
+    required String id,
+    required String gameId,
+    required String title,
+    required String description,
+    required String imageUrl,
+    required int unlockAmount,
+  }) async {
+    await into(challenges).insert(
+      ChallengesCompanion(
+        id: Value(id),
+        gameId: Value(gameId),
+        title: Value(title),
+        description: Value(description),
+        imageUrl: Value(imageUrl),
+        unlockAmount: Value(unlockAmount),
+      ),
+    );
+  }
+
+  Future<List<Challenge>> getChallengesByGameId(String gameId) async {
+    final query = select(challenges)..where((t) => t.gameId.equals(gameId));
+    return query.get();
+  }
+
+  Future<void> createBingoTile({
+    required String id,
+    required String gameId,
+    required String title,
+    required String description,
+    required String imageUrl,
+    required int position,
+  }) async {
+    await into(bingoTiles).insert(
+      BingoTilesCompanion(
+        id: Value(id),
+        gameId: Value(gameId),
+        title: Value(title),
+        description: Value(description),
+        imageUrl: Value(imageUrl),
+        position: Value(position),
+      ),
+    );
+  }
+
+  Future<List<BingoTile>> getTilesByGameId(String gameId) async {
+    final query = select(bingoTiles)..where((t) => t.gameId.equals(gameId));
+    return query.get();
+  }
+
+  Future<List<User>> getAllUsers() async {
+    final query = select(users)..orderBy([(t) => OrderingTerm.asc(t.username)]);
+    return query.get();
+  }
+
+  Future<void> deleteUser(String userId) async {
+    await (delete(users)..where((t) => t.id.equals(userId))).go();
   }
 }

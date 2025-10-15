@@ -3,18 +3,29 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di.dart';
 import 'package:frontend/features/admin/logic/games_bloc.dart';
+import 'package:frontend/features/admin/logic/users_bloc.dart';
+import 'package:frontend/features/admin/logic/users_event.dart';
+import 'package:frontend/features/admin/logic/users_state.dart';
 import 'package:frontend/theme/app_theme.dart';
 import 'package:frontend/core/widgets/widgets.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<GamesBloc>()..add(const GamesLoadRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<GamesBloc>()..add(const GamesLoadRequested()),
+        ),
+        BlocProvider(
+          create: (_) => sl<UsersBloc>()..add(const UsersLoadRequested()),
+        ),
+      ],
       child: const _AdminScreenContent(),
     );
   }
@@ -28,129 +39,138 @@ class _AdminScreenContent extends StatefulWidget {
 }
 
 class _AdminScreenContentState extends State<_AdminScreenContent> {
-  final _gameNameController = TextEditingController();
-  final _teamSizeController = TextEditingController(text: '5');
-  final _formKey = GlobalKey<FormState>();
-
   @override
-  void dispose() {
-    _gameNameController.dispose();
-    _teamSizeController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<GamesBloc, GamesState>(
+          listener: (context, state) {
+            if (state.status == GamesStatus.error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.error ?? 'Games error'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<UsersBloc, UsersState>(
+          listener: (context, state) {
+            if (state.status == UsersStatus.error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.error ?? 'Users error'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        ),
+      ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 1200;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: isWide
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                SectionCard(
+                                  icon: Icons.add_circle_rounded,
+                                  title: 'Create New Game',
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'Set up a new bingo game with custom challenges and tiles',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 24),
+                                      FullWidthButton(
+                                        onPressed: () {
+                                          context.go('/admin/games/create');
+                                        },
+                                        icon: Icons.add_rounded,
+                                        label: 'Create New Game',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                const _GamesSection(),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(child: const _UsersSection()),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          SectionCard(
+                            icon: Icons.add_circle_rounded,
+                            title: 'Create New Game',
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Set up a new bingo game with custom challenges and tiles',
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 24),
+                                FullWidthButton(
+                                  onPressed: () {
+                                    context.go('/admin/games/create');
+                                  },
+                                  icon: Icons.add_rounded,
+                                  label: 'Create New Game',
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const _GamesSection(),
+                          const SizedBox(height: 24),
+                          const _UsersSection(),
+                        ],
+                      ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
+}
+
+class _GamesSection extends StatelessWidget {
+  const _GamesSection();
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<GamesBloc, GamesState>(
-      listener: (context, state) {
-        if (state.status == GamesStatus.created && state.createdGame != null) {
-          _showGameCreatedDialog(context, state.createdGame!);
-          _gameNameController.clear();
-          _teamSizeController.text = '5';
-        } else if (state.status == GamesStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.error ?? 'An error occurred'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
+    return BlocBuilder<GamesBloc, GamesState>(
       builder: (context, state) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SectionCard(
-                    icon: Icons.add_circle_rounded,
-                    title: 'Create New Game',
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: _gameNameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Game Name',
-                              prefixIcon: Icon(Icons.sports_esports_rounded),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a game name';
-                              }
-                              return null;
-                            },
-                            enabled: state.status != GamesStatus.creating,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _teamSizeController,
-                            decoration: const InputDecoration(
-                              labelText: 'Team Size',
-                              prefixIcon: Icon(Icons.groups_rounded),
-                              helperText: 'Maximum number of players per team',
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a team size';
-                              }
-                              final size = int.tryParse(value);
-                              if (size == null || size < 1 || size > 50) {
-                                return 'Team size must be between 1 and 50';
-                              }
-                              return null;
-                            },
-                            enabled: state.status != GamesStatus.creating,
-                          ),
-                          const SizedBox(height: 24),
-                          FullWidthButton(
-                            onPressed: state.status == GamesStatus.creating
-                                ? null
-                                : () {
-                                    if (_formKey.currentState!.validate()) {
-                                      final teamSize = int.parse(
-                                        _teamSizeController.text.trim(),
-                                      );
-                                      context.read<GamesBloc>().add(
-                                        GamesCreateRequested(
-                                          _gameNameController.text.trim(),
-                                          teamSize,
-                                        ),
-                                      );
-                                    }
-                                  },
-                            icon: state.status == GamesStatus.creating
-                                ? Icons.hourglass_empty
-                                : Icons.add_rounded,
-                            label: state.status == GamesStatus.creating
-                                ? 'Creating...'
-                                : 'Create Game',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SectionCard(
-                    icon: Icons.list_rounded,
-                    title: 'Manage Games',
-                    child: _buildGamesList(state),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return SectionCard(
+          icon: Icons.list_rounded,
+          title: 'Manage Games',
+          child: _buildContent(context, state),
         );
       },
     );
   }
 
-  Widget _buildGamesList(GamesState state) {
+  Widget _buildContent(BuildContext context, GamesState state) {
     if (state.status == GamesStatus.loading ||
         state.status == GamesStatus.initial) {
       return const Center(
@@ -195,92 +215,148 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
       itemBuilder: (context, index) => _GameListItem(game: state.games[index]),
     );
   }
+}
 
-  void _showGameCreatedDialog(BuildContext context, Game game) {
-    final accent = AppColors.of(context).accent;
+class _UsersSection extends StatelessWidget {
+  const _UsersSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<UsersBloc, UsersState>(
+      builder: (context, state) {
+        return SectionCard(
+          icon: Icons.people_rounded,
+          title: 'Manage Users',
+          child: _buildContent(context, state),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, UsersState state) {
+    if (state.status == UsersStatus.loading ||
+        state.status == UsersStatus.initial) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (state.users.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              Icon(
+                Icons.people_outline,
+                size: 48,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No users yet',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: state.users.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (context, index) => _UserListItem(user: state.users[index]),
+    );
+  }
+}
+
+class _UserListItem extends StatelessWidget {
+  const _UserListItem({required this.user});
+
+  final AppUser user;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = user.username ?? user.globalName ?? 'Unknown';
+    final isAdmin = user.role == UserRole.admin;
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      leading: CircleAvatar(
+        backgroundImage: user.avatarUrl != null
+            ? NetworkImage(user.avatarUrl!)
+            : null,
+        child: user.avatarUrl == null
+            ? Text(displayName[0].toUpperCase())
+            : null,
+      ),
+      title: Text(
+        displayName,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        isAdmin ? 'Admin' : 'User',
+        style: TextStyle(
+          color: isAdmin
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: isAdmin ? FontWeight.w600 : null,
+        ),
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline_rounded),
+        tooltip: 'Delete user',
+        color: Colors.red,
+        onPressed: () => _showDeleteDialog(context),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    final displayName = user.username ?? user.globalName ?? 'Unknown';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
           children: [
-            Icon(Icons.check_circle_rounded, color: accent),
-            const SizedBox(width: 12),
-            const Text('Game Created!'),
+            Icon(Icons.warning_rounded, color: Colors.red),
+            SizedBox(width: 12),
+            Text('Delete User?'),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Game "${game.name}" has been created successfully.',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Game Code',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        game.code,
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 8,
-                              color: accent,
-                              fontFeatures: [
-                                const FontFeature.tabularFigures(),
-                              ],
-                            ),
-                      ),
-                      const SizedBox(width: 12),
-                      IconButton(
-                        icon: const Icon(Icons.copy_rounded),
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: game.code));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Code copied to clipboard!'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        tooltip: 'Copy code',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Share this code with captains so they can join the game.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        content: Text(
+          'Are you sure you want to delete "$displayName"? This action cannot be undone.',
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<UsersBloc>().add(UsersDeleteRequested(user.id));
+              Navigator.of(dialogContext).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('User "$displayName" deleted'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
           ),
         ],
       ),

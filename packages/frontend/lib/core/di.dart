@@ -3,6 +3,12 @@ import 'package:get_it/get_it.dart';
 import 'package:frontend/features/auth/logic/auth_bloc.dart';
 import 'package:frontend/features/admin/logic/games_bloc.dart';
 import 'package:frontend/features/admin/data/games_repository.dart';
+import 'package:frontend/features/lobby/data/lobby_repository.dart';
+import 'package:frontend/features/lobby/logic/join_game_bloc.dart';
+import 'package:frontend/features/game/data/game_repository.dart';
+import 'package:frontend/features/game/logic/game_bloc.dart';
+import 'package:frontend/features/manage_teams/data/teams_repository.dart';
+import 'package:frontend/features/manage_teams/logic/manage_teams_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -33,8 +39,19 @@ void setupDi() {
 
   // Repositories
   sl.registerLazySingleton<GamesRepository>(() => GamesRepository(sl<Dio>()));
+  sl.registerLazySingleton<LobbyRepository>(() => LobbyRepository(sl<Dio>()));
+  sl.registerLazySingleton<GameRepository>(() => GameRepository(sl<Dio>()));
+  sl.registerLazySingleton<TeamsRepository>(() => TeamsRepository(sl<Dio>()));
 
   // BLoCs
   sl.registerLazySingleton<AuthBloc>(() => AuthBloc(sl<Dio>()));
   sl.registerFactory<GamesBloc>(() => GamesBloc(sl<GamesRepository>()));
+  sl.registerFactory<JoinGameBloc>(() => JoinGameBloc(sl<LobbyRepository>()));
+  sl.registerFactory<GameBloc>(() => GameBloc(sl<GameRepository>()));
+  sl.registerFactory<ManageTeamsBloc>(
+    () => ManageTeamsBloc(
+      teamsRepository: sl<TeamsRepository>(),
+      gameRepository: sl<GameRepository>(),
+    ),
+  );
 }

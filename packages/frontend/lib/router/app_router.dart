@@ -5,6 +5,8 @@ import 'package:frontend/features/admin/presentation/admin_screen.dart';
 import 'package:frontend/features/lobby/presentation/lobby_screen.dart';
 import 'package:frontend/features/auth/presentation/login_screen.dart';
 import 'package:frontend/features/auth/presentation/profile_screen.dart';
+import 'package:frontend/features/game/presentation/game_screen.dart';
+import 'package:frontend/features/manage_teams/presentation/manage_teams_screen.dart';
 import 'package:frontend/core/widgets/app_shell.dart';
 
 class AppRouter {
@@ -14,6 +16,7 @@ class AppRouter {
       refreshListenable: _GoRouterRefreshStream(authBloc.stream),
       redirect: (context, state) {
         final status = authBloc.state.status;
+        final user = authBloc.state.user;
         final isLoginRoute = state.matchedLocation == '/login';
 
         if (status == AuthStatus.unknown) {
@@ -25,6 +28,10 @@ class AppRouter {
         }
 
         if (status == AuthStatus.authenticated && isLoginRoute) {
+          // Redirect to game if user is in a game, otherwise lobby
+          if (user?.gameId != null) {
+            return '/game/${user!.gameId}';
+          }
           return '/lobby';
         }
 
@@ -46,6 +53,23 @@ class AppRouter {
               path: '/lobby',
               pageBuilder: (context, state) =>
                   _noTransitionPage(state: state, child: const LobbyScreen()),
+            ),
+            GoRoute(
+              path: '/game/:gameId',
+              pageBuilder: (context, state) {
+                final gameId = state.pathParameters['gameId']!;
+                return _noTransitionPage(
+                  state: state,
+                  child: GameScreen(gameId: gameId),
+                );
+              },
+            ),
+            GoRoute(
+              path: '/manage-teams',
+              pageBuilder: (context, state) => _noTransitionPage(
+                state: state,
+                child: const ManageTeamsScreen(),
+              ),
             ),
             GoRoute(
               path: '/profile',

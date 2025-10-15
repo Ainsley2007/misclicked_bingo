@@ -17,7 +17,10 @@ class GamesBloc extends Bloc<GamesEvent, GamesState> {
 
   final GamesRepository _repository;
 
-  Future<void> _onLoadRequested(GamesLoadRequested event, Emitter<GamesState> emit) async {
+  Future<void> _onLoadRequested(
+    GamesLoadRequested event,
+    Emitter<GamesState> emit,
+  ) async {
     emit(const GamesState.loading());
 
     try {
@@ -25,33 +28,59 @@ class GamesBloc extends Bloc<GamesEvent, GamesState> {
       emit(GamesState.loaded(games));
       developer.log('Loaded ${games.length} games', name: 'games');
     } catch (e, stackTrace) {
-      developer.log('Failed to load games', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
+      developer.log(
+        'Failed to load games',
+        name: 'games',
+        level: 1000,
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(GamesState.error('Failed to load games: $e'));
     }
   }
 
-  Future<void> _onCreateRequested(GamesCreateRequested event, Emitter<GamesState> emit) async {
+  Future<void> _onCreateRequested(
+    GamesCreateRequested event,
+    Emitter<GamesState> emit,
+  ) async {
     emit(GamesState.creating(state.games));
 
     try {
-      final game = await _repository.createGame(event.name);
+      final game = await _repository.createGame(event.name, event.teamSize);
       final updatedGames = [game, ...state.games];
       emit(GamesState.created(updatedGames, game));
       developer.log('Created game: ${game.name} (${game.code})', name: 'games');
     } catch (e, stackTrace) {
-      developer.log('Failed to create game', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
+      developer.log(
+        'Failed to create game',
+        name: 'games',
+        level: 1000,
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(GamesState.error('Failed to create game: $e'));
     }
   }
 
-  Future<void> _onDeleteRequested(GamesDeleteRequested event, Emitter<GamesState> emit) async {
+  Future<void> _onDeleteRequested(
+    GamesDeleteRequested event,
+    Emitter<GamesState> emit,
+  ) async {
     try {
       await _repository.deleteGame(event.gameId);
-      final updatedGames = state.games.where((g) => g.id != event.gameId).toList();
+      final updatedGames = state.games
+          .where((g) => g.id != event.gameId)
+          .toList();
       emit(GamesState.loaded(updatedGames));
       developer.log('Deleted game: ${event.gameId}', name: 'games');
     } catch (e, stackTrace) {
-      developer.log('Failed to delete game', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
+      developer.log(
+        'Failed to delete game',
+        name: 'games',
+        level: 1000,
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(GamesState.error('Failed to delete game: $e'));
     }
   }

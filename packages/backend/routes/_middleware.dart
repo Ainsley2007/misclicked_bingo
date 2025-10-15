@@ -50,9 +50,14 @@ Middleware _authMiddleware() {
         if (authToken != null) {
           final payload = JwtHelper.verify(authToken);
           if (payload != null) {
-            return handler(
-              context.provide<Map<String, dynamic>>(() => payload),
-            );
+            final userId = payload['sub'] as String?;
+            if (userId != null) {
+              return handler(
+                context
+                    .provide<Map<String, dynamic>>(() => payload)
+                    .provide<String>(() => userId),
+              );
+            }
           }
         }
       }

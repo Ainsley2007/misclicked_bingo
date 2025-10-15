@@ -18,6 +18,8 @@ dependencies:
   equatable: ^2.0.5
   drift: ^2.20.0
   sqlite3: ^2.4.0
+  shared_models:
+    path: ../shared_models
 
 dev_dependencies:
   dart_frog_lint: ^0.1.0

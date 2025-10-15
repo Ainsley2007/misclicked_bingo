@@ -26,6 +26,7 @@ Future<Response> _getGames(RequestContext context) async {
               'id': g.id,
               'code': g.code,
               'name': g.name,
+              'teamSize': g.teamSize,
               'createdAt': g.createdAt,
             },
           )
@@ -43,11 +44,19 @@ Future<Response> _createGame(RequestContext context) async {
   try {
     final body = await context.request.json() as Map<String, dynamic>;
     final name = body['name'] as String?;
+    final teamSize = body['teamSize'] as int? ?? 5;
 
     if (name == null || name.trim().isEmpty) {
       return Response.json(
         statusCode: HttpStatus.badRequest,
         body: {'error': 'Game name is required'},
+      );
+    }
+
+    if (teamSize < 1 || teamSize > 50) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'error': 'Team size must be between 1 and 50'},
       );
     }
 
@@ -60,6 +69,7 @@ Future<Response> _createGame(RequestContext context) async {
       id: id,
       code: code,
       name: name.trim(),
+      teamSize: teamSize,
       createdAt: now,
     );
 
@@ -69,6 +79,7 @@ Future<Response> _createGame(RequestContext context) async {
         'id': id,
         'code': code,
         'name': name.trim(),
+        'teamSize': teamSize,
         'createdAt': now.toIso8601String(),
       },
     );

@@ -61,9 +61,18 @@ class AppShell extends StatelessWidget {
   }
 
   _PageInfo _getPageInfo(String path) {
+    if (path.startsWith('/game/')) {
+      return const _PageInfo(title: 'Game', icon: Icons.sports_esports_rounded);
+    }
+
     switch (path) {
       case '/lobby':
         return const _PageInfo(title: 'Lobby', icon: Icons.home_rounded);
+      case '/manage-teams':
+        return const _PageInfo(
+          title: 'Manage Teams',
+          icon: Icons.groups_rounded,
+        );
       case '/profile':
         return const _PageInfo(title: 'Profile', icon: Icons.person_rounded);
       case '/admin':

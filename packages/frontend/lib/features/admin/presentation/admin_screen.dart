@@ -29,11 +29,13 @@ class _AdminScreenContent extends StatefulWidget {
 
 class _AdminScreenContentState extends State<_AdminScreenContent> {
   final _gameNameController = TextEditingController();
+  final _teamSizeController = TextEditingController(text: '5');
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _gameNameController.dispose();
+    _teamSizeController.dispose();
     super.dispose();
   }
 
@@ -44,6 +46,7 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
         if (state.status == GamesStatus.created && state.createdGame != null) {
           _showGameCreatedDialog(context, state.createdGame!);
           _gameNameController.clear();
+          _teamSizeController.text = '5';
         } else if (state.status == GamesStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -83,15 +86,40 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                             },
                             enabled: state.status != GamesStatus.creating,
                           ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _teamSizeController,
+                            decoration: const InputDecoration(
+                              labelText: 'Team Size',
+                              prefixIcon: Icon(Icons.groups_rounded),
+                              helperText: 'Maximum number of players per team',
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a team size';
+                              }
+                              final size = int.tryParse(value);
+                              if (size == null || size < 1 || size > 50) {
+                                return 'Team size must be between 1 and 50';
+                              }
+                              return null;
+                            },
+                            enabled: state.status != GamesStatus.creating,
+                          ),
                           const SizedBox(height: 24),
                           FullWidthButton(
                             onPressed: state.status == GamesStatus.creating
                                 ? null
                                 : () {
                                     if (_formKey.currentState!.validate()) {
+                                      final teamSize = int.parse(
+                                        _teamSizeController.text.trim(),
+                                      );
                                       context.read<GamesBloc>().add(
                                         GamesCreateRequested(
                                           _gameNameController.text.trim(),
+                                          teamSize,
                                         ),
                                       );
                                     }

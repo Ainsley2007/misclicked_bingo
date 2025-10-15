@@ -10,6 +10,7 @@ Game _$GameFromJson(Map<String, dynamic> json) => Game(
   id: json['id'] as String,
   code: json['code'] as String,
   name: json['name'] as String,
+  teamSize: (json['teamSize'] as num).toInt(),
   createdAt: DateTime.parse(json['createdAt'] as String),
 );
 
@@ -17,6 +18,7 @@ Map<String, dynamic> _$GameToJson(Game instance) => <String, dynamic>{
   'id': instance.id,
   'code': instance.code,
   'name': instance.name,
+  'teamSize': instance.teamSize,
   'createdAt': instance.createdAt.toIso8601String(),
 };
 

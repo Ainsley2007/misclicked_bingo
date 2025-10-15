@@ -62,3 +62,5 @@ packages/backend/**/*.g.dart
 *.mocks.dart
 
 *.db
+packages/backend/seed_test_users.dart
+packages/backend/seed_test_users.sql

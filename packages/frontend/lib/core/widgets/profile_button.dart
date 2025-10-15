@@ -36,20 +36,51 @@ class ProfileButton extends StatelessWidget {
         ),
       ),
       itemBuilder: (context) => [
-        PopupMenuItem<String>(
-          value: 'home',
-          child: Row(
-            children: [
-              Icon(
-                Icons.home_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const SizedBox(width: 12),
-              const Text('Home'),
-            ],
+        if (user.gameId == null)
+          PopupMenuItem<String>(
+            value: 'home',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.home_rounded,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(width: 12),
+                const Text('Home'),
+              ],
+            ),
           ),
-        ),
+        if (user.gameId != null)
+          PopupMenuItem<String>(
+            value: 'game',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.sports_esports_rounded,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(width: 12),
+                const Text('Game'),
+              ],
+            ),
+          ),
+        if (user.gameId != null && user.teamId != null)
+          PopupMenuItem<String>(
+            value: 'manage-teams',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.groups_rounded,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(width: 12),
+                const Text('Manage Teams'),
+              ],
+            ),
+          ),
         PopupMenuItem<String>(
           value: 'profile',
           child: Row(
@@ -87,15 +118,20 @@ class ProfileButton extends StatelessWidget {
 
         // Don't navigate if already on the target page
         if ((value == 'home' && currentLocation == '/lobby') ||
+            (value == 'game' && currentLocation.startsWith('/game/')) ||
+            (value == 'manage-teams' && currentLocation == '/manage-teams') ||
             (value == 'profile' && currentLocation == '/profile') ||
             (value == 'admin' && currentLocation == '/admin')) {
           return;
         }
 
         // Use neglect + go for all navigation to prevent adding to history stack
-        // This makes lobby the true home base
         if (value == 'home') {
           Router.neglect(context, () => context.go('/lobby'));
+        } else if (value == 'game' && user.gameId != null) {
+          Router.neglect(context, () => context.go('/game/${user.gameId}'));
+        } else if (value == 'manage-teams') {
+          Router.neglect(context, () => context.go('/manage-teams'));
         } else if (value == 'profile') {
           Router.neglect(context, () => context.go('/profile'));
         } else if (value == 'admin') {

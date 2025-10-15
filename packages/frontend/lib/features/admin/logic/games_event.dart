@@ -12,12 +12,13 @@ final class GamesLoadRequested extends GamesEvent {
 }
 
 final class GamesCreateRequested extends GamesEvent {
-  const GamesCreateRequested(this.name);
+  const GamesCreateRequested(this.name, this.teamSize);
 
   final String name;
+  final int teamSize;
 
   @override
-  List<Object?> get props => [name];
+  List<Object?> get props => [name, teamSize];
 }
 
 final class GamesDeleteRequested extends GamesEvent {
@@ -28,4 +29,3 @@ final class GamesDeleteRequested extends GamesEvent {
   @override
   List<Object?> get props => [gameId];
 }
-

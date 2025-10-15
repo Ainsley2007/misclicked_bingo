@@ -9,11 +9,16 @@ class GamesRepository {
   Future<List<Game>> getGames() async {
     final response = await _dio.get<List<dynamic>>('/games');
     if (response.data == null) return [];
-    return response.data!.map((json) => Game.fromJson(json as Map<String, dynamic>)).toList();
+    return response.data!
+        .map((json) => Game.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
-  Future<Game> createGame(String name) async {
-    final response = await _dio.post<Map<String, dynamic>>('/games', data: {'name': name});
+  Future<Game> createGame(String name, int teamSize) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/games',
+      data: {'name': name, 'teamSize': teamSize},
+    );
     if (response.data == null) {
       throw Exception('Failed to create game: null response');
     }

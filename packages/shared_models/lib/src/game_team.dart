@@ -8,15 +8,22 @@ class Game extends Equatable {
   final String id;
   final String code;
   final String name;
+  final int teamSize;
   final DateTime createdAt;
 
-  const Game({required this.id, required this.code, required this.name, required this.createdAt});
+  const Game({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.teamSize,
+    required this.createdAt,
+  });
 
   factory Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);
   Map<String, dynamic> toJson() => _$GameToJson(this);
 
   @override
-  List<Object?> get props => [id, code, name];
+  List<Object?> get props => [id, code, name, teamSize];
 }
 
 @JsonSerializable()
@@ -26,7 +33,12 @@ class Team extends Equatable {
   final String name;
   final String captainUserId;
 
-  const Team({required this.id, required this.gameId, required this.name, required this.captainUserId});
+  const Team({
+    required this.id,
+    required this.gameId,
+    required this.name,
+    required this.captainUserId,
+  });
 
   factory Team.fromJson(Map<String, dynamic> json) => _$TeamFromJson(json);
   Map<String, dynamic> toJson() => _$TeamToJson(this);

@@ -192,6 +192,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteGame(String id) async {
+    await (update(users)..where((t) => t.gameId.equals(id))).write(
+      const UsersCompanion(gameId: Value(null)),
+    );
     await (delete(games)..where((t) => t.id.equals(id))).go();
   }
 

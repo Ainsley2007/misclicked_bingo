@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/widgets/widgets.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_bloc.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_event.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_event.dart';
 import 'package:shared_models/shared_models.dart';
 
 class AvailableUsersSection extends StatelessWidget {

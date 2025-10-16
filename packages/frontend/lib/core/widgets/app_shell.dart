@@ -82,9 +82,9 @@ class AppShell extends StatelessWidget {
     switch (path) {
       case '/lobby':
         return const _PageInfo(title: 'Lobby', icon: Icons.home_rounded);
-      case '/manage-teams':
+      case '/manage-team':
         return const _PageInfo(
-          title: 'Manage Teams',
+          title: 'Manage Team',
           icon: Icons.groups_rounded,
         );
       case '/profile':

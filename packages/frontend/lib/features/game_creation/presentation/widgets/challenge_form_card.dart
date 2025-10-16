@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/core/utils/debouncer.dart';
 
 class ChallengeFormCard extends StatefulWidget {
   const ChallengeFormCard({
@@ -24,6 +25,7 @@ class _ChallengeFormCardState extends State<ChallengeFormCard> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _imageUrlController;
   late final TextEditingController _unlockAmountController;
+  final _debouncer = Debouncer(milliseconds: 500);
 
   @override
   void initState() {
@@ -48,15 +50,18 @@ class _ChallengeFormCardState extends State<ChallengeFormCard> {
     _descriptionController.dispose();
     _imageUrlController.dispose();
     _unlockAmountController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
   void _notifyUpdate() {
-    widget.onUpdate({
-      'title': _titleController.text,
-      'description': _descriptionController.text,
-      'imageUrl': _imageUrlController.text,
-      'unlockAmount': int.tryParse(_unlockAmountController.text) ?? 1,
+    _debouncer.run(() {
+      widget.onUpdate({
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'imageUrl': _imageUrlController.text,
+        'unlockAmount': int.tryParse(_unlockAmountController.text) ?? 1,
+      });
     });
   }
 

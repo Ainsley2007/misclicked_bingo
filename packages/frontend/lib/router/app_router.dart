@@ -7,7 +7,7 @@ import 'package:frontend/features/lobby/presentation/lobby_screen.dart';
 import 'package:frontend/features/auth/presentation/login_screen.dart';
 import 'package:frontend/features/auth/presentation/profile_screen.dart';
 import 'package:frontend/features/game/presentation/game_screen.dart';
-import 'package:frontend/features/manage_teams/presentation/manage_teams_screen.dart';
+import 'package:frontend/features/manage_team/presentation/manage_team_screen.dart';
 import 'package:frontend/features/game_creation/presentation/game_creation_screen.dart';
 import 'package:frontend/core/widgets/app_shell.dart';
 
@@ -67,10 +67,10 @@ class AppRouter {
               },
             ),
             GoRoute(
-              path: '/manage-teams',
+              path: '/manage-team',
               pageBuilder: (context, state) => _noTransitionPage(
                 state: state,
-                child: const ManageTeamsScreen(),
+                child: const ManageTeamScreen(),
               ),
             ),
             GoRoute(

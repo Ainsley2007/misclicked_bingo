@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di.dart';
 import 'package:frontend/features/auth/logic/auth_bloc.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_bloc.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_event.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_state.dart';
-import 'package:frontend/features/manage_teams/presentation/widgets/available_users_section.dart';
-import 'package:frontend/features/manage_teams/presentation/widgets/team_members_section.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_event.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_state.dart';
+import 'package:frontend/features/manage_team/presentation/widgets/available_users_section.dart';
+import 'package:frontend/features/manage_team/presentation/widgets/team_members_section.dart';
 
-class ManageTeamsScreen extends StatelessWidget {
-  const ManageTeamsScreen({super.key});
+class ManageTeamScreen extends StatelessWidget {
+  const ManageTeamScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

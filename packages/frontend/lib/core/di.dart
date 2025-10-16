@@ -9,8 +9,8 @@ import 'package:frontend/features/lobby/data/lobby_repository.dart';
 import 'package:frontend/features/lobby/logic/join_game_bloc.dart';
 import 'package:frontend/features/game/data/game_repository.dart';
 import 'package:frontend/features/game/logic/game_bloc.dart';
-import 'package:frontend/features/manage_teams/data/teams_repository.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_bloc.dart';
+import 'package:frontend/features/manage_team/data/teams_repository.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
 import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_bloc.dart';
 

@@ -68,7 +68,7 @@ class ProfileButton extends StatelessWidget {
           ),
         if (user.gameId != null && user.teamId != null)
           PopupMenuItem<String>(
-            value: 'manage-teams',
+            value: 'manage-team',
             child: Row(
               children: [
                 Icon(
@@ -77,7 +77,7 @@ class ProfileButton extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 const SizedBox(width: 12),
-                const Text('Manage Teams'),
+                const Text('Manage Team'),
               ],
             ),
           ),
@@ -119,7 +119,7 @@ class ProfileButton extends StatelessWidget {
         // Don't navigate if already on the target page
         if ((value == 'home' && currentLocation == '/lobby') ||
             (value == 'game' && currentLocation.startsWith('/game/')) ||
-            (value == 'manage-teams' && currentLocation == '/manage-teams') ||
+            (value == 'manage-team' && currentLocation == '/manage-team') ||
             (value == 'profile' && currentLocation == '/profile') ||
             (value == 'admin' && currentLocation == '/admin')) {
           return;
@@ -130,8 +130,8 @@ class ProfileButton extends StatelessWidget {
           Router.neglect(context, () => context.go('/lobby'));
         } else if (value == 'game' && user.gameId != null) {
           Router.neglect(context, () => context.go('/game/${user.gameId}'));
-        } else if (value == 'manage-teams') {
-          Router.neglect(context, () => context.go('/manage-teams'));
+        } else if (value == 'manage-team') {
+          Router.neglect(context, () => context.go('/manage-team'));
         } else if (value == 'profile') {
           Router.neglect(context, () => context.go('/profile'));
         } else if (value == 'admin') {

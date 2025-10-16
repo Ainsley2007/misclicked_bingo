@@ -162,10 +162,9 @@ class _BoardSizeCard extends StatelessWidget {
                         color: isSelected
                             ? Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.3)
-                            : Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant.withOpacity(0.2),
+                              ).colorScheme.primary.withValues(alpha: 0.3)
+                            : Theme.of(context).colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),

@@ -36,10 +36,10 @@ class Step5Challenges extends StatelessWidget {
                   color: totalUnlock >= requiredTiles
                       ? Theme.of(
                           context,
-                        ).colorScheme.primaryContainer.withOpacity(0.5)
+                        ).colorScheme.primaryContainer.withValues(alpha: 0.5)
                       : Theme.of(
                           context,
-                        ).colorScheme.errorContainer.withOpacity(0.5),
+                        ).colorScheme.errorContainer.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: totalUnlock >= requiredTiles
@@ -89,7 +89,7 @@ class Step5Challenges extends StatelessWidget {
                           size: 48,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(

@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/game/data/game_repository.dart';
-import 'package:frontend/features/manage_teams/data/teams_repository.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_event.dart';
-import 'package:frontend/features/manage_teams/logic/manage_teams_state.dart';
+import 'package:frontend/features/manage_team/data/teams_repository.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_event.dart';
+import 'package:frontend/features/manage_team/logic/manage_teams_state.dart';
 
 class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
   ManageTeamsBloc({

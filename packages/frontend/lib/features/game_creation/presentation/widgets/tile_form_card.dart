@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/utils/debouncer.dart';
 
 class TileFormCard extends StatefulWidget {
   const TileFormCard({
@@ -22,6 +23,7 @@ class _TileFormCardState extends State<TileFormCard> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _imageUrlController;
+  final _debouncer = Debouncer(milliseconds: 500);
 
   @override
   void initState() {
@@ -42,14 +44,17 @@ class _TileFormCardState extends State<TileFormCard> {
     _titleController.dispose();
     _descriptionController.dispose();
     _imageUrlController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
   void _notifyUpdate() {
-    widget.onUpdate({
-      'title': _titleController.text,
-      'description': _descriptionController.text,
-      'imageUrl': _imageUrlController.text,
+    _debouncer.run(() {
+      widget.onUpdate({
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'imageUrl': _imageUrlController.text,
+      });
     });
   }
 

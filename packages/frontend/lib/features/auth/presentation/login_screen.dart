@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/auth/logic/auth_bloc.dart';
+import 'package:frontend/core/services/auth_service.dart';
 import 'package:frontend/core/di.dart';
 import 'package:frontend/theme/app_theme.dart';
 import 'package:web/web.dart' as web;
@@ -63,7 +63,7 @@ class LoginScreen extends StatelessWidget {
   }
 
   void _loginWithDiscord(BuildContext context) {
-    final loginUrl = sl<AuthBloc>().getLoginUrl();
+    final loginUrl = sl<AuthService>().getLoginUrl();
     web.window.location.href = loginUrl;
   }
 }

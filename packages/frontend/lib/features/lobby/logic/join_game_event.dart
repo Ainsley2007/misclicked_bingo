@@ -1,10 +1,5 @@
-import 'package:equatable/equatable.dart';
-
-sealed class JoinGameEvent extends Equatable {
+sealed class JoinGameEvent {
   const JoinGameEvent();
-
-  @override
-  List<Object?> get props => [];
 }
 
 final class JoinGameRequested extends JoinGameEvent {
@@ -12,7 +7,4 @@ final class JoinGameRequested extends JoinGameEvent {
 
   final String code;
   final String teamName;
-
-  @override
-  List<Object?> get props => [code, teamName];
 }

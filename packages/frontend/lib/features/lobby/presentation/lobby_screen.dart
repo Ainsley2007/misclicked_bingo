@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di.dart';
-import 'package:frontend/features/auth/logic/auth_bloc.dart';
+import 'package:frontend/core/services/auth_service.dart';
 import 'package:frontend/features/lobby/logic/join_game_bloc.dart';
 import 'package:frontend/features/lobby/logic/join_game_event.dart';
 import 'package:frontend/features/lobby/logic/join_game_state.dart';
@@ -14,9 +14,11 @@ class LobbyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        final user = state.user;
+    return StreamBuilder<AuthState>(
+      stream: sl<AuthService>().authStream,
+      initialData: sl<AuthService>().currentState,
+      builder: (context, snapshot) {
+        final user = snapshot.data?.user;
         if (user == null) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -61,16 +63,15 @@ class _JoinGameViewState extends State<_JoinGameView> {
   Widget build(BuildContext context) {
     return BlocListener<JoinGameBloc, JoinGameState>(
       listener: (context, state) {
-        if (state.status == JoinGameStatus.success && state.game != null) {
-          context.read<AuthBloc>().checkAuth();
-          context.go('/game/${state.game!.id}');
-        } else if (state.status == JoinGameStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage ?? 'Failed to join game'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
+        switch (state) {
+          case JoinGameSuccess(:final game):
+            sl<AuthService>().checkAuth();
+            context.go('/game/${game.id}');
+          case JoinGameError(:final message):
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error));
+          case JoinGameInitial():
+          case JoinGameLoading():
+            break;
         }
       },
       child: Center(
@@ -87,54 +88,32 @@ class _JoinGameViewState extends State<_JoinGameView> {
                     children: [
                       TextField(
                         controller: _codeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Game Code',
-                          prefixIcon: Icon(Icons.tag_rounded),
-                        ),
+                        decoration: const InputDecoration(labelText: 'Game Code', prefixIcon: Icon(Icons.tag_rounded)),
                         maxLength: 6,
                         textInputAction: TextInputAction.next,
-                        enabled: state.status != JoinGameStatus.loading,
+                        enabled: state is! JoinGameLoading,
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: _teamNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Team Name',
-                          prefixIcon: Icon(Icons.people_rounded),
-                        ),
-                        enabled: state.status != JoinGameStatus.loading,
+                        decoration: const InputDecoration(labelText: 'Team Name', prefixIcon: Icon(Icons.people_rounded)),
+                        enabled: state is! JoinGameLoading,
                       ),
                       const SizedBox(height: 24),
                       FullWidthButton(
-                        onPressed: state.status == JoinGameStatus.loading
+                        onPressed: state is JoinGameLoading
                             ? null
                             : () {
                                 final code = _codeController.text.trim();
-                                final teamName = _teamNameController.text
-                                    .trim();
+                                final teamName = _teamNameController.text.trim();
                                 if (code.isEmpty || teamName.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Please fill in all fields',
-                                      ),
-                                    ),
-                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in all fields')));
                                   return;
                                 }
-                                context.read<JoinGameBloc>().add(
-                                  JoinGameRequested(
-                                    code: code,
-                                    teamName: teamName,
-                                  ),
-                                );
+                                context.read<JoinGameBloc>().add(JoinGameRequested(code: code, teamName: teamName));
                               },
-                        icon: state.status == JoinGameStatus.loading
-                            ? null
-                            : Icons.login_rounded,
-                        label: state.status == JoinGameStatus.loading
-                            ? 'Joining...'
-                            : 'Join Game',
+                        icon: state is JoinGameLoading ? null : Icons.login_rounded,
+                        label: state is JoinGameLoading ? 'Joining...' : 'Join Game',
                       ),
                     ],
                   );

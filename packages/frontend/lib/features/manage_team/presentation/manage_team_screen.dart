@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di.dart';
-import 'package:frontend/features/auth/logic/auth_bloc.dart';
+import 'package:frontend/core/services/auth_service.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_event.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_state.dart';
@@ -13,21 +13,17 @@ class ManageTeamScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, authState) {
-        final user = authState.user;
+    return StreamBuilder<AuthState>(
+      stream: sl<AuthService>().authStream,
+      initialData: sl<AuthService>().currentState,
+      builder: (context, snapshot) {
+        final user = snapshot.data?.user;
         if (user == null || user.teamId == null || user.gameId == null) {
           return const Center(child: Text('You are not part of a team'));
         }
 
         return BlocProvider(
-          create: (_) => sl<ManageTeamsBloc>()
-            ..add(
-              ManageTeamsLoadRequested(
-                teamId: user.teamId!,
-                gameId: user.gameId!,
-              ),
-            ),
+          create: (_) => sl<ManageTeamsBloc>()..add(ManageTeamsLoadRequested(teamId: user.teamId!, gameId: user.gameId!)),
           child: _ManageTeamsView(teamId: user.teamId!, currentUserId: user.id),
         );
       },
@@ -45,28 +41,20 @@ class _ManageTeamsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ManageTeamsBloc, ManageTeamsState>(
       builder: (context, state) {
-        if (state.status == ManageTeamsStatus.loading) {
+        if (state is ManageTeamsInitial || state is ManageTeamsLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (state.status == ManageTeamsStatus.error) {
+        if (state is ManageTeamsError) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Error: ${state.errorMessage}',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+                Text('Error: ${state.message}', style: TextStyle(color: Theme.of(context).colorScheme.error)),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: () {
-                    context.read<ManageTeamsBloc>().add(
-                      ManageTeamsLoadRequested(
-                        teamId: teamId,
-                        gameId: state.gameId ?? '',
-                      ),
-                    );
+                    context.read<ManageTeamsBloc>().add(ManageTeamsLoadRequested(teamId: teamId, gameId: state.gameId ?? ''));
                   },
                   child: const Text('Retry'),
                 ),
@@ -96,26 +84,15 @@ class _ManageTeamsView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 24),
-                        Expanded(
-                          child: AvailableUsersSection(
-                            availableUsers: state.availableUsers,
-                          ),
-                        ),
+                        Expanded(child: AvailableUsersSection(availableUsers: state.availableUsers)),
                       ],
                     );
                   } else {
                     return Column(
                       children: [
-                        TeamMembersSection(
-                          teamName: state.teamName ?? 'Your Team',
-                          teamMembers: state.teamMembers,
-                          currentUserId: currentUserId,
-                          teamSize: state.teamSize,
-                        ),
+                        TeamMembersSection(teamName: state.teamName ?? 'Your Team', teamMembers: state.teamMembers, currentUserId: currentUserId, teamSize: state.teamSize),
                         const SizedBox(height: 24),
-                        AvailableUsersSection(
-                          availableUsers: state.availableUsers,
-                        ),
+                        AvailableUsersSection(availableUsers: state.availableUsers),
                       ],
                     );
                   }

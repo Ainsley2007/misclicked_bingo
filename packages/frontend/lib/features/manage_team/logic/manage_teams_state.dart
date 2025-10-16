@@ -1,63 +1,76 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_models/shared_models.dart';
 
-enum ManageTeamsStatus { initial, loading, loaded, error }
+@immutable
+sealed class ManageTeamsState {
+  const ManageTeamsState();
 
-final class ManageTeamsState extends Equatable {
-  const ManageTeamsState._({
-    required this.status,
-    this.teamId,
-    this.gameId,
-    this.teamName,
-    this.teamSize,
-    this.teamMembers = const [],
-    this.availableUsers = const [],
-    this.errorMessage,
-  });
+  String? get teamId => null;
+  String? get gameId => null;
+  String? get teamName => null;
+  int? get teamSize => null;
+  List<AppUser> get teamMembers => const [];
+  List<AppUser> get availableUsers => const [];
+}
 
-  const ManageTeamsState.initial() : this._(status: ManageTeamsStatus.initial);
+@immutable
+final class ManageTeamsInitial extends ManageTeamsState {
+  const ManageTeamsInitial();
+}
 
-  const ManageTeamsState.loading({String? teamId, String? gameId})
-    : this._(status: ManageTeamsStatus.loading, teamId: teamId, gameId: gameId);
+@immutable
+final class ManageTeamsLoading extends ManageTeamsState {
+  const ManageTeamsLoading({String? teamId, String? gameId}) : _teamId = teamId, _gameId = gameId;
 
-  const ManageTeamsState.loaded({
+  final String? _teamId;
+  final String? _gameId;
+
+  @override
+  String? get teamId => _teamId;
+  @override
+  String? get gameId => _gameId;
+}
+
+@immutable
+final class ManageTeamsLoaded extends ManageTeamsState {
+  const ManageTeamsLoaded({
     required String teamId,
     required String gameId,
     required String teamName,
     required int teamSize,
     required List<AppUser> teamMembers,
     required List<AppUser> availableUsers,
-  }) : this._(
-         status: ManageTeamsStatus.loaded,
-         teamId: teamId,
-         gameId: gameId,
-         teamName: teamName,
-         teamSize: teamSize,
-         teamMembers: teamMembers,
-         availableUsers: availableUsers,
-       );
+  }) : _teamId = teamId,
+       _gameId = gameId,
+       _teamName = teamName,
+       _teamSize = teamSize,
+       _teamMembers = teamMembers,
+       _availableUsers = availableUsers;
 
-  const ManageTeamsState.error(String message)
-    : this._(status: ManageTeamsStatus.error, errorMessage: message);
-
-  final ManageTeamsStatus status;
-  final String? teamId;
-  final String? gameId;
-  final String? teamName;
-  final int? teamSize;
-  final List<AppUser> teamMembers;
-  final List<AppUser> availableUsers;
-  final String? errorMessage;
+  final String _teamId;
+  final String _gameId;
+  final String _teamName;
+  final int _teamSize;
+  final List<AppUser> _teamMembers;
+  final List<AppUser> _availableUsers;
 
   @override
-  List<Object?> get props => [
-    status,
-    teamId,
-    gameId,
-    teamName,
-    teamSize,
-    teamMembers,
-    availableUsers,
-    errorMessage,
-  ];
+  String get teamId => _teamId;
+  @override
+  String get gameId => _gameId;
+  @override
+  String get teamName => _teamName;
+  @override
+  int get teamSize => _teamSize;
+  @override
+  List<AppUser> get teamMembers => _teamMembers;
+  @override
+  List<AppUser> get availableUsers => _availableUsers;
+}
+
+@immutable
+final class ManageTeamsError extends ManageTeamsState {
+  const ManageTeamsError(this.message);
+
+  final String message;
 }

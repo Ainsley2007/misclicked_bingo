@@ -1,31 +1,32 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_models/shared_models.dart';
 
-enum JoinGameStatus { initial, loading, success, error }
+@immutable
+sealed class JoinGameState {
+  const JoinGameState();
+}
 
-final class JoinGameState extends Equatable {
-  const JoinGameState._({
-    required this.status,
-    this.game,
-    this.team,
-    this.errorMessage,
-  });
+@immutable
+final class JoinGameInitial extends JoinGameState {
+  const JoinGameInitial();
+}
 
-  const JoinGameState.initial() : this._(status: JoinGameStatus.initial);
+@immutable
+final class JoinGameLoading extends JoinGameState {
+  const JoinGameLoading();
+}
 
-  const JoinGameState.loading() : this._(status: JoinGameStatus.loading);
+@immutable
+final class JoinGameSuccess extends JoinGameState {
+  const JoinGameSuccess({required this.game, required this.team});
 
-  const JoinGameState.success({required Game game, required Team team})
-    : this._(status: JoinGameStatus.success, game: game, team: team);
+  final Game game;
+  final Team team;
+}
 
-  const JoinGameState.error(String message)
-    : this._(status: JoinGameStatus.error, errorMessage: message);
+@immutable
+final class JoinGameError extends JoinGameState {
+  const JoinGameError(this.message);
 
-  final JoinGameStatus status;
-  final Game? game;
-  final Team? team;
-  final String? errorMessage;
-
-  @override
-  List<Object?> get props => [status, game, team, errorMessage];
+  final String message;
 }

@@ -1,25 +1,33 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_models/shared_models.dart';
 
-enum UsersStatus { initial, loading, loaded, error }
+@immutable
+sealed class UsersState {
+  const UsersState();
+  List<AppUser> get users => const [];
+}
 
-final class UsersState extends Equatable {
-  const UsersState._({required this.status, this.users = const [], this.error});
+@immutable
+final class UsersInitial extends UsersState {
+  const UsersInitial();
+}
 
-  const UsersState.initial() : this._(status: UsersStatus.initial);
+@immutable
+final class UsersLoading extends UsersState {
+  const UsersLoading();
+}
 
-  const UsersState.loading() : this._(status: UsersStatus.loading);
-
-  const UsersState.loaded(List<AppUser> users)
-    : this._(status: UsersStatus.loaded, users: users);
-
-  const UsersState.error(String error)
-    : this._(status: UsersStatus.error, error: error);
-
-  final UsersStatus status;
-  final List<AppUser> users;
-  final String? error;
+@immutable
+final class UsersLoaded extends UsersState {
+  const UsersLoaded(this._users);
+  final List<AppUser> _users;
 
   @override
-  List<Object?> get props => [status, users, error];
+  List<AppUser> get users => _users;
+}
+
+@immutable
+final class UsersError extends UsersState {
+  const UsersError(this.message);
+  final String message;
 }

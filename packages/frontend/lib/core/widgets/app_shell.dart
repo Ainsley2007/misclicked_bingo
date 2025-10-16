@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/features/auth/logic/auth_bloc.dart';
+import 'package:frontend/core/services/auth_service.dart';
+import 'package:frontend/core/di.dart';
 import 'package:frontend/core/widgets/profile_button.dart';
 
 class AppShell extends StatelessWidget {
@@ -11,9 +11,7 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentPath = GoRouter.of(
-      context,
-    ).routerDelegate.currentConfiguration.uri.path;
+    final currentPath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
     final pageInfo = _getPageInfo(currentPath);
 
     return Scaffold(
@@ -25,28 +23,17 @@ class AppShell extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    pageInfo.icon,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    size: 20,
-                  ),
+                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(10)),
+                  child: Icon(pageInfo.icon, color: Theme.of(context).colorScheme.onPrimaryContainer, size: 20),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  pageInfo.title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                  ),
-                ),
+                Text(pageInfo.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, letterSpacing: -0.5)),
                 const Spacer(),
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    final user = state.user;
+                StreamBuilder<AuthState>(
+                  stream: sl<AuthService>().authStream,
+                  initialData: sl<AuthService>().currentState,
+                  builder: (context, snapshot) {
+                    final user = snapshot.data?.user;
                     if (user == null) return const SizedBox.shrink();
                     return ProfileButton(user: user);
                   },
@@ -66,27 +53,18 @@ class AppShell extends StatelessWidget {
     }
 
     if (path.startsWith('/admin/games/create')) {
-      return const _PageInfo(
-        title: 'Create Game',
-        icon: Icons.add_circle_rounded,
-      );
+      return const _PageInfo(title: 'Create Game', icon: Icons.add_circle_rounded);
     }
 
     if (path.startsWith('/admin/games') || path.startsWith('/admin')) {
-      return const _PageInfo(
-        title: 'Admin Panel',
-        icon: Icons.admin_panel_settings_rounded,
-      );
+      return const _PageInfo(title: 'Admin Panel', icon: Icons.admin_panel_settings_rounded);
     }
 
     switch (path) {
       case '/lobby':
         return const _PageInfo(title: 'Lobby', icon: Icons.home_rounded);
       case '/manage-team':
-        return const _PageInfo(
-          title: 'Manage Team',
-          icon: Icons.groups_rounded,
-        );
+        return const _PageInfo(title: 'Manage Team', icon: Icons.groups_rounded);
       case '/profile':
         return const _PageInfo(title: 'Profile', icon: Icons.person_rounded);
       default:

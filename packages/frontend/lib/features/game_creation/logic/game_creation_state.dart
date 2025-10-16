@@ -1,9 +1,10 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_models/shared_models.dart';
 
 enum GameCreationStatus { editing, submitting, success, error }
 
-final class GameCreationState extends Equatable {
+@immutable
+final class GameCreationState {
   const GameCreationState._({
     required this.currentStep,
     required this.status,
@@ -18,8 +19,7 @@ final class GameCreationState extends Equatable {
     this.error,
   });
 
-  const GameCreationState.initial()
-    : this._(currentStep: 1, status: GameCreationStatus.editing);
+  const GameCreationState.initial() : this._(currentStep: 1, status: GameCreationStatus.editing);
 
   final int currentStep;
   final GameCreationStatus status;
@@ -85,10 +85,7 @@ final class GameCreationState extends Equatable {
     if (!hasChallenges) return true;
     if (challenges.isEmpty) return false;
 
-    final totalUnlock = challenges.fold<int>(
-      0,
-      (sum, c) => sum + ((c['unlockAmount'] as int?) ?? 0),
-    );
+    final totalUnlock = challenges.fold<int>(0, (sum, c) => sum + ((c['unlockAmount'] as int?) ?? 0));
     final requiredTiles = boardSize * boardSize;
     return totalUnlock >= requiredTiles;
   }
@@ -109,19 +106,4 @@ final class GameCreationState extends Equatable {
     if (!hasChallenges && currentStep > 4) return currentStep - 1;
     return currentStep;
   }
-
-  @override
-  List<Object?> get props => [
-    currentStep,
-    status,
-    gameName,
-    teamSize,
-    hasChallenges,
-    boardSize,
-    challenges,
-    tiles,
-    validationError,
-    createdGame,
-    error,
-  ];
 }

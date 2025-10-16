@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/features/auth/logic/auth_bloc.dart';
+import 'package:frontend/core/services/auth_service.dart';
 import 'package:frontend/features/admin/presentation/admin_screen.dart';
 import 'package:frontend/features/lobby/presentation/lobby_screen.dart';
 import 'package:frontend/features/auth/presentation/login_screen.dart';
@@ -12,13 +12,13 @@ import 'package:frontend/features/game_creation/presentation/game_creation_scree
 import 'package:frontend/core/widgets/app_shell.dart';
 
 class AppRouter {
-  static GoRouter router(AuthBloc authBloc) {
+  static GoRouter router(AuthService authService) {
     return GoRouter(
       initialLocation: '/lobby',
-      refreshListenable: _GoRouterRefreshStream(authBloc.stream),
+      refreshListenable: _GoRouterRefreshStream(authService.authStream),
       redirect: (context, state) {
-        final status = authBloc.state.status;
-        final user = authBloc.state.user;
+        final status = authService.currentState.status;
+        final user = authService.currentState.user;
         final isLoginRoute = state.matchedLocation == '/login';
 
         if (status == AuthStatus.unknown) {
@@ -42,8 +42,7 @@ class AppRouter {
       routes: [
         GoRoute(
           path: '/login',
-          pageBuilder: (context, state) =>
-              _noTransitionPage(state: state, child: const LoginScreen()),
+          pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LoginScreen()),
         ),
         ShellRoute(
           pageBuilder: (context, state, child) => _noTransitionPage(
@@ -53,8 +52,7 @@ class AppRouter {
           routes: [
             GoRoute(
               path: '/lobby',
-              pageBuilder: (context, state) =>
-                  _noTransitionPage(state: state, child: const LobbyScreen()),
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LobbyScreen()),
             ),
             GoRoute(
               path: '/game/:gameId',
@@ -68,31 +66,20 @@ class AppRouter {
             ),
             GoRoute(
               path: '/manage-team',
-              pageBuilder: (context, state) => _noTransitionPage(
-                state: state,
-                child: const ManageTeamScreen(),
-              ),
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const ManageTeamScreen()),
             ),
             GoRoute(
               path: '/profile',
-              pageBuilder: (context, state) =>
-                  _noTransitionPage(state: state, child: const ProfileScreen()),
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const ProfileScreen()),
             ),
-            GoRoute(
-              path: '/admin',
-              redirect: (context, state) => '/admin/games',
-            ),
+            GoRoute(path: '/admin', redirect: (context, state) => '/admin/games'),
             GoRoute(
               path: '/admin/games',
-              pageBuilder: (context, state) =>
-                  _noTransitionPage(state: state, child: const AdminScreen()),
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const AdminScreen()),
             ),
             GoRoute(
               path: '/admin/games/create',
-              pageBuilder: (context, state) => _noTransitionPage(
-                state: state,
-                child: const GameCreationScreen(),
-              ),
+              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const GameCreationScreen()),
             ),
           ],
         ),
@@ -100,15 +87,11 @@ class AppRouter {
     );
   }
 
-  static CustomTransitionPage<void> _noTransitionPage({
-    required GoRouterState state,
-    required Widget child,
-  }) {
+  static CustomTransitionPage<void> _noTransitionPage({required GoRouterState state, required Widget child}) {
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: child,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-          child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
       transitionDuration: Duration.zero,
     );
   }

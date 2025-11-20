@@ -19,7 +19,7 @@ class FullWidthButton extends StatelessWidget {
       child: icon != null
           ? ElevatedButton.icon(
               onPressed: onPressed,
-              icon: Icon(icon),
+              icon: Icon(icon, size: 20),
               label: Text(label),
             )
           : ElevatedButton(onPressed: onPressed, child: Text(label)),

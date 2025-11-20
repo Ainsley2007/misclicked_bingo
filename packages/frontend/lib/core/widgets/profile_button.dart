@@ -14,12 +14,24 @@ class ProfileButton extends StatelessWidget {
 
     return PopupMenuButton<String>(
       tooltip: '',
-      offset: const Offset(0, 64),
+      offset: const Offset(0, 54),
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: Theme.of(context).dividerColor,
+        ),
+      ),
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+          ),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 8,
@@ -28,85 +40,89 @@ class ProfileButton extends StatelessWidget {
             _buildUserInfo(context, accent),
             Icon(
               Icons.arrow_drop_down,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              size: 20,
             ),
           ],
         ),
       ),
       itemBuilder: (context) => [
         if (user.gameId == null)
-          PopupMenuItem<String>(
-            value: 'home',
-            child: Row(
-              children: [
-                Icon(
-                  Icons.home_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                const SizedBox(width: 12),
-                const Text('Home'),
-              ],
-            ),
+        PopupMenuItem<String>(
+          value: 'home',
+          height: 40,
+          child: Row(
+            children: [
+              Icon(
+                Icons.home_rounded,
+                size: 18,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 12),
+              Text('Home', style: const TextStyle(fontSize: 14)),
+            ],
           ),
+        ),
         if (user.gameId != null)
           PopupMenuItem<String>(
             value: 'game',
+            height: 40,
             child: Row(
               children: [
                 Icon(
                   Icons.sports_esports_rounded,
-                  size: 20,
+                  size: 18,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 const SizedBox(width: 12),
-                const Text('Game'),
+                Text('Game', style: const TextStyle(fontSize: 14)),
               ],
             ),
           ),
         if (user.gameId != null && user.teamId != null)
           PopupMenuItem<String>(
             value: 'manage-team',
+            height: 40,
             child: Row(
               children: [
                 Icon(
                   Icons.groups_rounded,
-                  size: 20,
+                  size: 18,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 const SizedBox(width: 12),
-                const Text('Manage Team'),
+                Text('Manage Team', style: const TextStyle(fontSize: 14)),
               ],
             ),
           ),
         PopupMenuItem<String>(
           value: 'profile',
+          height: 40,
           child: Row(
             children: [
               Icon(
                 Icons.person_rounded,
-                size: 20,
+                size: 18,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
               const SizedBox(width: 12),
-              const Text('Profile'),
+              Text('Profile', style: const TextStyle(fontSize: 14)),
             ],
           ),
         ),
         if (user.role == UserRole.admin)
           PopupMenuItem<String>(
             value: 'admin',
+            height: 40,
             child: Row(
               children: [
                 Icon(
                   Icons.admin_panel_settings_rounded,
-                  size: 20,
+                  size: 18,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 const SizedBox(width: 12),
-                const Text('Admin Panel'),
+                Text('Admin Panel', style: const TextStyle(fontSize: 14)),
               ],
             ),
           ),
@@ -144,7 +160,7 @@ class ProfileButton extends StatelessWidget {
   Widget _buildAvatar(Color accent) {
     if (user.avatarUrl != null) {
       return CircleAvatar(
-        radius: 16,
+        radius: 14,
         backgroundImage: NetworkImage(user.avatarUrl!),
         backgroundColor: accent,
         onBackgroundImageError: (exception, stackTrace) {
@@ -161,15 +177,15 @@ class ProfileButton extends StatelessWidget {
         ),
       ),
       child: CircleAvatar(
-        radius: 16,
+        radius: 14,
         backgroundColor: Colors.transparent,
         child: Text(
           user.globalName?.substring(0, 1).toUpperCase() ??
               user.username?.substring(0, 1).toUpperCase() ??
               'U',
           style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
         ),
@@ -184,17 +200,19 @@ class ProfileButton extends StatelessWidget {
       children: [
         Text(
           user.globalName ?? user.username ?? 'Unknown',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
         ),
         Text(
           user.role.name.toUpperCase(),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: accent,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
+                color: accent,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                fontSize: 10,
+              ),
         ),
       ],
     );

@@ -16,20 +16,20 @@ class SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (title != null) ...[
               _SectionHeader(icon: icon, title: title!),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
             ] else ...[
               Icon(
                 icon,
                 color: Theme.of(context).colorScheme.primary,
-                size: 36,
+                size: 28,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
             ],
             child,
           ],
@@ -49,13 +49,14 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 32),
-        const SizedBox(width: 16),
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+        const SizedBox(width: 12),
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
         ),
       ],
     );

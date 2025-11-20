@@ -26,29 +26,33 @@ class LoginScreen extends StatelessWidget {
             child: Card(
               margin: const EdgeInsets.all(24),
               child: Padding(
-                padding: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(color: accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-                      child: Icon(Icons.grid_3x3_rounded, size: 64, color: accent),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: accent.withValues(alpha: 0.2)),
+                      ),
+                      child: Icon(Icons.grid_3x3_rounded, size: 48, color: accent),
                     ),
-                    const SizedBox(height: 32),
-                    Text('Misclicked Bingo', style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, letterSpacing: -0.5)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 24),
+                    Text('Misclicked Bingo', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5)),
+                    const SizedBox(height: 8),
                     Text(
                       'Sign in with Discord to continue',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () => _loginWithDiscord(context),
-                        icon: const Icon(Icons.discord, size: 24),
+                        icon: const Icon(Icons.discord, size: 20),
                         label: const Text('Continue with Discord'),
                       ),
                     ),

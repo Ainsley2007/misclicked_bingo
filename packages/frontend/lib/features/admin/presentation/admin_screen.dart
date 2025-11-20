@@ -59,7 +59,7 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
           final isWide = constraints.maxWidth > 1200;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(24),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1600),
@@ -75,8 +75,14 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                                   title: 'Create New Game',
                                   child: Column(
                                     children: [
-                                      Text('Set up a new bingo game with custom challenges and tiles', style: Theme.of(context).textTheme.bodyLarge, textAlign: TextAlign.center),
-                                      const SizedBox(height: 24),
+                                      Text(
+                                        'Set up a new bingo game with custom challenges and tiles',
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                            ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 20),
                                       FullWidthButton(
                                         onPressed: () {
                                           context.go('/admin/games/create');
@@ -87,12 +93,12 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 20),
                                 const _GamesSection(),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 24),
+                          const SizedBox(width: 20),
                           Expanded(child: const _UsersSection()),
                         ],
                       )
@@ -229,17 +235,27 @@ class _UserListItem extends StatelessWidget {
     final isAdmin = user.role == UserRole.admin;
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: CircleAvatar(
+        radius: 20,
         backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-        child: user.avatarUrl == null ? Text(displayName[0].toUpperCase()) : null,
+        child: user.avatarUrl == null ? Text(displayName[0].toUpperCase(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)) : null,
       ),
-      title: Text(displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(displayName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
       subtitle: Text(
         isAdmin ? 'Admin' : 'User',
-        style: TextStyle(color: isAdmin ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: isAdmin ? FontWeight.w600 : null),
+        style: TextStyle(
+          color: isAdmin ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: isAdmin ? FontWeight.w600 : FontWeight.w500,
+          fontSize: 13,
+        ),
       ),
-      trailing: IconButton(icon: const Icon(Icons.delete_outline_rounded), tooltip: 'Delete user', color: Colors.red, onPressed: () => _showDeleteDialog(context)),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline_rounded, size: 20),
+        tooltip: 'Delete user',
+        color: Colors.red.shade400,
+        onPressed: () => _showDeleteDialog(context),
+      ),
     );
   }
 
@@ -285,31 +301,51 @@ class _GameListItem extends StatelessWidget {
     final dateFormat = DateFormat('MMM d, y • h:mm a');
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-        child: Icon(Icons.grid_3x3_rounded, color: accent),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: accent.withValues(alpha: 0.2)),
+        ),
+        child: Icon(Icons.grid_3x3_rounded, color: accent, size: 20),
       ),
-      title: Text(game.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(game.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: accent.withValues(alpha: 0.3)),
+                ),
                 child: Text(
                   game.code,
-                  style: TextStyle(color: accent, fontWeight: FontWeight.bold, letterSpacing: 2, fontFeatures: [const FontFeature.tabularFigures()]),
+                  style: TextStyle(
+                    color: accent,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    fontSize: 12,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.access_time, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(Icons.access_time, size: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(width: 4),
-              Text(dateFormat.format(game.createdAt), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(
+                dateFormat.format(game.createdAt),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
+              ),
             ],
           ),
         ],
@@ -318,14 +354,19 @@ class _GameListItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.content_copy_rounded),
+            icon: const Icon(Icons.content_copy_rounded, size: 20),
             tooltip: 'Copy code',
             onPressed: () {
               Clipboard.setData(ClipboardData(text: game.code));
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Code copied to clipboard!'), duration: Duration(seconds: 2)));
             },
           ),
-          IconButton(icon: const Icon(Icons.delete_outline_rounded), tooltip: 'Delete game', color: Colors.red, onPressed: () => _showDeleteDialog(context)),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, size: 20),
+            tooltip: 'Delete game',
+            color: Colors.red.shade400,
+            onPressed: () => _showDeleteDialog(context),
+          ),
         ],
       ),
     );

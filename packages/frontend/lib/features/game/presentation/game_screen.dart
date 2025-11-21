@@ -288,16 +288,19 @@ class _BingoBoardSection extends StatelessWidget {
         LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth;
-            const minTileSize = 80.0;
-            const headerAndPadding = 120.0;
+            const minTileSize = 100.0;
+            const maxTileSize = 200.0;
+            const headerAndPadding = 150.0;
             final maxBoardHeight = availableHeight - headerAndPadding;
 
-            // Calculate tile size based on available space
-            final tileSize = (availableWidth - (boardSize - 1) * 12) / boardSize;
+            // Calculate tile size based on available space, with min/max constraints
+            final calculatedTileSize = (availableWidth - (boardSize - 1) * 12) / boardSize;
+            final tileSize = calculatedTileSize.clamp(minTileSize, maxTileSize);
             final boardHeight = (tileSize * boardSize) + ((boardSize - 1) * 12);
+            final boardWidth = (tileSize * boardSize) + ((boardSize - 1) * 12);
 
             // If board would be too tall or tiles too small, make it scrollable
-            final shouldScroll = boardHeight > maxBoardHeight || tileSize < minTileSize;
+            final shouldScroll = boardHeight > maxBoardHeight;
 
             final gridView = GridView.builder(
               shrinkWrap: !shouldScroll,
@@ -321,11 +324,18 @@ class _BingoBoardSection extends StatelessWidget {
               },
             );
 
+            // Center the board if it's smaller than available width
+            final centeredGrid = boardWidth < availableWidth
+                ? Center(
+                    child: SizedBox(width: boardWidth, child: gridView),
+                  )
+                : gridView;
+
             if (shouldScroll) {
-              return SizedBox(height: maxBoardHeight, child: gridView);
+              return SizedBox(height: maxBoardHeight, child: centeredGrid);
             }
 
-            return gridView;
+            return centeredGrid;
           },
         ),
       ],

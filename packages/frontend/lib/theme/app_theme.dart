@@ -27,7 +27,7 @@ class AppTheme {
 
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.light);
-    const borderColor = Color(0xFFE0E0E0);
+    const borderColor = Color(0xFF777777);
 
     return ThemeData(
       useMaterial3: true,

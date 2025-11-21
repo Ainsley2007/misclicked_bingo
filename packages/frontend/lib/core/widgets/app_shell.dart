@@ -20,7 +20,7 @@ class AppShell extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : Colors.white,
+              color: Theme.of(context).colorScheme.surfaceContainer,
               border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor, width: 1)),
             ),
             child: Row(

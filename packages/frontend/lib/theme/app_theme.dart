@@ -22,11 +22,10 @@ class AppColors extends ThemeExtension<AppColors> {
 }
 
 class AppTheme {
-  static const _green = Color(0xFF246131);
   static const _violetRed = Color(0xFFE11D48);
 
   static ThemeData get lightTheme {
-    final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.light);
+    final colorScheme = ColorScheme.fromSeed(seedColor: _violetRed, brightness: Brightness.light);
 
     return ThemeData(
       useMaterial3: true,

@@ -27,7 +27,6 @@ class AppTheme {
 
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.light);
-    const borderColor = Color(0xFF777777);
 
     return ThemeData(
       useMaterial3: true,
@@ -38,11 +37,11 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: borderColor),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: borderColor),
+          borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -56,7 +55,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: borderColor),
+          side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
         ),
         color: Colors.white,
         shadowColor: Colors.black.withValues(alpha: 0.05),
@@ -83,7 +82,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          side: const BorderSide(color: borderColor),
+          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
         ),
       ),
@@ -95,13 +94,13 @@ class AppTheme {
         shadowColor: Colors.black.withValues(alpha: 0.05),
         scrolledUnderElevation: 1,
       ),
-      dividerTheme: const DividerThemeData(color: borderColor, thickness: 1, space: 1),
+      dividerTheme: DividerThemeData(color: colorScheme.outlineVariant.withValues(alpha: 0.2), thickness: 1, space: 1),
       extensions: const [AppColors(accent: _violetRed)],
     );
   }
 
   static ThemeData get darkTheme {
-    final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.dark);
+    final colorScheme = ColorScheme.fromSeed(seedColor: _violetRed, brightness: Brightness.dark);
     const surfaceColor = Color(0xFF1A1A1A);
     const backgroundColor = Color(0xFF121212);
     const borderColor = Color(0xFF2A2A2A);

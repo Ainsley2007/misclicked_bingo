@@ -100,7 +100,7 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
-    final colorScheme = ColorScheme.fromSeed(seedColor: _violetRed, brightness: Brightness.dark);
+    final colorScheme = ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 25, 7, 106), brightness: Brightness.dark);
     const borderColor = Color(0xFF2A2A2A);
 
     return ThemeData(
@@ -112,11 +112,11 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: borderColor),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: borderColor),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -130,7 +130,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: borderColor, width: 1),
+          side: BorderSide(color: colorScheme.outline, width: 1),
         ),
         color: colorScheme.surfaceContainer,
         shadowColor: colorScheme.shadow.withValues(alpha: 0.3),
@@ -157,7 +157,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          side: const BorderSide(color: borderColor),
+          side: BorderSide(color: colorScheme.outline),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
         ),
       ),
@@ -169,8 +169,8 @@ class AppTheme {
         shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
         scrolledUnderElevation: 1,
       ),
-      dividerTheme: const DividerThemeData(color: borderColor, thickness: 1, space: 1),
-      extensions: const [AppColors(accent: _violetRed)],
+      dividerTheme: DividerThemeData(color: colorScheme.outline, thickness: 1, space: 1),
+      extensions: [AppColors(accent: colorScheme.primary)],
     );
   }
 }

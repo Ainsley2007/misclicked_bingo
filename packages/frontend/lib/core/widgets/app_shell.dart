@@ -20,13 +20,8 @@ class AppShell extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1E2E) : Colors.white,
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                  width: 1,
-                ),
-              ),
+              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : Colors.white,
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor, width: 1)),
             ),
             child: Row(
               children: [
@@ -35,20 +30,12 @@ class AppShell extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                    ),
+                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)),
                   ),
                   child: Icon(pageInfo.icon, color: Theme.of(context).colorScheme.onPrimaryContainer, size: 20),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  pageInfo.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                      ),
-                ),
+                Text(pageInfo.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
                 const Spacer(),
                 StreamBuilder<AuthState>(
                   stream: sl<AuthService>().authStream,

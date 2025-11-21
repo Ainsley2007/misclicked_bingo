@@ -1,34 +1,33 @@
 import 'package:flutter/material.dart';
 
 class AppColors extends ThemeExtension<AppColors> {
-  const AppColors({required this.accent, required this.accentLight});
+  const AppColors({required this.accent});
 
   final Color accent;
-  final Color accentLight;
 
   static AppColors of(BuildContext context) {
-    return Theme.of(context).extension<AppColors>() ?? const AppColors(accent: Color(0xFFF66739), accentLight: Color(0xFFE19E25));
+    return Theme.of(context).extension<AppColors>() ?? const AppColors(accent: Color(0xFFE11D48));
   }
 
   @override
-  ThemeExtension<AppColors> copyWith({Color? accent, Color? accentLight}) {
-    return AppColors(accent: accent ?? this.accent, accentLight: accentLight ?? this.accentLight);
+  ThemeExtension<AppColors> copyWith({Color? accent}) {
+    return AppColors(accent: accent ?? this.accent);
   }
 
   @override
   ThemeExtension<AppColors> lerp(ThemeExtension<AppColors>? other, double t) {
     if (other is! AppColors) return this;
-    return AppColors(accent: Color.lerp(accent, other.accent, t) ?? accent, accentLight: Color.lerp(accentLight, other.accentLight, t) ?? accentLight);
+    return AppColors(accent: Color.lerp(accent, other.accent, t) ?? accent);
   }
 }
 
 class AppTheme {
   static const _green = Color(0xFF246131);
-  static const _gold = Color(0xFFE19E25);
-  static const _orange = Color(0xFFF66739);
+  static const _violetRed = Color(0xFFE11D48);
 
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.light);
+    const borderColor = Color(0xFFE0E0E0);
 
     return ThemeData(
       useMaterial3: true,
@@ -39,15 +38,15 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colorScheme.outlineVariant),
+          borderSide: const BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+          borderSide: const BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+          borderSide: const BorderSide(color: _violetRed, width: 1.5),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -57,7 +56,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
+          side: const BorderSide(color: borderColor),
         ),
         color: Colors.white,
         shadowColor: Colors.black.withValues(alpha: 0.05),
@@ -67,10 +66,10 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 0,
-          backgroundColor: _orange,
+          backgroundColor: _violetRed,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
-          shadowColor: _orange.withValues(alpha: 0.3),
+          shadowColor: _violetRed.withValues(alpha: 0.3),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -84,7 +83,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
+          side: const BorderSide(color: borderColor),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
         ),
       ),
@@ -96,19 +95,16 @@ class AppTheme {
         shadowColor: Colors.black.withValues(alpha: 0.05),
         scrolledUnderElevation: 1,
       ),
-      dividerTheme: DividerThemeData(
-        color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-        thickness: 1,
-        space: 1,
-      ),
-      extensions: const [AppColors(accent: _orange, accentLight: _gold)],
+      dividerTheme: const DividerThemeData(color: borderColor, thickness: 1, space: 1),
+      extensions: const [AppColors(accent: _violetRed)],
     );
   }
 
   static ThemeData get darkTheme {
     final colorScheme = ColorScheme.fromSeed(seedColor: _green, brightness: Brightness.dark);
-    const surfaceColor = Color(0xFF1A1E2E);
-    const backgroundColor = Color(0xFF0F1218);
+    const surfaceColor = Color(0xFF1A1A1A);
+    const backgroundColor = Color(0xFF121212);
+    const borderColor = Color(0xFF2A2A2A);
 
     return ThemeData(
       useMaterial3: true,
@@ -119,15 +115,15 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF2A2F3E)),
+          borderSide: const BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF2A2F3E)),
+          borderSide: const BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+          borderSide: const BorderSide(color: _violetRed, width: 1.5),
         ),
         filled: true,
         fillColor: surfaceColor,
@@ -137,7 +133,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFF2A2F3E), width: 1),
+          side: const BorderSide(color: borderColor, width: 1),
         ),
         color: surfaceColor,
         shadowColor: Colors.black.withValues(alpha: 0.3),
@@ -147,10 +143,10 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 0,
-          backgroundColor: _orange,
+          backgroundColor: _violetRed,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
-          shadowColor: _orange.withValues(alpha: 0.3),
+          shadowColor: _violetRed.withValues(alpha: 0.3),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -164,7 +160,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          side: const BorderSide(color: Color(0xFF2A2F3E)),
+          side: const BorderSide(color: borderColor),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
         ),
       ),
@@ -176,12 +172,8 @@ class AppTheme {
         shadowColor: Colors.black.withValues(alpha: 0.2),
         scrolledUnderElevation: 1,
       ),
-      dividerTheme: const DividerThemeData(
-        color: Color(0xFF2A2F3E),
-        thickness: 1,
-        space: 1,
-      ),
-      extensions: const [AppColors(accent: _orange, accentLight: _gold)],
+      dividerTheme: const DividerThemeData(color: borderColor, thickness: 1, space: 1),
+      extensions: const [AppColors(accent: _violetRed)],
     );
   }
 }

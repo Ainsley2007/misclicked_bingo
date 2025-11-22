@@ -17,7 +17,10 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(create: (_) => sl<GameBloc>()..add(GameLoadRequested(gameId)), child: const _GameScreenContent());
+    return BlocProvider(
+      create: (_) => sl<GameBloc>()..add(GameLoadRequested(gameId)),
+      child: const _GameScreenContent(),
+    );
   }
 }
 
@@ -51,11 +54,22 @@ class _GameScreenContentState extends State<_GameScreenContent> {
                 children: [
                   const Icon(Icons.error_outline, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
-                  Text('Game Not Found', style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    'Game Not Found',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 8),
-                  Text('This game may have been deleted or you no longer have access to it.', style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                  Text(
+                    'This game may have been deleted or you no longer have access to it.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 24),
-                  FilledButton.icon(onPressed: () => context.go('/lobby'), icon: const Icon(Icons.home_rounded), label: const Text('Return to Lobby')),
+                  FilledButton.icon(
+                    onPressed: () => context.go('/lobby'),
+                    icon: const Icon(Icons.home_rounded),
+                    label: const Text('Return to Lobby'),
+                  ),
                 ],
               ),
             ),
@@ -116,14 +130,15 @@ class _GameScreenContentState extends State<_GameScreenContent> {
                               ),
                             if (game.hasChallenges) const SizedBox(width: 32),
                             Expanded(
-                              flex: game.hasChallenges && _challengesExpanded ? 3 : 4,
-                              child: _BingoBoardSection(
-                                tiles: tiles,
-                                tileStates: mockTileStates,
-                                boardSize: game.boardSize,
-                                unlocksAvailable: mockUnlocksAvailable,
-                                hasChallenges: game.hasChallenges,
-                                availableHeight: availableHeight,
+                              child: Center(
+                                child: _BingoBoardSection(
+                                  tiles: tiles,
+                                  tileStates: mockTileStates,
+                                  boardSize: game.boardSize,
+                                  unlocksAvailable: mockUnlocksAvailable,
+                                  hasChallenges: game.hasChallenges,
+                                  availableHeight: availableHeight,
+                                ),
                               ),
                             ),
                           ],
@@ -131,7 +146,11 @@ class _GameScreenContentState extends State<_GameScreenContent> {
                       : Column(
                           children: [
                             if (game.hasChallenges) ...[
-                              _ChallengesSection(challenges: challenges, completedChallenges: mockCompletedChallenges, onToggle: null),
+                              _ChallengesSection(
+                                challenges: challenges,
+                                completedChallenges: mockCompletedChallenges,
+                                onToggle: null,
+                              ),
                               const SizedBox(height: 32),
                             ],
                             _BingoBoardSection(
@@ -155,7 +174,11 @@ class _GameScreenContentState extends State<_GameScreenContent> {
 }
 
 class _ChallengesSection extends StatelessWidget {
-  const _ChallengesSection({required this.challenges, required this.completedChallenges, required this.onToggle});
+  const _ChallengesSection({
+    required this.challenges,
+    required this.completedChallenges,
+    required this.onToggle,
+  });
 
   final List<Challenge> challenges;
   final Set<int> completedChallenges;
@@ -171,12 +194,26 @@ class _ChallengesSection extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Icon(Icons.emoji_events_rounded, color: Theme.of(context).colorScheme.primary, size: 32),
+                Icon(
+                  Icons.emoji_events_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 32,
+                ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text('Challenges', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'Challenges',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                if (onToggle != null) IconButton(onPressed: onToggle, icon: const Icon(Icons.chevron_left_rounded), tooltip: 'Collapse challenges'),
+                if (onToggle != null)
+                  IconButton(
+                    onPressed: onToggle,
+                    icon: const Icon(Icons.chevron_left_rounded),
+                    tooltip: 'Collapse challenges',
+                  ),
               ],
             ),
           ),
@@ -188,7 +225,10 @@ class _ChallengesSection extends StatelessWidget {
           itemCount: challenges.length,
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
-            return ChallengeCard(challenge: challenges[index], isCompleted: completedChallenges.contains(index));
+            return ChallengeCard(
+              challenge: challenges[index],
+              isCompleted: completedChallenges.contains(index),
+            );
           },
         ),
       ],
@@ -216,11 +256,24 @@ class _CollapsedChallengesBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.emoji_events_rounded, color: Theme.of(context).colorScheme.primary, size: 20),
+                    Icon(
+                      Icons.emoji_events_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
-                    Text('Challenges', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Challenges',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.onSurface, size: 20),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),
@@ -251,94 +304,113 @@ class _BingoBoardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(Icons.grid_on_rounded, color: Theme.of(context).colorScheme.primary, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('Bingo Board', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
-                ),
-                if (hasChallenges)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(8)),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+    final completedTiles = tileStates.values
+        .where((state) => state == TileState.completed)
+        .length;
+    final totalTiles = tiles.length;
+
+    return Center(
+      child: LayoutBuilder(
+        builder: (context, outerConstraints) {
+          const minTileSize = 100.0;
+          const maxTileSize = 200.0;
+          const headerAndPadding = 150.0;
+          final maxBoardHeight = availableHeight - headerAndPadding;
+
+          // Calculate tile size based on available space, with min/max constraints
+          final calculatedTileSize =
+              (outerConstraints.maxWidth - (boardSize - 1) * 12 - 40) /
+              boardSize;
+          final tileSize = calculatedTileSize.clamp(minTileSize, maxTileSize);
+          final boardWidth = (tileSize * boardSize) + ((boardSize - 1) * 12);
+
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                width: boardWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Icon(Icons.lock_open_rounded, color: Theme.of(context).colorScheme.onPrimaryContainer, size: 18),
-                        const SizedBox(width: 6),
                         Text(
-                          '$unlocksAvailable',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                          'Board',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.3,
+                              ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '$completedTiles / $totalTiles',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
-                  ),
-              ],
+                    const SizedBox(height: 24),
+                    Builder(
+                      builder: (context) {
+                        final boardHeight =
+                            (tileSize * boardSize) + ((boardSize - 1) * 12);
+
+                        // If board would be too tall or tiles too small, make it scrollable
+                        final shouldScroll = boardHeight > maxBoardHeight;
+
+                        final gridView = GridView.builder(
+                          shrinkWrap: !shouldScroll,
+                          physics: shouldScroll
+                              ? const AlwaysScrollableScrollPhysics()
+                              : const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: boardSize,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 1,
+                              ),
+                          itemCount: tiles.length,
+                          itemBuilder: (context, index) {
+                            final tile = tiles[index];
+                            final state = tileStates[index] ?? TileState.locked;
+
+                            return BingoTileCard(
+                              tile: tile,
+                              state: state,
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => TileDetailsDialog(
+                                    tile: tile,
+                                    state: state,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+
+                        if (shouldScroll) {
+                          return SizedBox(
+                            width: boardWidth,
+                            height: maxBoardHeight,
+                            child: gridView,
+                          );
+                        }
+
+                        return SizedBox(width: boardWidth, child: gridView);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final availableWidth = constraints.maxWidth;
-            const minTileSize = 100.0;
-            const maxTileSize = 200.0;
-            const headerAndPadding = 150.0;
-            final maxBoardHeight = availableHeight - headerAndPadding;
-
-            // Calculate tile size based on available space, with min/max constraints
-            final calculatedTileSize = (availableWidth - (boardSize - 1) * 12) / boardSize;
-            final tileSize = calculatedTileSize.clamp(minTileSize, maxTileSize);
-            final boardHeight = (tileSize * boardSize) + ((boardSize - 1) * 12);
-            final boardWidth = (tileSize * boardSize) + ((boardSize - 1) * 12);
-
-            // If board would be too tall or tiles too small, make it scrollable
-            final shouldScroll = boardHeight > maxBoardHeight;
-
-            final gridView = GridView.builder(
-              shrinkWrap: !shouldScroll,
-              physics: shouldScroll ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: boardSize, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1),
-              itemCount: tiles.length,
-              itemBuilder: (context, index) {
-                final tile = tiles[index];
-                final state = tileStates[index] ?? TileState.locked;
-
-                return BingoTileCard(
-                  tile: tile,
-                  state: state,
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => TileDetailsDialog(tile: tile, state: state),
-                    );
-                  },
-                );
-              },
-            );
-
-            // Center the board if it's smaller than available width
-            final centeredGrid = boardWidth < availableWidth
-                ? Center(
-                    child: SizedBox(width: boardWidth, child: gridView),
-                  )
-                : gridView;
-
-            if (shouldScroll) {
-              return SizedBox(height: maxBoardHeight, child: centeredGrid);
-            }
-
-            return centeredGrid;
-          },
-        ),
-      ],
+          );
+        },
+      ),
     );
   }
 }

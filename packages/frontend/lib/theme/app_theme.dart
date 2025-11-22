@@ -6,7 +6,8 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color accent;
 
   static AppColors of(BuildContext context) {
-    return Theme.of(context).extension<AppColors>() ?? const AppColors(accent: Color(0xFFE11D48));
+    return Theme.of(context).extension<AppColors>() ??
+        const AppColors(accent: Color(0xFFE11D48));
   }
 
   @override
@@ -25,7 +26,10 @@ class AppTheme {
   static const _violetRed = Color(0xFFE11D48);
 
   static ThemeData get lightTheme {
-    final colorScheme = ColorScheme.fromSeed(seedColor: _violetRed, brightness: Brightness.light);
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: _violetRed,
+      brightness: Brightness.light,
+    );
     const borderColor = Color(0xFFE0E0E0);
 
     return ThemeData(
@@ -49,7 +53,10 @@ class AppTheme {
         ),
         filled: true,
         fillColor: colorScheme.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
@@ -67,7 +74,11 @@ class AppTheme {
           elevation: 0,
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
           shadowColor: colorScheme.primary.withValues(alpha: 0.3),
         ),
       ),
@@ -75,7 +86,11 @@ class AppTheme {
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -83,7 +98,11 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           side: const BorderSide(color: borderColor),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -94,14 +113,20 @@ class AppTheme {
         shadowColor: colorScheme.shadow.withValues(alpha: 0.05),
         scrolledUnderElevation: 1,
       ),
-      dividerTheme: const DividerThemeData(color: borderColor, thickness: 1, space: 1),
+      dividerTheme: const DividerThemeData(
+        color: borderColor,
+        thickness: 1,
+        space: 1,
+      ),
       extensions: const [AppColors(accent: _violetRed)],
     );
   }
 
   static ThemeData get darkTheme {
-    final colorScheme = ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 25, 7, 106), brightness: Brightness.dark);
-    const borderColor = Color(0xFF2A2A2A);
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color.fromARGB(255, 25, 7, 106),
+      brightness: Brightness.dark,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -124,13 +149,19 @@ class AppTheme {
         ),
         filled: true,
         fillColor: colorScheme.surfaceContainer,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colorScheme.outline, width: 1),
+          side: BorderSide(
+            color: colorScheme.outline.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
         color: colorScheme.surfaceContainer,
         shadowColor: colorScheme.shadow.withValues(alpha: 0.3),
@@ -142,7 +173,11 @@ class AppTheme {
           elevation: 0,
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
           shadowColor: colorScheme.primary.withValues(alpha: 0.3),
         ),
       ),
@@ -150,7 +185,11 @@ class AppTheme {
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -158,7 +197,11 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           side: BorderSide(color: colorScheme.outline),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -169,7 +212,11 @@ class AppTheme {
         shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
         scrolledUnderElevation: 1,
       ),
-      dividerTheme: DividerThemeData(color: colorScheme.outline, thickness: 1, space: 1),
+      dividerTheme: DividerThemeData(
+        color: colorScheme.outline.withValues(alpha: 0.1),
+        thickness: 1,
+        space: 1,
+      ),
       extensions: [AppColors(accent: colorScheme.primary)],
     );
   }

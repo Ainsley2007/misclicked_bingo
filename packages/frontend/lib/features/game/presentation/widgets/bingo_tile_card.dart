@@ -35,24 +35,29 @@ class BingoTileCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
                 aspectRatio: 1,
-                child: ColorFiltered(
-                  colorFilter: state == TileState.locked
-                      ? ColorFilters.grayscale
-                      : ColorFilters.none,
-                  child: Image.network(
-                    tile.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
-                        child: Icon(
-                          Icons.image_not_supported,
-                          size: 32,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      );
-                    },
-                  ),
+                child: Stack(
+                  children: [
+                    Image.asset(
+                      'assets/image/tile.png',
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                    ColorFiltered(
+                      colorFilter: state == TileState.locked
+                          ? ColorFilters.grayscale
+                          : ColorFilters.none,
+                      child: Image.network(
+                        tile.imageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

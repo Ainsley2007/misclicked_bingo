@@ -1,6 +1,6 @@
 name: frontend
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -28,9 +28,8 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
 
-
 flutter:
   uses-material-design: true
-  
-  # Explicitly declare no custom assets
-  # assets: []
+
+  assets:
+    - assets/image/tile.png

@@ -86,11 +86,13 @@ class BingoTileCard extends StatelessWidget {
                 ),
               ),
               if (state == TileState.locked)
-                Positioned.fill(
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  top: 8,
+                  bottom: 8,
                   child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
-                    ),
+                    color: const Color(0xFFE11D48).withValues(alpha: 0.08),
                     child: const Center(
                       child: Icon(
                         Icons.lock_rounded,
@@ -107,7 +109,7 @@ class BingoTileCard extends StatelessWidget {
                   top: 8,
                   bottom: 8,
                   child: Container(
-                    color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.08),
                   ),
                 ),
             ],

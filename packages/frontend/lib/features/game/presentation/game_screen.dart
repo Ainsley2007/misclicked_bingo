@@ -89,7 +89,7 @@ class _GameScreenContentState extends State<_GameScreenContent> {
           } else if (i % 3 == 1) {
             mockTileStates[i] = TileState.unlocked;
           } else {
-            mockTileStates[i] = TileState.locked;
+            mockTileStates[i] = TileState.unlocked;
           }
         }
 

@@ -70,37 +70,10 @@ class _BingoTileContent extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          SizedBox(
-            height: 20,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: Container(
-                    height: 1.5,
-                    margin: const EdgeInsets.symmetric(horizontal: 40),
-                    color: bossTypeColor,
-                  ),
-                ),
-                if (tile.uniqueItems.length > 1)
-                  Positioned(
-                    left: 0,
-                    top: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 4),
-                      child: Text(
-                        tile.isOrLogic ? 'OR' : 'AND',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+          Container(
+            height: 1.5,
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            color: bossTypeColor,
           ),
           const SizedBox(height: 12),
           _buildUniqueItemsSection(context),
@@ -163,27 +136,62 @@ class _BingoTileContent extends StatelessWidget {
           : item.itemName;
     }).toList();
 
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: items
-            .map(
-              (itemText) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child: Text(
-                  itemText,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 10,
+    if (tile.isOrLogic) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: items
+              .map(
+                (itemText) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 1),
+                  child: Text(
+                    itemText,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+              .toList(),
+        ),
+      );
+    }
+
+    return Center(
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 4,
+        runSpacing: 2,
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0)
+              Text(
+                'AND',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 9,
                 ),
               ),
-            )
-            .toList(),
+            Text(
+              items[i],
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 10,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ],
       ),
     );
   }

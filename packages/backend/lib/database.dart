@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:developer' as developer;
 import 'package:backend/config.dart';
+import 'package:backend/data/bosses.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
 import 'package:shared_models/shared_models.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
@@ -372,37 +372,13 @@ class AppDatabase extends _$AppDatabase {
     return query.get();
   }
 
-  static String _loadBossesJson() {
-    try {
-      final possiblePaths = [
-        p.join('lib', 'data', 'bosses.json'),
-        p.join('packages', 'backend', 'lib', 'data', 'bosses.json'),
-        p.join(
-          p.dirname(Platform.script.toFilePath()),
-          '..',
-          'lib',
-          'data',
-          'bosses.json',
-        ),
-        p.join(p.dirname(Platform.script.toFilePath()), 'data', 'bosses.json'),
-      ];
-
-      for (final jsonPath in possiblePaths) {
-        final file = File(jsonPath);
-        if (file.existsSync()) {
-          return file.readAsStringSync();
-        }
-      }
-    } catch (e) {
-      // Ignore
-    }
-    return '[]';
-  }
-
   Future<void> seedBosses() async {
     try {
-      final bossesJson = _loadBossesJson();
       if (bossesJson.isEmpty || bossesJson == '[]') {
+        developer.log(
+          'Bosses JSON is empty or not found. Skipping seed.',
+          name: 'database',
+        );
         return;
       }
       final bossesList = jsonDecode(bossesJson) as List<dynamic>;
@@ -410,6 +386,9 @@ class AppDatabase extends _$AppDatabase {
           .map((json) => BossData.fromJson(json as Map<String, dynamic>))
           .toList();
       const uuid = Uuid();
+
+      var createdCount = 0;
+      var skippedCount = 0;
 
       for (final bossData in bosses) {
         final existingBosses = await getAllBosses();
@@ -423,6 +402,7 @@ class AppDatabase extends _$AppDatabase {
         String bossId;
         if (existingBoss != null) {
           bossId = existingBoss.id;
+          skippedCount++;
         } else {
           bossId = uuid.v4();
           await createBoss(
@@ -432,6 +412,7 @@ class AppDatabase extends _$AppDatabase {
             iconUrl: bossData.icon,
             createdAt: DateTime.now(),
           );
+          createdCount++;
         }
 
         final existingItems = await getUniqueItemsByBossId(bossId);
@@ -448,9 +429,18 @@ class AppDatabase extends _$AppDatabase {
           }
         }
       }
-    } catch (e) {
-      // Silently fail - seeding is not critical for app startup
-      // Log if needed: print('Failed to seed bosses: $e');
+
+      developer.log(
+        'Boss seeding complete: $createdCount created, $skippedCount already existed',
+        name: 'database',
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        'Failed to seed bosses',
+        name: 'database',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

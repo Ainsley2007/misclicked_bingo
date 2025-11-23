@@ -7,7 +7,8 @@ import 'package:frontend/features/game/logic/game_event.dart';
 import 'package:frontend/features/game/logic/game_state.dart';
 
 class GameBloc extends Bloc<GameEvent, GameState> {
-  GameBloc(this._repository, this._bossRepository) : super(const GameInitial()) {
+  GameBloc(this._repository, this._bossRepository)
+    : super(const GameInitial()) {
     on<GameLoadRequested>(_onGameLoadRequested);
   }
 
@@ -24,7 +25,18 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       final tiles = await _repository.getTiles(event.gameId);
       final bosses = await _bossRepository.getAllBosses();
 
-      emit(GameLoaded(game: game, tiles: tiles, bosses: bosses));
+      final bossesMap = {for (var boss in bosses) boss.id: boss};
+      final enrichedTiles = tiles.map((tile) {
+        if (tile.isAnyUnique) {
+          final boss = bossesMap[tile.bossId];
+          if (boss != null) {
+            return tile.copyWith(possibleUniqueItems: boss.uniqueItems);
+          }
+        }
+        return tile;
+      }).toList();
+
+      emit(GameLoaded(game: game, tiles: enrichedTiles));
       developer.log('Loaded game ${game.id}', name: 'game');
     } catch (e, stackTrace) {
       developer.log(

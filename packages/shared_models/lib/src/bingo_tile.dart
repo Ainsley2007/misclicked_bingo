@@ -21,6 +21,8 @@ class BingoTile extends Equatable {
   final bool isAnyUnique;
   final bool isOrLogic;
   final int? anyNCount;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final List<String>? possibleUniqueItems;
 
   const BingoTile({
     required this.id,
@@ -35,6 +37,7 @@ class BingoTile extends Equatable {
     this.isAnyUnique = false,
     this.isOrLogic = false,
     this.anyNCount,
+    this.possibleUniqueItems,
   });
 
   static BossType? _typeFromJson(String? json) =>
@@ -44,6 +47,38 @@ class BingoTile extends Equatable {
   factory BingoTile.fromJson(Map<String, dynamic> json) =>
       _$BingoTileFromJson(json);
   Map<String, dynamic> toJson() => _$BingoTileToJson(this);
+
+  BingoTile copyWith({
+    String? id,
+    String? gameId,
+    String? bossId,
+    String? description,
+    int? position,
+    String? bossName,
+    BossType? bossType,
+    String? bossIconUrl,
+    List<TileUniqueItem>? uniqueItems,
+    bool? isAnyUnique,
+    bool? isOrLogic,
+    int? anyNCount,
+    List<String>? possibleUniqueItems,
+  }) {
+    return BingoTile(
+      id: id ?? this.id,
+      gameId: gameId ?? this.gameId,
+      bossId: bossId ?? this.bossId,
+      description: description ?? this.description,
+      position: position ?? this.position,
+      bossName: bossName ?? this.bossName,
+      bossType: bossType ?? this.bossType,
+      bossIconUrl: bossIconUrl ?? this.bossIconUrl,
+      uniqueItems: uniqueItems ?? this.uniqueItems,
+      isAnyUnique: isAnyUnique ?? this.isAnyUnique,
+      isOrLogic: isOrLogic ?? this.isOrLogic,
+      anyNCount: anyNCount ?? this.anyNCount,
+      possibleUniqueItems: possibleUniqueItems ?? this.possibleUniqueItems,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -59,5 +94,6 @@ class BingoTile extends Equatable {
     isAnyUnique,
     isOrLogic,
     anyNCount,
+    possibleUniqueItems,
   ];
 }

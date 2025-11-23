@@ -191,17 +191,13 @@ class _BingoBoardSection extends StatelessWidget {
                             tile: tile,
                             isCompleted: isCompleted,
                             onTap: () {
-                              final state = context.read<GameBloc>().state;
-                              if (state is GameLoaded) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => TileDetailsDialog(
-                                    tile: tile,
-                                    isCompleted: isCompleted,
-                                    bosses: state.bosses,
-                                  ),
-                                );
-                              }
+                              showDialog(
+                                context: context,
+                                builder: (context) => TileDetailsDialog(
+                                  tile: tile,
+                                  isCompleted: isCompleted,
+                                ),
+                              );
                             },
                           );
                         },

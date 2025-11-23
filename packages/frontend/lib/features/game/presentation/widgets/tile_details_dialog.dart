@@ -5,23 +5,11 @@ class TileDetailsDialog extends StatelessWidget {
   const TileDetailsDialog({
     required this.tile,
     required this.isCompleted,
-    required this.bosses,
     super.key,
   });
 
   final BingoTile tile;
   final bool isCompleted;
-  final List<Boss> bosses;
-
-  List<String>? get _bossUniqueItems {
-    if (!tile.isAnyUnique) return null;
-    try {
-      final boss = bosses.firstWhere((b) => b.id == tile.bossId);
-      return boss.uniqueItems;
-    } catch (e) {
-      return null;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +106,7 @@ class TileDetailsDialog extends StatelessWidget {
 
   Widget _buildUniqueItemsSection(BuildContext context) {
     if (tile.isAnyUnique) {
-      final uniqueItems = _bossUniqueItems;
+      final uniqueItems = tile.possibleUniqueItems;
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

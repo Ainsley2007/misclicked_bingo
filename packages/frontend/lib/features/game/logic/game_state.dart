@@ -22,11 +22,13 @@ final class GameLoaded extends GameState {
     required this.game,
     required this.tiles,
     this.users = const [],
+    this.bosses = const [],
   });
 
   final Game game;
   final List<BingoTile> tiles;
   final List<AppUser> users;
+  final List<Boss> bosses;
 }
 
 @immutable

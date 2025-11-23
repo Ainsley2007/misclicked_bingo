@@ -18,9 +18,18 @@ import 'package:frontend/features/bosses/data/boss_repository.dart';
 final sl = GetIt.instance;
 
 void setupDi() {
-  const apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://osrs-bingo.globeapp.dev');
+  const apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://osrs-bingo.globeapp.dev',
+  );
 
-  final dio = Dio(BaseOptions(baseUrl: apiBaseUrl, validateStatus: (code) => code != null && code < 500, headers: {'Content-Type': 'application/json'}));
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: apiBaseUrl,
+      validateStatus: (code) => code != null && code < 500,
+      headers: {'Content-Type': 'application/json'},
+    ),
+  );
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -42,14 +51,25 @@ void setupDi() {
   sl.registerLazySingleton<LobbyRepository>(() => LobbyRepository(sl<Dio>()));
   sl.registerLazySingleton<GameRepository>(() => GameRepository(sl<Dio>()));
   sl.registerLazySingleton<TeamsRepository>(() => TeamsRepository(sl<Dio>()));
-  sl.registerLazySingleton<GameCreationRepository>(() => GameCreationRepository(sl<Dio>()));
+  sl.registerLazySingleton<GameCreationRepository>(
+    () => GameCreationRepository(sl<Dio>()),
+  );
   sl.registerLazySingleton<BossRepository>(() => BossRepository(sl<Dio>()));
 
   // BLoCs
   sl.registerFactory<GamesBloc>(() => GamesBloc(sl<GamesRepository>()));
   sl.registerFactory<UsersBloc>(() => UsersBloc(sl<UsersRepository>()));
   sl.registerFactory<JoinGameBloc>(() => JoinGameBloc(sl<LobbyRepository>()));
-  sl.registerFactory<GameBloc>(() => GameBloc(sl<GameRepository>()));
-  sl.registerFactory<ManageTeamsBloc>(() => ManageTeamsBloc(teamsRepository: sl<TeamsRepository>(), gameRepository: sl<GameRepository>()));
-  sl.registerFactory<GameCreationBloc>(() => GameCreationBloc(sl<GameCreationRepository>()));
+  sl.registerFactory<GameBloc>(
+    () => GameBloc(sl<GameRepository>(), sl<BossRepository>()),
+  );
+  sl.registerFactory<ManageTeamsBloc>(
+    () => ManageTeamsBloc(
+      teamsRepository: sl<TeamsRepository>(),
+      gameRepository: sl<GameRepository>(),
+    ),
+  );
+  sl.registerFactory<GameCreationBloc>(
+    () => GameCreationBloc(sl<GameCreationRepository>(), sl<BossRepository>()),
+  );
 }

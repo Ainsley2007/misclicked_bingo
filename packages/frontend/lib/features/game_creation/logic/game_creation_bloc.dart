@@ -1,11 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/bosses/data/boss_repository.dart';
 import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_event.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_state.dart';
 import 'package:shared_models/shared_models.dart';
 
 class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
-  GameCreationBloc(this._repository)
+  GameCreationBloc(this._repository, this._bossRepository)
     : super(const GameCreationState.initial()) {
     on<NextStepRequested>(_onNextStepRequested);
     on<PreviousStepRequested>(_onPreviousStepRequested);
@@ -17,9 +18,11 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     on<TileUpdated>(_onTileUpdated);
     on<TileRemoved>(_onTileRemoved);
     on<GameSubmitted>(_onGameSubmitted);
+    on<BossesLoadRequested>(_onBossesLoadRequested);
   }
 
   final GameCreationRepository _repository;
+  final BossRepository _bossRepository;
 
   Future<void> _onNextStepRequested(
     NextStepRequested event,
@@ -156,5 +159,23 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
         state.isTeamSizeValid &&
         state.isBoardSizeValid &&
         state.areTilesValid;
+  }
+
+  Future<void> _onBossesLoadRequested(
+    BossesLoadRequested event,
+    Emitter<GameCreationState> emit,
+  ) async {
+    if (state.bosses.isNotEmpty) {
+      return;
+    }
+
+    emit(state.copyWith(isLoadingBosses: true));
+
+    try {
+      final bosses = await _bossRepository.getAllBosses();
+      emit(state.copyWith(bosses: bosses, isLoadingBosses: false));
+    } catch (e) {
+      emit(state.copyWith(isLoadingBosses: false, error: e.toString()));
+    }
   }
 }

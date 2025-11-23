@@ -12,6 +12,8 @@ final class GameCreationState {
     this.teamSize = 5,
     this.boardSize = 3,
     this.tiles = const [],
+    this.bosses = const [],
+    this.isLoadingBosses = false,
     this.validationError,
     this.createdGame,
     this.error,
@@ -26,6 +28,8 @@ final class GameCreationState {
   final int teamSize;
   final int boardSize;
   final List<GameTileCreation> tiles;
+  final List<Boss> bosses;
+  final bool isLoadingBosses;
   final String? validationError;
   final Game? createdGame;
   final String? error;
@@ -37,6 +41,8 @@ final class GameCreationState {
     int? teamSize,
     int? boardSize,
     List<GameTileCreation>? tiles,
+    List<Boss>? bosses,
+    bool? isLoadingBosses,
     String? validationError,
     Game? createdGame,
     String? error,
@@ -48,6 +54,8 @@ final class GameCreationState {
       teamSize: teamSize ?? this.teamSize,
       boardSize: boardSize ?? this.boardSize,
       tiles: tiles ?? this.tiles,
+      bosses: bosses ?? this.bosses,
+      isLoadingBosses: isLoadingBosses ?? this.isLoadingBosses,
       validationError: validationError,
       createdGame: createdGame ?? this.createdGame,
       error: error,
@@ -62,6 +70,8 @@ final class GameCreationState {
       teamSize: teamSize,
       boardSize: boardSize,
       tiles: tiles,
+      bosses: bosses,
+      isLoadingBosses: isLoadingBosses,
       validationError: null,
       createdGame: createdGame,
       error: null,

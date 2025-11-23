@@ -56,3 +56,7 @@ final class TileRemoved extends GameCreationEvent {
 final class GameSubmitted extends GameCreationEvent {
   const GameSubmitted();
 }
+
+final class BossesLoadRequested extends GameCreationEvent {
+  const BossesLoadRequested();
+}

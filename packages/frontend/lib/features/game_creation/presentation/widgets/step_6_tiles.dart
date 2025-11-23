@@ -13,6 +13,16 @@ class Step6Tiles extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<GameCreationBloc, GameCreationState>(
       builder: (context, state) {
+        if (state.bosses.isEmpty && !state.isLoadingBosses) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<GameCreationBloc>().add(const BossesLoadRequested());
+          });
+        }
+
+        if (state.isLoadingBosses) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         final requiredTiles = state.boardSize * state.boardSize;
         final currentTiles = state.tiles.length;
 
@@ -112,6 +122,7 @@ class Step6Tiles extends StatelessWidget {
                     return TileFormCard(
                       index: index,
                       data: state.tiles[index],
+                      bosses: state.bosses,
                       onUpdate: (tile) {
                         context.read<GameCreationBloc>().add(
                           TileUpdated(index, tile),

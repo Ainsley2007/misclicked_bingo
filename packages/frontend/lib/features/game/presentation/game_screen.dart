@@ -131,95 +131,94 @@ class _BingoBoardSection extends StatelessWidget {
           const headerAndPadding = 150.0;
           final maxBoardHeight = availableHeight - headerAndPadding;
 
-          // Calculate tile size based on available space, with min/max constraints
           final calculatedTileSize =
               (outerConstraints.maxWidth - (boardSize - 1) * 12 - 40) /
               boardSize;
           final tileSize = calculatedTileSize.clamp(minTileSize, maxTileSize);
           final boardWidth = (tileSize * boardSize) + ((boardSize - 1) * 12);
 
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: SizedBox(
-                width: boardWidth,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Board',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.3,
-                              ),
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: SizedBox(
+              width: boardWidth,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Board',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
                         ),
-                        const Spacer(),
-                        Text(
-                          '$completedTiles / $totalTiles',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '$completedTiles / $totalTiles',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Builder(
+                    builder: (context) {
+                      final boardHeight =
+                          (tileSize * boardSize) + ((boardSize - 1) * 12);
+
+                      // If board would be too tall or tiles too small, make it scrollable
+                      final shouldScroll = boardHeight > maxBoardHeight;
+
+                      final gridView = GridView.builder(
+                        shrinkWrap: !shouldScroll,
+                        physics: shouldScroll
+                            ? const AlwaysScrollableScrollPhysics()
+                            : const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: boardSize,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 1,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Builder(
-                      builder: (context) {
-                        final boardHeight =
-                            (tileSize * boardSize) + ((boardSize - 1) * 12);
+                        itemCount: tiles.length,
+                        itemBuilder: (context, index) {
+                          final tile = tiles[index];
+                          final isCompleted = tileStates[index] ?? false;
 
-                        // If board would be too tall or tiles too small, make it scrollable
-                        final shouldScroll = boardHeight > maxBoardHeight;
-
-                        final gridView = GridView.builder(
-                          shrinkWrap: !shouldScroll,
-                          physics: shouldScroll
-                              ? const AlwaysScrollableScrollPhysics()
-                              : const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: boardSize,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 1,
-                              ),
-                          itemCount: tiles.length,
-                          itemBuilder: (context, index) {
-                            final tile = tiles[index];
-                            final isCompleted = tileStates[index] ?? false;
-
-                            return BingoTileCard(
-                              tile: tile,
-                              isCompleted: isCompleted,
-                              onTap: () {
+                          return BingoTileCard(
+                            tile: tile,
+                            isCompleted: isCompleted,
+                            onTap: () {
+                              final state = context.read<GameBloc>().state;
+                              if (state is GameLoaded) {
                                 showDialog(
                                   context: context,
                                   builder: (context) => TileDetailsDialog(
                                     tile: tile,
                                     isCompleted: isCompleted,
+                                    bosses: state.bosses,
                                   ),
                                 );
-                              },
-                            );
-                          },
-                        );
-
-                        if (shouldScroll) {
-                          return SizedBox(
-                            width: boardWidth,
-                            height: maxBoardHeight,
-                            child: gridView,
+                              }
+                            },
                           );
-                        }
+                        },
+                      );
 
-                        return SizedBox(width: boardWidth, child: gridView);
-                      },
-                    ),
-                  ],
-                ),
+                      if (shouldScroll) {
+                        return SizedBox(
+                          width: boardWidth,
+                          height: maxBoardHeight,
+                          child: gridView,
+                        );
+                      }
+
+                      return SizedBox(width: boardWidth, child: gridView);
+                    },
+                  ),
+                ],
               ),
             ),
           );

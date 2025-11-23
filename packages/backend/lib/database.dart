@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:backend/config.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:path/path.dart' as p;
+import 'package:shared_models/shared_models.dart';
 import 'package:sqlite3/sqlite3.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
@@ -25,8 +30,6 @@ class Games extends Table {
   TextColumn get code => text().unique()();
   TextColumn get name => text()();
   IntColumn get teamSize => integer().withDefault(const Constant(5))();
-  BoolColumn get hasChallenges =>
-      boolean().withDefault(const Constant(false))();
   IntColumn get boardSize => integer().withDefault(const Constant(3))();
   TextColumn get createdAt => text()();
 
@@ -52,28 +55,45 @@ class TeamMembers extends Table {
   Set<Column> get primaryKey => {teamId, userId};
 }
 
-class Challenges extends Table {
+class Bosses extends Table {
   TextColumn get id => text()();
-  TextColumn get gameId => text()();
-  TextColumn get title => text()();
-  TextColumn get description => text()();
-  TextColumn get imageUrl => text()();
-  IntColumn get unlockAmount => integer()();
+  TextColumn get name => text()();
+  TextColumn get type => text()();
+  TextColumn get iconUrl => text()();
+  TextColumn get createdAt => text()();
 
   @override
   Set<Column> get primaryKey => {id};
 }
 
+class BossUniqueItems extends Table {
+  TextColumn get bossId => text()();
+  TextColumn get itemName => text()();
+
+  @override
+  Set<Column> get primaryKey => {bossId, itemName};
+}
+
 class BingoTiles extends Table {
   TextColumn get id => text()();
   TextColumn get gameId => text()();
-  TextColumn get title => text()();
-  TextColumn get description => text()();
-  TextColumn get imageUrl => text()();
+  TextColumn get bossId => text()();
+  TextColumn get description => text().nullable()();
   IntColumn get position => integer()();
+  BoolColumn get isAnyUnique => boolean().withDefault(const Constant(false))();
+  BoolColumn get isOrLogic => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+class TileUniqueItems extends Table {
+  TextColumn get tileId => text()();
+  TextColumn get itemName => text()();
+  IntColumn get requiredCount => integer().withDefault(const Constant(1))();
+
+  @override
+  Set<Column> get primaryKey => {tileId, itemName};
 }
 
 class TeamBoardState extends Table {
@@ -85,32 +105,24 @@ class TeamBoardState extends Table {
   Set<Column> get primaryKey => {teamId, tileId};
 }
 
-class TeamChallengeState extends Table {
-  TextColumn get teamId => text()();
-  TextColumn get challengeId => text()();
-  BoolColumn get completed => boolean().withDefault(const Constant(false))();
-
-  @override
-  Set<Column> get primaryKey => {teamId, challengeId};
-}
-
 @DriftDatabase(
   tables: [
     Users,
     Games,
     Teams,
     TeamMembers,
-    Challenges,
+    Bosses,
+    BossUniqueItems,
     BingoTiles,
+    TileUniqueItems,
     TeamBoardState,
-    TeamChallengeState,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 1;
 
   static QueryExecutor _openConnection() {
     final dbPath = Config.dbPath;
@@ -130,24 +142,7 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'CREATE INDEX IF NOT EXISTS idx_teams_game_id ON teams(game_id)',
       );
-    },
-    onUpgrade: (Migrator m, int from, int to) async {
-      if (from < 2) {
-        await customStatement('ALTER TABLE users ADD COLUMN avatar TEXT');
-      }
-    },
-    beforeOpen: (details) async {
-      await customStatement(
-        'CREATE TABLE IF NOT EXISTS _migration_check (version INTEGER)',
-      );
-
-      if (details.wasCreated == false) {
-        try {
-          await customStatement('SELECT avatar FROM users LIMIT 1');
-        } catch (e) {
-          await customStatement('ALTER TABLE users ADD COLUMN avatar TEXT');
-        }
-      }
+      await seedBosses();
     },
   );
 
@@ -174,7 +169,6 @@ class AppDatabase extends _$AppDatabase {
     required String code,
     required String name,
     required int teamSize,
-    required bool hasChallenges,
     required int boardSize,
     required DateTime createdAt,
   }) async {
@@ -184,7 +178,6 @@ class AppDatabase extends _$AppDatabase {
         code: Value(code),
         name: Value(name),
         teamSize: Value(teamSize),
-        hasChallenges: Value(hasChallenges),
         boardSize: Value(boardSize),
         createdAt: Value(createdAt.toIso8601String()),
       ),
@@ -289,54 +282,186 @@ class AppDatabase extends _$AppDatabase {
     await (delete(teams)..where((t) => t.id.equals(teamId))).go();
   }
 
-  Future<void> createChallenge({
+  Future<void> createBoss({
     required String id,
-    required String gameId,
-    required String title,
-    required String description,
-    required String imageUrl,
-    required int unlockAmount,
+    required String name,
+    required String type,
+    required String iconUrl,
+    required DateTime createdAt,
   }) async {
-    await into(challenges).insert(
-      ChallengesCompanion(
+    await into(bosses).insert(
+      BossesCompanion(
         id: Value(id),
-        gameId: Value(gameId),
-        title: Value(title),
-        description: Value(description),
-        imageUrl: Value(imageUrl),
-        unlockAmount: Value(unlockAmount),
+        name: Value(name),
+        type: Value(type),
+        iconUrl: Value(iconUrl),
+        createdAt: Value(createdAt.toIso8601String()),
       ),
     );
   }
 
-  Future<List<Challenge>> getChallengesByGameId(String gameId) async {
-    final query = select(challenges)..where((t) => t.gameId.equals(gameId));
+  Future<List<BossesData>> getAllBosses() async {
+    final query = select(bosses)..orderBy([(t) => OrderingTerm.asc(t.name)]);
+    return query.get();
+  }
+
+  Future<BossesData?> getBossById(String id) async {
+    final query = select(bosses)..where((t) => t.id.equals(id));
+    return query.getSingleOrNull();
+  }
+
+  Future<void> createBossUniqueItem({
+    required String bossId,
+    required String itemName,
+  }) async {
+    await into(bossUniqueItems).insert(
+      BossUniqueItemsCompanion(
+        bossId: Value(bossId),
+        itemName: Value(itemName),
+      ),
+    );
+  }
+
+  Future<List<BossUniqueItem>> getUniqueItemsByBossId(String bossId) async {
+    final query = select(bossUniqueItems)
+      ..where((t) => t.bossId.equals(bossId))
+      ..orderBy([(t) => OrderingTerm.asc(t.itemName)]);
     return query.get();
   }
 
   Future<void> createBingoTile({
     required String id,
     required String gameId,
-    required String title,
-    required String description,
-    required String imageUrl,
+    required String bossId,
+    String? description,
     required int position,
+    bool isAnyUnique = false,
+    bool isOrLogic = false,
   }) async {
     await into(bingoTiles).insert(
       BingoTilesCompanion(
         id: Value(id),
         gameId: Value(gameId),
-        title: Value(title),
+        bossId: Value(bossId),
         description: Value(description),
-        imageUrl: Value(imageUrl),
         position: Value(position),
+        isAnyUnique: Value(isAnyUnique),
+        isOrLogic: Value(isOrLogic),
       ),
     );
+  }
+
+  Future<void> createTileUniqueItem({
+    required String tileId,
+    required String itemName,
+    required int requiredCount,
+  }) async {
+    await into(tileUniqueItems).insert(
+      TileUniqueItemsCompanion(
+        tileId: Value(tileId),
+        itemName: Value(itemName),
+        requiredCount: Value(requiredCount),
+      ),
+    );
+  }
+
+  Future<List<TileUniqueItem>> getUniqueItemsByTileId(String tileId) async {
+    final query = select(tileUniqueItems)
+      ..where((t) => t.tileId.equals(tileId))
+      ..orderBy([(t) => OrderingTerm.asc(t.itemName)]);
+    return query.get();
+  }
+
+  static String _loadBossesJson() {
+    try {
+      final possiblePaths = [
+        p.join('lib', 'data', 'bosses.json'),
+        p.join('packages', 'backend', 'lib', 'data', 'bosses.json'),
+        p.join(
+          p.dirname(Platform.script.toFilePath()),
+          '..',
+          'lib',
+          'data',
+          'bosses.json',
+        ),
+        p.join(p.dirname(Platform.script.toFilePath()), 'data', 'bosses.json'),
+      ];
+
+      for (final jsonPath in possiblePaths) {
+        final file = File(jsonPath);
+        if (file.existsSync()) {
+          return file.readAsStringSync();
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+    return '[]';
+  }
+
+  Future<void> seedBosses() async {
+    try {
+      final bossesJson = _loadBossesJson();
+      if (bossesJson.isEmpty || bossesJson == '[]') {
+        return;
+      }
+      final bossesList = jsonDecode(bossesJson) as List<dynamic>;
+      final bosses = bossesList
+          .map((json) => BossData.fromJson(json as Map<String, dynamic>))
+          .toList();
+      const uuid = Uuid();
+
+      for (final bossData in bosses) {
+        final existingBosses = await getAllBosses();
+        BossesData? existingBoss;
+        try {
+          existingBoss = existingBosses.firstWhere(
+            (b) => b.name.toLowerCase() == bossData.name.toLowerCase(),
+          );
+        } catch (e) {}
+
+        String bossId;
+        if (existingBoss != null) {
+          bossId = existingBoss.id;
+        } else {
+          bossId = uuid.v4();
+          await createBoss(
+            id: bossId,
+            name: bossData.name,
+            type: bossData.type.value,
+            iconUrl: bossData.icon,
+            createdAt: DateTime.now(),
+          );
+        }
+
+        final existingItems = await getUniqueItemsByBossId(bossId);
+        final existingItemNames = existingItems
+            .map((item) => item.itemName)
+            .toSet();
+
+        for (final itemName in bossData.uniques) {
+          if (!existingItemNames.contains(itemName)) {
+            await createBossUniqueItem(
+              bossId: bossId,
+              itemName: itemName,
+            );
+          }
+        }
+      }
+    } catch (e) {
+      // Silently fail - seeding is not critical for app startup
+      // Log if needed: print('Failed to seed bosses: $e');
+    }
   }
 
   Future<List<BingoTile>> getTilesByGameId(String gameId) async {
     final query = select(bingoTiles)..where((t) => t.gameId.equals(gameId));
     return query.get();
+  }
+
+  Future<User?> getUserById(String userId) async {
+    final query = select(users)..where((t) => t.id.equals(userId));
+    return query.getSingleOrNull();
   }
 
   Future<List<User>> getAllUsers() async {

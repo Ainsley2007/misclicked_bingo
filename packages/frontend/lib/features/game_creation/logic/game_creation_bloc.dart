@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_event.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_state.dart';
+import 'package:shared_models/shared_models.dart';
 
 class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
   GameCreationBloc(this._repository)
@@ -11,11 +12,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     on<JumpToStepRequested>(_onJumpToStepRequested);
     on<GameNameChanged>(_onGameNameChanged);
     on<TeamSizeChanged>(_onTeamSizeChanged);
-    on<ChallengeToggleChanged>(_onChallengeToggleChanged);
     on<BoardSizeSelected>(_onBoardSizeSelected);
-    on<ChallengeAdded>(_onChallengeAdded);
-    on<ChallengeUpdated>(_onChallengeUpdated);
-    on<ChallengeRemoved>(_onChallengeRemoved);
     on<TileAdded>(_onTileAdded);
     on<TileUpdated>(_onTileUpdated);
     on<TileRemoved>(_onTileRemoved);
@@ -35,9 +32,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     }
 
     final nextStep = state.currentStep + 1;
-    if (state.currentStep == 4 && !state.hasChallenges) {
-      emit(state.clearError().copyWith(currentStep: 6));
-    } else if (nextStep <= 7) {
+    if (nextStep <= state.totalSteps) {
       emit(state.clearError().copyWith(currentStep: nextStep));
     }
   }
@@ -47,9 +42,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     Emitter<GameCreationState> emit,
   ) {
     final previousStep = state.currentStep - 1;
-    if (state.currentStep == 6 && !state.hasChallenges) {
-      emit(state.clearError().copyWith(currentStep: 4));
-    } else if (previousStep >= 1) {
+    if (previousStep >= 1) {
       emit(state.clearError().copyWith(currentStep: previousStep));
     }
   }
@@ -58,7 +51,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     JumpToStepRequested event,
     Emitter<GameCreationState> emit,
   ) {
-    if (event.step >= 1 && event.step <= 7) {
+    if (event.step >= 1 && event.step <= state.totalSteps) {
       emit(state.clearError().copyWith(currentStep: event.step));
     }
   }
@@ -77,13 +70,6 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     emit(state.copyWith(teamSize: event.size));
   }
 
-  void _onChallengeToggleChanged(
-    ChallengeToggleChanged event,
-    Emitter<GameCreationState> emit,
-  ) {
-    emit(state.copyWith(hasChallenges: event.enabled, challenges: []));
-  }
-
   void _onBoardSizeSelected(
     BoardSizeSelected event,
     Emitter<GameCreationState> emit,
@@ -91,54 +77,22 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     emit(state.copyWith(boardSize: event.size, tiles: []));
   }
 
-  void _onChallengeAdded(
-    ChallengeAdded event,
-    Emitter<GameCreationState> emit,
-  ) {
-    final newChallenges = List<Map<String, dynamic>>.from(
-      state.challenges,
-    )..add({'title': '', 'description': '', 'imageUrl': '', 'unlockAmount': 1});
-    emit(state.copyWith(challenges: newChallenges));
-  }
-
-  void _onChallengeUpdated(
-    ChallengeUpdated event,
-    Emitter<GameCreationState> emit,
-  ) {
-    final newChallenges = List<Map<String, dynamic>>.from(state.challenges);
-    if (event.index >= 0 && event.index < newChallenges.length) {
-      newChallenges[event.index] = event.data;
-      emit(state.copyWith(challenges: newChallenges));
-    }
-  }
-
-  void _onChallengeRemoved(
-    ChallengeRemoved event,
-    Emitter<GameCreationState> emit,
-  ) {
-    final newChallenges = List<Map<String, dynamic>>.from(state.challenges);
-    if (event.index >= 0 && event.index < newChallenges.length) {
-      newChallenges.removeAt(event.index);
-      emit(state.copyWith(challenges: newChallenges));
-    }
-  }
-
   void _onTileAdded(TileAdded event, Emitter<GameCreationState> emit) {
-    final newTiles = List<Map<String, dynamic>>.from(state.tiles)
-      ..add({'title': '', 'description': '', 'imageUrl': ''});
+    final newTiles = List<GameTileCreation>.from(state.tiles)
+      ..add(const GameTileCreation());
     emit(state.copyWith(tiles: newTiles));
   }
 
   void _onTileUpdated(TileUpdated event, Emitter<GameCreationState> emit) {
-    final newTiles = List<Map<String, dynamic>>.from(state.tiles);
+    final newTiles = List<GameTileCreation>.from(state.tiles);
     if (event.index >= 0 && event.index < newTiles.length) {
-      newTiles[event.index] = event.data;
+      newTiles[event.index] = event.tile;
       emit(state.copyWith(tiles: newTiles));
     }
   }
 
   void _onTileRemoved(TileRemoved event, Emitter<GameCreationState> emit) {
-    final newTiles = List<Map<String, dynamic>>.from(state.tiles);
+    final newTiles = List<GameTileCreation>.from(state.tiles);
     if (event.index >= 0 && event.index < newTiles.length) {
       newTiles.removeAt(event.index);
       emit(state.copyWith(tiles: newTiles));
@@ -162,9 +116,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
       final game = await _repository.createGame(
         name: state.gameName,
         teamSize: state.teamSize,
-        hasChallenges: state.hasChallenges,
         boardSize: state.boardSize,
-        challenges: state.challenges,
         tiles: state.tiles,
       );
 
@@ -185,7 +137,6 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
       3 => state.canProceedFromStep3,
       4 => state.canProceedFromStep4,
       5 => state.canProceedFromStep5,
-      6 => state.canProceedFromStep6,
       _ => false,
     };
   }
@@ -194,12 +145,8 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     return switch (state.currentStep) {
       1 => 'Please enter a game name',
       2 => 'Team size must be between 1 and 50',
-      4 => 'Please select a board size',
-      5 =>
-        state.hasChallenges && state.challenges.isEmpty
-            ? 'Add at least one challenge'
-            : 'Total unlock amount must be at least ${state.boardSize * state.boardSize}',
-      6 => 'You need exactly ${state.boardSize * state.boardSize} tiles',
+      3 => 'Please select a board size',
+      4 => state.tileValidationError,
       _ => 'Please complete this step',
     };
   }
@@ -208,7 +155,6 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     return state.isGameNameValid &&
         state.isTeamSizeValid &&
         state.isBoardSizeValid &&
-        state.areChallengesValid &&
         state.areTilesValid;
   }
 }

@@ -112,9 +112,9 @@ class Step6Tiles extends StatelessWidget {
                     return TileFormCard(
                       index: index,
                       data: state.tiles[index],
-                      onUpdate: (data) {
+                      onUpdate: (tile) {
                         context.read<GameCreationBloc>().add(
-                          TileUpdated(index, data),
+                          TileUpdated(index, tile),
                         );
                       },
                       onRemove: () {

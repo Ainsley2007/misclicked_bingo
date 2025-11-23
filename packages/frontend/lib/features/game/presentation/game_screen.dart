@@ -6,7 +6,6 @@ import 'package:frontend/core/di.dart';
 import 'package:frontend/features/game/logic/game_bloc.dart';
 import 'package:frontend/features/game/logic/game_event.dart';
 import 'package:frontend/features/game/logic/game_state.dart';
-import 'package:frontend/features/game/presentation/widgets/challenge_card.dart';
 import 'package:frontend/features/game/presentation/widgets/bingo_tile_card.dart';
 import 'package:frontend/features/game/presentation/widgets/tile_details_dialog.dart';
 
@@ -32,11 +31,6 @@ class _GameScreenContent extends StatefulWidget {
 }
 
 class _GameScreenContentState extends State<_GameScreenContent> {
-  bool _challengesExpanded = true;
-
-  static const int mockUnlocksAvailable = 8;
-  static const Set<int> mockCompletedChallenges = {0, 3, 7};
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<GameBloc, GameState>(
@@ -78,24 +72,16 @@ class _GameScreenContentState extends State<_GameScreenContent> {
 
         final loadedState = state as GameLoaded;
         final game = loadedState.game;
-        final challenges = loadedState.challenges;
         final tiles = loadedState.tiles;
 
         // Generate mock tile states based on board size
-        final mockTileStates = <int, TileState>{};
+        final mockTileStates = <int, bool>{};
         for (var i = 0; i < tiles.length; i++) {
-          if (i % 3 == 0) {
-            mockTileStates[i] = TileState.completed;
-          } else if (i % 3 == 1) {
-            mockTileStates[i] = TileState.unlocked;
-          } else {
-            mockTileStates[i] = TileState.unlocked;
-          }
+          mockTileStates[i] = i % 3 == 0;
         }
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 1200;
             final availableHeight = constraints.maxHeight;
 
             return SingleChildScrollView(
@@ -103,66 +89,14 @@ class _GameScreenContentState extends State<_GameScreenContent> {
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1600),
-                  child: isWide
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (game.hasChallenges && _challengesExpanded)
-                              Expanded(
-                                flex: 1,
-                                child: _ChallengesSection(
-                                  challenges: challenges,
-                                  completedChallenges: mockCompletedChallenges,
-                                  onToggle: () {
-                                    setState(() {
-                                      _challengesExpanded = false;
-                                    });
-                                  },
-                                ),
-                              ),
-                            if (game.hasChallenges && !_challengesExpanded)
-                              _CollapsedChallengesBar(
-                                onToggle: () {
-                                  setState(() {
-                                    _challengesExpanded = true;
-                                  });
-                                },
-                              ),
-                            if (game.hasChallenges) const SizedBox(width: 32),
-                            Expanded(
-                              child: Center(
-                                child: _BingoBoardSection(
-                                  tiles: tiles,
-                                  tileStates: mockTileStates,
-                                  boardSize: game.boardSize,
-                                  unlocksAvailable: mockUnlocksAvailable,
-                                  hasChallenges: game.hasChallenges,
-                                  availableHeight: availableHeight,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            if (game.hasChallenges) ...[
-                              _ChallengesSection(
-                                challenges: challenges,
-                                completedChallenges: mockCompletedChallenges,
-                                onToggle: null,
-                              ),
-                              const SizedBox(height: 32),
-                            ],
-                            _BingoBoardSection(
-                              tiles: tiles,
-                              tileStates: mockTileStates,
-                              boardSize: game.boardSize,
-                              unlocksAvailable: mockUnlocksAvailable,
-                              hasChallenges: game.hasChallenges,
-                              availableHeight: availableHeight,
-                            ),
-                          ],
-                        ),
+                  child: Center(
+                    child: _BingoBoardSection(
+                      tiles: tiles,
+                      tileStates: mockTileStates,
+                      boardSize: game.boardSize,
+                      availableHeight: availableHeight,
+                    ),
+                  ),
                 ),
               ),
             );
@@ -173,139 +107,23 @@ class _GameScreenContentState extends State<_GameScreenContent> {
   }
 }
 
-class _ChallengesSection extends StatelessWidget {
-  const _ChallengesSection({
-    required this.challenges,
-    required this.completedChallenges,
-    required this.onToggle,
-  });
-
-  final List<Challenge> challenges;
-  final Set<int> completedChallenges;
-  final VoidCallback? onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.emoji_events_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 32,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    'Challenges',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (onToggle != null)
-                  IconButton(
-                    onPressed: onToggle,
-                    icon: const Icon(Icons.chevron_left_rounded),
-                    tooltip: 'Collapse challenges',
-                  ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: challenges.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            return ChallengeCard(
-              challenge: challenges[index],
-              isCompleted: completedChallenges.contains(index),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class _CollapsedChallengesBar extends StatelessWidget {
-  const _CollapsedChallengesBar({required this.onToggle});
-
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onToggle,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            children: [
-              RotatedBox(
-                quarterTurns: 3,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.emoji_events_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Challenges',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _BingoBoardSection extends StatelessWidget {
   const _BingoBoardSection({
     required this.tiles,
     required this.tileStates,
     required this.boardSize,
-    required this.unlocksAvailable,
-    required this.hasChallenges,
     required this.availableHeight,
   });
 
   final List<BingoTile> tiles;
-  final Map<int, TileState> tileStates;
+  final Map<int, bool> tileStates;
   final int boardSize;
-  final int unlocksAvailable;
-  final bool hasChallenges;
   final double availableHeight;
 
   @override
   Widget build(BuildContext context) {
     final completedTiles = tileStates.values
-        .where((state) => state == TileState.completed)
+        .where((isCompleted) => isCompleted)
         .length;
     final totalTiles = tiles.length;
 
@@ -375,17 +193,17 @@ class _BingoBoardSection extends StatelessWidget {
                           itemCount: tiles.length,
                           itemBuilder: (context, index) {
                             final tile = tiles[index];
-                            final state = tileStates[index] ?? TileState.locked;
+                            final isCompleted = tileStates[index] ?? false;
 
                             return BingoTileCard(
                               tile: tile,
-                              state: state,
+                              isCompleted: isCompleted,
                               onTap: () {
                                 showDialog(
                                   context: context,
                                   builder: (context) => TileDetailsDialog(
                                     tile: tile,
-                                    state: state,
+                                    isCompleted: isCompleted,
                                   ),
                                 );
                               },

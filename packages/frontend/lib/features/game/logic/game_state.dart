@@ -18,10 +18,13 @@ final class GameLoading extends GameState {
 
 @immutable
 final class GameLoaded extends GameState {
-  const GameLoaded({required this.game, required this.challenges, required this.tiles, this.users = const []});
+  const GameLoaded({
+    required this.game,
+    required this.tiles,
+    this.users = const [],
+  });
 
   final Game game;
-  final List<Challenge> challenges;
   final List<BingoTile> tiles;
   final List<AppUser> users;
 }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/di.dart';
 import 'package:frontend/core/utils/debouncer.dart';
+import 'package:frontend/features/bosses/data/boss_repository.dart';
+import 'package:frontend/features/game_creation/presentation/widgets/unique_items_selection_dialog.dart';
+import 'package:shared_models/shared_models.dart';
 
 class TileFormCard extends StatefulWidget {
   const TileFormCard({
@@ -11,8 +15,8 @@ class TileFormCard extends StatefulWidget {
   });
 
   final int index;
-  final Map<String, dynamic> data;
-  final Function(Map<String, dynamic>) onUpdate;
+  final GameTileCreation data;
+  final Function(GameTileCreation) onUpdate;
   final VoidCallback onRemove;
 
   @override
@@ -20,42 +24,158 @@ class TileFormCard extends StatefulWidget {
 }
 
 class _TileFormCardState extends State<TileFormCard> {
-  late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _imageUrlController;
   final _debouncer = Debouncer(milliseconds: 500);
+  List<Boss> _bosses = [];
+  Boss? _selectedBoss;
+  final Map<String, int> _selectedItems = {}; // itemName -> requiredCount
+  bool _isLoadingBosses = true;
+  bool _isAnyUnique = false;
+  bool _isOrLogic = false;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(
-      text: widget.data['title'] as String? ?? '',
-    );
     _descriptionController = TextEditingController(
-      text: widget.data['description'] as String? ?? '',
+      text: widget.data.description ?? '',
     );
-    _imageUrlController = TextEditingController(
-      text: widget.data['imageUrl'] as String? ?? '',
-    );
+    _isAnyUnique = widget.data.isAnyUnique;
+    _isOrLogic = widget.data.isOrLogic;
+    _loadBosses();
+    _loadInitialData();
+  }
+
+  Future<void> _loadBosses() async {
+    try {
+      final repository = sl<BossRepository>();
+      final bosses = await repository.getAllBosses();
+      setState(() {
+        _bosses = bosses;
+        _isLoadingBosses = false;
+      });
+      _loadInitialData();
+    } catch (e) {
+      setState(() {
+        _isLoadingBosses = false;
+      });
+    }
+  }
+
+  void _loadInitialData() {
+    final bossId = widget.data.bossId;
+    if (bossId != null && _bosses.isNotEmpty) {
+      final boss = _bosses.firstWhere(
+        (b) => b.id == bossId,
+        orElse: () => _bosses.first,
+      );
+      setState(() {
+        _selectedBoss = boss;
+      });
+      _loadSelectedItems();
+    }
+
+    final description = widget.data.description;
+    if (description != null) {
+      _descriptionController.text = description;
+    }
+  }
+
+  void _loadSelectedItems() {
+    final uniqueItems = widget.data.uniqueItems;
+    setState(() {
+      _isAnyUnique = widget.data.isAnyUnique;
+      _isOrLogic = widget.data.isOrLogic;
+      _selectedItems.clear();
+      for (final item in uniqueItems) {
+        _selectedItems[item.itemName] = item.requiredCount;
+      }
+    });
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
     _descriptionController.dispose();
-    _imageUrlController.dispose();
     _debouncer.dispose();
     super.dispose();
   }
 
   void _notifyUpdate() {
     _debouncer.run(() {
-      widget.onUpdate({
-        'title': _titleController.text,
-        'description': _descriptionController.text,
-        'imageUrl': _imageUrlController.text,
-      });
+      if (_selectedBoss == null) {
+        return;
+      }
+
+      widget.onUpdate(
+        GameTileCreation(
+          bossId: _selectedBoss!.id,
+          description: _descriptionController.text.trim().isEmpty
+              ? null
+              : _descriptionController.text.trim(),
+          uniqueItems: _isAnyUnique
+              ? []
+              : _selectedItems.entries
+                    .map(
+                      (e) => TileUniqueItem(
+                        itemName: e.key,
+                        requiredCount: e.value,
+                      ),
+                    )
+                    .toList(),
+          isAnyUnique: _isAnyUnique,
+          isOrLogic: _isOrLogic,
+        ),
+      );
     });
+  }
+
+  void _onBossSelected(Boss? boss) {
+    setState(() {
+      _selectedBoss = boss;
+      _selectedItems.clear();
+      _isAnyUnique = false;
+      _isOrLogic = false;
+    });
+    _notifyUpdate();
+  }
+
+  Future<void> _openUniqueItemsDialog() async {
+    if (_selectedBoss == null) return;
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => UniqueItemsSelectionDialog(
+        boss: _selectedBoss!,
+        initialItems: widget.data.uniqueItems,
+        initialIsAnyUnique: _isAnyUnique,
+        initialIsOrLogic: _isOrLogic,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _isAnyUnique = result['isAnyUnique'] as bool;
+        _isOrLogic = result['isOrLogic'] as bool;
+        final items = result['items'] as List<TileUniqueItem>;
+        _selectedItems.clear();
+        for (final item in items) {
+          _selectedItems[item.itemName] = item.requiredCount;
+        }
+      });
+      _notifyUpdate();
+    }
+  }
+
+  String _getUniqueItemsSummary() {
+    if (_isAnyUnique) {
+      return 'Any unique item from ${_selectedBoss!.name}';
+    }
+    if (_selectedItems.isEmpty) {
+      return 'No items selected';
+    }
+    final items = _selectedItems.entries
+        .map((e) => e.value > 1 ? '${e.key} (x${e.value})' : e.key)
+        .join(_isOrLogic ? ' OR ' : ' AND ');
+    return items;
   }
 
   @override
@@ -96,39 +216,122 @@ class _TileFormCardState extends State<TileFormCard> {
               ],
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title *',
-                hintText: 'e.g., Pet a dog',
-                prefixIcon: Icon(Icons.title_rounded),
-                border: OutlineInputBorder(),
+            if (_isLoadingBosses)
+              const Center(child: CircularProgressIndicator())
+            else ...[
+              DropdownButtonFormField<Boss>(
+                initialValue: _selectedBoss,
+                decoration: InputDecoration(
+                  labelText: 'Boss *',
+                  prefixIcon:
+                      _selectedBoss != null && _selectedBoss!.iconUrl.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Image.network(
+                            _selectedBoss!.iconUrl,
+                            width: 16,
+                            height: 16,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.person_rounded, size: 24);
+                            },
+                          ),
+                        )
+                      : const Icon(Icons.person_rounded),
+                  border: const OutlineInputBorder(),
+                ),
+                selectedItemBuilder: (context) {
+                  return _bosses.map((boss) {
+                    return Text(boss.name);
+                  }).toList();
+                },
+                items: _bosses.map((boss) {
+                  return DropdownMenuItem<Boss>(
+                    value: boss,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 300),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (boss.iconUrl.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Image.network(
+                                boss.iconUrl,
+                                width: 24,
+                                height: 24,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.person, size: 24);
+                                },
+                              ),
+                            ),
+                          Flexible(child: Text(boss.name)),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: _onBossSelected,
               ),
-              onChanged: (_) => _notifyUpdate(),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description *',
-                hintText: 'Describe this tile',
-                prefixIcon: Icon(Icons.description_rounded),
-                border: OutlineInputBorder(),
+              if (_selectedBoss != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Unique Items *',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _openUniqueItemsDialog,
+                  icon: const Icon(Icons.edit_rounded),
+                  label: const Text('Select Unique Items'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                if (_isAnyUnique || _selectedItems.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _getUniqueItemsSummary(),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description (optional)',
+                  hintText: 'Add a custom description for this tile',
+                  prefixIcon: Icon(Icons.description_rounded),
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+                onChanged: (_) => _notifyUpdate(),
               ),
-              maxLines: 2,
-              onChanged: (_) => _notifyUpdate(),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _imageUrlController,
-              decoration: const InputDecoration(
-                labelText: 'Image URL *',
-                hintText: 'https://example.com/image.png',
-                prefixIcon: Icon(Icons.image_rounded),
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (_) => _notifyUpdate(),
-            ),
+            ],
           ],
         ),
       ),

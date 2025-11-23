@@ -9,17 +9,31 @@ part of 'bingo_tile.dart';
 BingoTile _$BingoTileFromJson(Map<String, dynamic> json) => BingoTile(
   id: json['id'] as String,
   gameId: json['gameId'] as String,
-  title: json['title'] as String,
-  description: json['description'] as String,
-  imageUrl: json['imageUrl'] as String,
+  bossId: json['bossId'] as String,
+  description: json['description'] as String?,
   position: (json['position'] as num).toInt(),
+  bossName: json['bossName'] as String?,
+  bossType: BingoTile._typeFromJson(json['bossType'] as String?),
+  bossIconUrl: json['bossIconUrl'] as String?,
+  uniqueItems:
+      (json['uniqueItems'] as List<dynamic>?)
+          ?.map((e) => TileUniqueItem.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  isAnyUnique: json['isAnyUnique'] as bool? ?? false,
+  isOrLogic: json['isOrLogic'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$BingoTileToJson(BingoTile instance) => <String, dynamic>{
   'id': instance.id,
   'gameId': instance.gameId,
-  'title': instance.title,
+  'bossId': instance.bossId,
   'description': instance.description,
-  'imageUrl': instance.imageUrl,
   'position': instance.position,
+  'bossName': instance.bossName,
+  'bossType': BingoTile._typeToJson(instance.bossType),
+  'bossIconUrl': instance.bossIconUrl,
+  'uniqueItems': instance.uniqueItems,
+  'isAnyUnique': instance.isAnyUnique,
+  'isOrLogic': instance.isOrLogic,
 };

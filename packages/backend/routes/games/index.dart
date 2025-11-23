@@ -27,7 +27,6 @@ Future<Response> _getGames(RequestContext context) async {
               'code': g.code,
               'name': g.name,
               'teamSize': g.teamSize,
-              'hasChallenges': g.hasChallenges,
               'boardSize': g.boardSize,
               'createdAt': g.createdAt,
             },
@@ -47,9 +46,7 @@ Future<Response> _createGame(RequestContext context) async {
     final body = await context.request.json() as Map<String, dynamic>;
     final name = body['name'] as String?;
     final teamSize = body['teamSize'] as int? ?? 5;
-    final hasChallenges = body['hasChallenges'] as bool? ?? false;
     final boardSize = body['boardSize'] as int? ?? 3;
-    final challenges = body['challenges'] as List<dynamic>? ?? [];
     final tiles = body['tiles'] as List<dynamic>? ?? [];
 
     if (name == null || name.trim().isEmpty) {
@@ -85,34 +82,6 @@ Future<Response> _createGame(RequestContext context) async {
       );
     }
 
-    if (hasChallenges) {
-      if (challenges.isEmpty) {
-        return Response.json(
-          statusCode: HttpStatus.badRequest,
-          body: {
-            'error':
-                'At least one challenge required when challenges are enabled',
-          },
-        );
-      }
-
-      final totalUnlockAmount = challenges.fold<int>(
-        0,
-        (sum, c) =>
-            sum + ((c as Map<String, dynamic>)['unlockAmount'] as int? ?? 0),
-      );
-
-      if (totalUnlockAmount < requiredTiles) {
-        return Response.json(
-          statusCode: HttpStatus.badRequest,
-          body: {
-            'error':
-                'Total unlock amount ($totalUnlockAmount) must be at least $requiredTiles',
-          },
-        );
-      }
-    }
-
     final db = context.read<AppDatabase>();
     final id = const Uuid().v4();
     final code = _generateGameCode();
@@ -123,33 +92,77 @@ Future<Response> _createGame(RequestContext context) async {
       code: code,
       name: name.trim(),
       teamSize: teamSize,
-      hasChallenges: hasChallenges,
       boardSize: boardSize,
       createdAt: now,
     );
 
-    for (final challengeData in challenges) {
-      final c = challengeData as Map<String, dynamic>;
-      await db.createChallenge(
-        id: const Uuid().v4(),
-        gameId: id,
-        title: c['title'] as String,
-        description: c['description'] as String,
-        imageUrl: c['imageUrl'] as String,
-        unlockAmount: c['unlockAmount'] as int,
-      );
-    }
-
     for (var i = 0; i < tiles.length; i++) {
       final t = tiles[i] as Map<String, dynamic>;
+      final bossId = t['bossId'] as String?;
+      final description = t['description'] as String?;
+      final uniqueItems = t['uniqueItems'] as List<dynamic>?;
+
+      if (bossId == null || bossId.trim().isEmpty) {
+        return Response.json(
+          statusCode: HttpStatus.badRequest,
+          body: {'error': 'Boss ID is required for all tiles'},
+        );
+      }
+
+      // Verify boss exists
+      final boss = await db.getBossById(bossId);
+      if (boss == null) {
+        return Response.json(
+          statusCode: HttpStatus.badRequest,
+          body: {'error': 'Boss not found: $bossId'},
+        );
+      }
+
+      final isAnyUnique = t['isAnyUnique'] as bool? ?? false;
+      final isOrLogic = t['isOrLogic'] as bool? ?? false;
+
+      if (!isAnyUnique && (uniqueItems == null || uniqueItems.isEmpty)) {
+        return Response.json(
+          statusCode: HttpStatus.badRequest,
+          body: {
+            'error':
+                'At least one unique item is required for each tile (or use "Any Unique" option)',
+          },
+        );
+      }
+
+      final tileId = const Uuid().v4();
       await db.createBingoTile(
-        id: const Uuid().v4(),
+        id: tileId,
         gameId: id,
-        title: t['title'] as String,
-        description: t['description'] as String,
-        imageUrl: t['imageUrl'] as String,
+        bossId: bossId,
+        description: description?.trim().isEmpty == true
+            ? null
+            : description?.trim(),
         position: i,
+        isAnyUnique: isAnyUnique,
+        isOrLogic: isOrLogic,
       );
+
+      // Create unique items for this tile (only if not "any unique")
+      if (!isAnyUnique && uniqueItems != null) {
+        for (final item in uniqueItems) {
+          final itemData = item as Map<String, dynamic>;
+          final itemName = itemData['itemName'] as String?;
+          final requiredCount =
+              (itemData['requiredCount'] as num?)?.toInt() ?? 1;
+
+          if (itemName == null || itemName.trim().isEmpty) {
+            continue;
+          }
+
+          await db.createTileUniqueItem(
+            tileId: tileId,
+            itemName: itemName.trim(),
+            requiredCount: requiredCount,
+          );
+        }
+      }
     }
 
     return Response.json(
@@ -159,7 +172,6 @@ Future<Response> _createGame(RequestContext context) async {
         'code': code,
         'name': name.trim(),
         'teamSize': teamSize,
-        'hasChallenges': hasChallenges,
         'boardSize': boardSize,
         'createdAt': now.toIso8601String(),
       },

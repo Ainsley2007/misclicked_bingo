@@ -46,10 +46,6 @@ class Step7Summary extends StatelessWidget {
                 ),
                 children: [
                   _SummaryItem(
-                    label: 'Challenge Mode',
-                    value: state.hasChallenges ? 'Enabled' : 'Disabled',
-                  ),
-                  _SummaryItem(
                     label: 'Board Size',
                     value: '${state.boardSize}x${state.boardSize}',
                   ),
@@ -59,38 +55,12 @@ class Step7Summary extends StatelessWidget {
                   ),
                 ],
               ),
-              if (state.hasChallenges) ...[
-                const SizedBox(height: 16),
-                _SummarySection(
-                  title: 'Challenges',
-                  icon: Icons.emoji_events_rounded,
-                  onEdit: () => context.read<GameCreationBloc>().add(
-                    const JumpToStepRequested(5),
-                  ),
-                  children: [
-                    _SummaryItem(
-                      label: 'Count',
-                      value: '${state.challenges.length}',
-                    ),
-                    _SummaryItem(
-                      label: 'Total Unlock Points',
-                      value: state.challenges
-                          .fold<int>(
-                            0,
-                            (sum, c) =>
-                                sum + ((c['unlockAmount'] as int?) ?? 0),
-                          )
-                          .toString(),
-                    ),
-                  ],
-                ),
-              ],
               const SizedBox(height: 16),
               _SummarySection(
                 title: 'Tiles',
                 icon: Icons.grid_on_rounded,
                 onEdit: () => context.read<GameCreationBloc>().add(
-                  const JumpToStepRequested(6),
+                  const JumpToStepRequested(4),
                 ),
                 children: [
                   _SummaryItem(label: 'Count', value: '${state.tiles.length}'),

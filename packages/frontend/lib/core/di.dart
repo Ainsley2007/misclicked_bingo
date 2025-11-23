@@ -13,6 +13,7 @@ import 'package:frontend/features/manage_team/data/teams_repository.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
 import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_bloc.dart';
+import 'package:frontend/features/bosses/data/boss_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -42,6 +43,7 @@ void setupDi() {
   sl.registerLazySingleton<GameRepository>(() => GameRepository(sl<Dio>()));
   sl.registerLazySingleton<TeamsRepository>(() => TeamsRepository(sl<Dio>()));
   sl.registerLazySingleton<GameCreationRepository>(() => GameCreationRepository(sl<Dio>()));
+  sl.registerLazySingleton<BossRepository>(() => BossRepository(sl<Dio>()));
 
   // BLoCs
   sl.registerFactory<GamesBloc>(() => GamesBloc(sl<GamesRepository>()));

@@ -1,121 +1,205 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
-import 'package:frontend/core/constants/color_filters.dart';
-
-enum TileState { locked, unlocked, completed }
 
 class BingoTileCard extends StatelessWidget {
   const BingoTileCard({
     required this.tile,
-    required this.state,
+    required this.isCompleted,
     required this.onTap,
     super.key,
   });
 
   final BingoTile tile;
-  final TileState state;
+  final bool isCompleted;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: state != TileState.locked ? onTap : null,
-      child: Card(
-        elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-          side: BorderSide.none,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(
-                context,
-              ).colorScheme.outline.withValues(alpha: 0.1),
-              width: 1,
-            ),
-          ),
-          child: Stack(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          Stack(
             children: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: Stack(
-                  children: [
-                    Image.asset(
-                      'assets/image/tile.png',
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
-                    ColorFiltered(
-                      colorFilter: state == TileState.locked
-                          ? ColorFilters.grayscale
-                          : ColorFilters.none,
-                      child: Image.network(
-                        tile.imageUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+              Image.asset(
+                'assets/image/tile.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
               ),
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: 50,
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      tile.title,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-              if (state == TileState.locked)
-                Positioned(
-                  left: 8,
-                  right: 8,
-                  top: 8,
-                  bottom: 8,
-                  child: Container(
-                    color: const Color(0xFFE11D48).withValues(alpha: 0.08),
-                    child: const Center(
-                      child: Icon(
-                        Icons.lock_rounded,
-                        size: 48,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              if (state == TileState.completed)
-                Positioned(
-                  left: 8,
-                  right: 8,
-                  top: 8,
-                  bottom: 8,
+              if (isCompleted) ...[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: Container(
                     color: const Color(0xFF4CAF50).withValues(alpha: 0.08),
                   ),
                 ),
+              ],
+              _BingoTileContent(tile: tile),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
+
+class _BingoTileContent extends StatelessWidget {
+  const _BingoTileContent({required this.tile});
+
+  final BingoTile tile;
+
+  @override
+  Widget build(BuildContext context) {
+    final bossTypeColor = _getBossTypeColor(tile.bossType);
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          if (tile.bossIconUrl != null) ...[
+            const SizedBox(height: 16),
+            Image.network(
+              tile.bossIconUrl!,
+              fit: BoxFit.contain,
+              width: 48,
+              height: 48,
+              errorBuilder: (context, error, stackTrace) {
+                return const SizedBox.shrink();
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+          SizedBox(
+            height: 20,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    height: 1.5,
+                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    color: bossTypeColor,
+                  ),
+                ),
+                if (tile.uniqueItems.length > 1)
+                  Positioned(
+                    left: 0,
+                    top: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        tile.isOrLogic ? 'OR' : 'AND',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildUniqueItemsSection(context),
+        ],
+      ),
+    );
+  }
+
+  Color _getBossTypeColor(BossType? type) {
+    return switch (type) {
+      BossType.easy => const Color(0xFF4CAF50), // Green
+      BossType.solo => const Color(0xFF9C27B0), // Purple
+      BossType.group => const Color(0xFFE11D48), // Red
+      BossType.slayer => const Color(0xFFFF9800), // Orange
+      null => const Color(0xFF4CAF50), // Default to green
+    };
+  }
+
+  Widget _buildUniqueItemsSection(BuildContext context) {
+    if (tile.isAnyUnique) {
+      return Center(
+        child: Text(
+          'Any unique',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+    if (tile.uniqueItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    if (tile.uniqueItems.length == 1) {
+      final item = tile.uniqueItems.first;
+      final text = item.requiredCount > 1
+          ? '${item.requiredCount}x ${item.itemName}'
+          : item.itemName;
+      return Center(
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      );
+    }
+
+    final items = tile.uniqueItems.map((item) {
+      return item.requiredCount > 1
+          ? '${item.requiredCount}x ${item.itemName}'
+          : item.itemName;
+    }).toList();
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: items
+            .map(
+              (itemText) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child: Text(
+                  itemText,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+/*
+                    
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.85),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 6,
+                        ),
+                        child: _buildUniqueItemsSection(context),
+                      ),
+                    ),
+*/

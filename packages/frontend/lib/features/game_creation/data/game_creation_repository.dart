@@ -9,20 +9,16 @@ class GameCreationRepository {
   Future<Game> createGame({
     required String name,
     required int teamSize,
-    required bool hasChallenges,
     required int boardSize,
-    required List<Map<String, dynamic>> challenges,
-    required List<Map<String, dynamic>> tiles,
+    required List<GameTileCreation> tiles,
   }) async {
     final response = await _dio.post(
       '/games',
       data: {
         'name': name,
         'teamSize': teamSize,
-        'hasChallenges': hasChallenges,
         'boardSize': boardSize,
-        'challenges': challenges,
-        'tiles': tiles,
+        'tiles': tiles.map((tile) => tile.toJson()).toList(),
       },
     );
 

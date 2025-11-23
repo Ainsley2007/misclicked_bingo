@@ -25,13 +25,6 @@ class GameRepository {
     return Game.fromJson(response.data!);
   }
 
-  Future<List<Challenge>> getChallenges(String gameId) async {
-    final response = await _dio.get<List<dynamic>>('/games/$gameId/challenges');
-    return response.data!
-        .map((json) => Challenge.fromJson(json as Map<String, dynamic>))
-        .toList();
-  }
-
   Future<List<BingoTile>> getTiles(String gameId) async {
     final response = await _dio.get<List<dynamic>>('/games/$gameId/tiles');
     return response.data!

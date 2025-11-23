@@ -29,7 +29,6 @@ Future<Response> _getGame(RequestContext context, String id) async {
         'code': game.code,
         'name': game.name,
         'teamSize': game.teamSize,
-        'hasChallenges': game.hasChallenges,
         'boardSize': game.boardSize,
         'createdAt': game.createdAt,
       },

@@ -7,9 +7,7 @@ import 'package:frontend/features/game_creation/logic/game_creation_state.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/wizard_step_indicator.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_1_game_name.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_2_team_size.dart';
-import 'package:frontend/features/game_creation/presentation/widgets/step_3_challenge_toggle.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_4_board_size.dart';
-import 'package:frontend/features/game_creation/presentation/widgets/step_5_challenges.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_6_tiles.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_7_summary.dart';
 import 'package:go_router/go_router.dart';
@@ -63,7 +61,7 @@ class _GameCreationContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   WizardStepIndicator(
-                    currentStep: state.effectiveStep,
+                    currentStep: state.currentStep,
                     totalSteps: state.totalSteps,
                   ),
                   const SizedBox(height: 32),
@@ -81,12 +79,9 @@ class _GameCreationContent extends StatelessWidget {
     return switch (state.currentStep) {
       1 => const Step1GameName(),
       2 => const Step2TeamSize(),
-      3 => const Step3ChallengeToggle(),
-      4 => const Step4BoardSize(),
-      5 => const Step5Challenges(),
-      6 => const Step6Tiles(),
-      7 => const Step7Summary(),
-      _ => const SizedBox(),
+      3 => const Step4BoardSize(),
+      4 => const Step6Tiles(),
+      _ => const Step7Summary(),
     };
   }
 

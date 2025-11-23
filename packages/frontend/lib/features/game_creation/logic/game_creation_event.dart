@@ -1,3 +1,5 @@
+import 'package:shared_models/shared_models.dart';
+
 sealed class GameCreationEvent {
   const GameCreationEvent();
 }
@@ -28,33 +30,10 @@ final class TeamSizeChanged extends GameCreationEvent {
   final int size;
 }
 
-final class ChallengeToggleChanged extends GameCreationEvent {
-  const ChallengeToggleChanged(this.enabled);
-
-  final bool enabled;
-}
-
 final class BoardSizeSelected extends GameCreationEvent {
   const BoardSizeSelected(this.size);
 
   final int size;
-}
-
-final class ChallengeAdded extends GameCreationEvent {
-  const ChallengeAdded();
-}
-
-final class ChallengeUpdated extends GameCreationEvent {
-  const ChallengeUpdated(this.index, this.data);
-
-  final int index;
-  final Map<String, dynamic> data;
-}
-
-final class ChallengeRemoved extends GameCreationEvent {
-  const ChallengeRemoved(this.index);
-
-  final int index;
 }
 
 final class TileAdded extends GameCreationEvent {
@@ -62,10 +41,10 @@ final class TileAdded extends GameCreationEvent {
 }
 
 final class TileUpdated extends GameCreationEvent {
-  const TileUpdated(this.index, this.data);
+  const TileUpdated(this.index, this.tile);
 
   final int index;
-  final Map<String, dynamic> data;
+  final GameTileCreation tile;
 }
 
 final class TileRemoved extends GameCreationEvent {

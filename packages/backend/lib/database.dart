@@ -82,6 +82,7 @@ class BingoTiles extends Table {
   IntColumn get position => integer()();
   BoolColumn get isAnyUnique => boolean().withDefault(const Constant(false))();
   BoolColumn get isOrLogic => boolean().withDefault(const Constant(false))();
+  IntColumn get anyNCount => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -337,6 +338,7 @@ class AppDatabase extends _$AppDatabase {
     required int position,
     bool isAnyUnique = false,
     bool isOrLogic = false,
+    int? anyNCount,
   }) async {
     await into(bingoTiles).insert(
       BingoTilesCompanion(
@@ -347,6 +349,7 @@ class AppDatabase extends _$AppDatabase {
         position: Value(position),
         isAnyUnique: Value(isAnyUnique),
         isOrLogic: Value(isOrLogic),
+        anyNCount: Value(anyNCount),
       ),
     );
   }

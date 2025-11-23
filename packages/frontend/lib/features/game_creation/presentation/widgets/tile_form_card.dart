@@ -32,6 +32,7 @@ class _TileFormCardState extends State<TileFormCard> {
   bool _isLoadingBosses = true;
   bool _isAnyUnique = false;
   bool _isOrLogic = false;
+  int? _anyNCount;
 
   @override
   void initState() {
@@ -41,6 +42,7 @@ class _TileFormCardState extends State<TileFormCard> {
     );
     _isAnyUnique = widget.data.isAnyUnique;
     _isOrLogic = widget.data.isOrLogic;
+    _anyNCount = widget.data.anyNCount;
     _loadBosses();
     _loadInitialData();
   }
@@ -85,6 +87,7 @@ class _TileFormCardState extends State<TileFormCard> {
     setState(() {
       _isAnyUnique = widget.data.isAnyUnique;
       _isOrLogic = widget.data.isOrLogic;
+      _anyNCount = widget.data.anyNCount;
       _selectedItems.clear();
       for (final item in uniqueItems) {
         _selectedItems[item.itemName] = item.requiredCount;
@@ -123,6 +126,7 @@ class _TileFormCardState extends State<TileFormCard> {
                     .toList(),
           isAnyUnique: _isAnyUnique,
           isOrLogic: _isOrLogic,
+          anyNCount: _anyNCount,
         ),
       );
     });
@@ -134,6 +138,7 @@ class _TileFormCardState extends State<TileFormCard> {
       _selectedItems.clear();
       _isAnyUnique = false;
       _isOrLogic = false;
+      _anyNCount = null;
     });
     _notifyUpdate();
   }
@@ -148,6 +153,7 @@ class _TileFormCardState extends State<TileFormCard> {
         initialItems: widget.data.uniqueItems,
         initialIsAnyUnique: _isAnyUnique,
         initialIsOrLogic: _isOrLogic,
+        initialAnyNCount: _anyNCount,
       ),
     );
 
@@ -155,6 +161,7 @@ class _TileFormCardState extends State<TileFormCard> {
       setState(() {
         _isAnyUnique = result['isAnyUnique'] as bool;
         _isOrLogic = result['isOrLogic'] as bool;
+        _anyNCount = result['anyNCount'] as int?;
         final items = result['items'] as List<TileUniqueItem>;
         _selectedItems.clear();
         for (final item in items) {

@@ -8,6 +8,7 @@ class UniqueItemsSelectionDialog extends StatefulWidget {
     required this.initialItems,
     required this.initialIsAnyUnique,
     required this.initialIsOrLogic,
+    required this.initialAnyNCount,
     super.key,
   });
 
@@ -15,6 +16,7 @@ class UniqueItemsSelectionDialog extends StatefulWidget {
   final List<TileUniqueItem> initialItems;
   final bool initialIsAnyUnique;
   final bool initialIsOrLogic;
+  final int? initialAnyNCount;
 
   @override
   State<UniqueItemsSelectionDialog> createState() =>
@@ -26,16 +28,28 @@ class _UniqueItemsSelectionDialogState
   late final Map<String, int> _selectedItems;
   late bool _isAnyUnique;
   late bool _isOrLogic;
+  late int? _anyNCount;
+  final TextEditingController _anyNCountController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _isAnyUnique = widget.initialIsAnyUnique;
     _isOrLogic = widget.initialIsOrLogic;
+    _anyNCount = widget.initialAnyNCount;
     _selectedItems = {};
     for (final item in widget.initialItems) {
       _selectedItems[item.itemName] = item.requiredCount;
     }
+    if (_anyNCount != null) {
+      _anyNCountController.text = _anyNCount.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _anyNCountController.dispose();
+    super.dispose();
   }
 
   void _onItemToggled(String itemName, bool selected) {
@@ -67,6 +81,16 @@ class _UniqueItemsSelectionDialogState
   void _onOrLogicChanged(bool value) {
     setState(() {
       _isOrLogic = value;
+      if (!value) {
+        _anyNCount = null;
+        _anyNCountController.clear();
+      }
+    });
+  }
+
+  void _onAnyNCountChanged(String value) {
+    setState(() {
+      _anyNCount = int.tryParse(value);
     });
   }
 
@@ -147,12 +171,57 @@ class _UniqueItemsSelectionDialogState
                       const SizedBox(height: 8),
                       Text(
                         _isOrLogic
-                            ? 'Obtain any of the selected items'
+                            ? (_anyNCount != null && _anyNCount! > 1
+                                  ? 'Obtain any $_anyNCount of the selected items'
+                                  : 'Obtain any of the selected items')
                             : 'Obtain all of the selected items',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      if (_isOrLogic) ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Text(
+                              'Any N Count:',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(width: 16),
+                            SizedBox(
+                              width: 100,
+                              child: TextField(
+                                controller: _anyNCountController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Count',
+                                  hintText: '1',
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                onChanged: _onAnyNCountChanged,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '(leave empty for "any one")',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       Text(
                         'Select Items:',
@@ -243,6 +312,7 @@ class _UniqueItemsSelectionDialogState
                               'items': items,
                               'isAnyUnique': _isAnyUnique,
                               'isOrLogic': _isOrLogic,
+                              'anyNCount': _anyNCount,
                             });
                           }
                         : null,

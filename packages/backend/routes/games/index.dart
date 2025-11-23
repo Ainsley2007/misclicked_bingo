@@ -120,6 +120,7 @@ Future<Response> _createGame(RequestContext context) async {
 
       final isAnyUnique = t['isAnyUnique'] as bool? ?? false;
       final isOrLogic = t['isOrLogic'] as bool? ?? false;
+      final anyNCount = (t['anyNCount'] as num?)?.toInt();
 
       if (!isAnyUnique && (uniqueItems == null || uniqueItems.isEmpty)) {
         return Response.json(
@@ -142,6 +143,7 @@ Future<Response> _createGame(RequestContext context) async {
         position: i,
         isAnyUnique: isAnyUnique,
         isOrLogic: isOrLogic,
+        anyNCount: anyNCount,
       );
 
       // Create unique items for this tile (only if not "any unique")

@@ -32,6 +32,7 @@ Future<Response> _getTiles(RequestContext context, String id) async {
           'position': t.position,
           'isAnyUnique': t.isAnyUnique,
           'isOrLogic': t.isOrLogic,
+          'anyNCount': t.anyNCount,
           'uniqueItems': uniqueItems
               .map(
                 (item) => {

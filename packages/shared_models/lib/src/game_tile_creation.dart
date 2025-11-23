@@ -11,6 +11,7 @@ class GameTileCreation extends Equatable {
   final List<TileUniqueItem> uniqueItems;
   final bool isAnyUnique;
   final bool isOrLogic;
+  final int? anyNCount;
 
   const GameTileCreation({
     this.bossId,
@@ -18,6 +19,7 @@ class GameTileCreation extends Equatable {
     this.uniqueItems = const [],
     this.isAnyUnique = false,
     this.isOrLogic = false,
+    this.anyNCount,
   });
 
   factory GameTileCreation.fromJson(Map<String, dynamic> json) =>
@@ -30,6 +32,7 @@ class GameTileCreation extends Equatable {
     List<TileUniqueItem>? uniqueItems,
     bool? isAnyUnique,
     bool? isOrLogic,
+    int? anyNCount,
   }) {
     return GameTileCreation(
       bossId: bossId ?? this.bossId,
@@ -37,6 +40,7 @@ class GameTileCreation extends Equatable {
       uniqueItems: uniqueItems ?? this.uniqueItems,
       isAnyUnique: isAnyUnique ?? this.isAnyUnique,
       isOrLogic: isOrLogic ?? this.isOrLogic,
+      anyNCount: anyNCount ?? this.anyNCount,
     );
   }
 
@@ -47,5 +51,6 @@ class GameTileCreation extends Equatable {
     uniqueItems,
     isAnyUnique,
     isOrLogic,
+    anyNCount,
   ];
 }

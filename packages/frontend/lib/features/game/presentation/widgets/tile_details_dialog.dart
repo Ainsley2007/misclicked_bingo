@@ -90,7 +90,10 @@ class TileDetailsDialog extends StatelessWidget {
                                 tile.isAnyUnique
                                     ? 'ANY'
                                     : tile.isOrLogic
-                                    ? 'OR'
+                                    ? (tile.anyNCount != null &&
+                                              tile.anyNCount! > 1
+                                          ? 'ANY ${tile.anyNCount}'
+                                          : 'OR')
                                     : 'AND',
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
@@ -129,7 +132,38 @@ class TileDetailsDialog extends StatelessWidget {
                             ],
                           ),
                         )
-                      else
+                      else ...[
+                        if (tile.isOrLogic &&
+                            tile.anyNCount != null &&
+                            tile.anyNCount! > 1)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceVariant,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 20,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Obtain any ${tile.anyNCount} of the following items:',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ...tile.uniqueItems.map(
                           (item) => Padding(
                             padding: const EdgeInsets.only(bottom: 8),
@@ -178,25 +212,26 @@ class TileDetailsDialog extends StatelessWidget {
                             ),
                           ),
                         ),
-                    ],
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: null,
-                            icon: Icon(
-                              isCompleted
-                                  ? Icons.check_circle_rounded
-                                  : Icons.check_circle_outline,
-                            ),
-                            label: Text(
-                              isCompleted ? 'Completed' : 'Mark Complete',
+                      ],
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: null,
+                              icon: Icon(
+                                isCompleted
+                                    ? Icons.check_circle_rounded
+                                    : Icons.check_circle_outline,
+                              ),
+                              label: Text(
+                                isCompleted ? 'Completed' : 'Mark Complete',
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

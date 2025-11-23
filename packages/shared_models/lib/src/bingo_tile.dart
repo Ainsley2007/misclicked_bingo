@@ -20,6 +20,7 @@ class BingoTile extends Equatable {
   final List<TileUniqueItem> uniqueItems;
   final bool isAnyUnique;
   final bool isOrLogic;
+  final int? anyNCount;
 
   const BingoTile({
     required this.id,
@@ -33,6 +34,7 @@ class BingoTile extends Equatable {
     this.uniqueItems = const [],
     this.isAnyUnique = false,
     this.isOrLogic = false,
+    this.anyNCount,
   });
 
   static BossType? _typeFromJson(String? json) =>
@@ -56,5 +58,6 @@ class BingoTile extends Equatable {
     uniqueItems,
     isAnyUnique,
     isOrLogic,
+    anyNCount,
   ];
 }

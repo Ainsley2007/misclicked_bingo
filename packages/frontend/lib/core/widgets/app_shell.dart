@@ -11,8 +11,14 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentPath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    final currentPath = GoRouter.of(
+      context,
+    ).routerDelegate.currentConfiguration.uri.path;
     final pageInfo = _getPageInfo(currentPath);
+
+    final borderColor = Theme.of(
+      context,
+    ).colorScheme.primary.withValues(alpha: 0.2);
 
     return Scaffold(
       body: Column(
@@ -21,7 +27,7 @@ class AppShell extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
-              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor, width: 1)),
+              border: Border(bottom: BorderSide(color: borderColor)),
             ),
             child: Row(
               children: [
@@ -30,12 +36,22 @@ class AppShell extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)),
+                    border: Border.all(color: borderColor),
                   ),
-                  child: Icon(pageInfo.icon, color: Theme.of(context).colorScheme.onPrimaryContainer, size: 20),
+                  child: Icon(
+                    pageInfo.icon,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
-                Text(pageInfo.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+                Text(
+                  pageInfo.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
                 const Spacer(),
                 StreamBuilder<AuthState>(
                   stream: sl<AuthService>().authStream,
@@ -61,18 +77,27 @@ class AppShell extends StatelessWidget {
     }
 
     if (path.startsWith('/admin/games/create')) {
-      return const _PageInfo(title: 'Create Game', icon: Icons.add_circle_rounded);
+      return const _PageInfo(
+        title: 'Create Game',
+        icon: Icons.add_circle_rounded,
+      );
     }
 
     if (path.startsWith('/admin/games') || path.startsWith('/admin')) {
-      return const _PageInfo(title: 'Admin Panel', icon: Icons.admin_panel_settings_rounded);
+      return const _PageInfo(
+        title: 'Admin Panel',
+        icon: Icons.admin_panel_settings_rounded,
+      );
     }
 
     switch (path) {
       case '/lobby':
         return const _PageInfo(title: 'Lobby', icon: Icons.home_rounded);
       case '/manage-team':
-        return const _PageInfo(title: 'Manage Team', icon: Icons.groups_rounded);
+        return const _PageInfo(
+          title: 'Manage Team',
+          icon: Icons.groups_rounded,
+        );
       case '/profile':
         return const _PageInfo(title: 'Profile', icon: Icons.person_rounded);
       default:

@@ -74,11 +74,7 @@ class _GameScreenContentState extends State<_GameScreenContent> {
         final game = loadedState.game;
         final tiles = loadedState.tiles;
 
-        // Generate mock tile states based on board size
-        final mockTileStates = <int, bool>{};
-        for (var i = 0; i < tiles.length; i++) {
-          mockTileStates[i] = i % 3 == 0;
-        }
+        final tileStates = <int, bool>{};
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -92,7 +88,7 @@ class _GameScreenContentState extends State<_GameScreenContent> {
                   child: Center(
                     child: _BingoBoardSection(
                       tiles: tiles,
-                      tileStates: mockTileStates,
+                      tileStates: tileStates,
                       boardSize: game.boardSize,
                       availableHeight: availableHeight,
                     ),

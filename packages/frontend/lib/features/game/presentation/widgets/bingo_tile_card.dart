@@ -141,19 +141,20 @@ class _BingoTileContent extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (tile.anyNCount != null && tile.anyNCount! > 1)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  'Any ${tile.anyNCount} of:',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 9,
-                  ),
-                  textAlign: TextAlign.center,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                tile.anyNCount != null && tile.anyNCount! > 1
+                    ? 'Any ${tile.anyNCount} of:'
+                    : 'Any of:',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 9,
                 ),
+                textAlign: TextAlign.center,
               ),
+            ),
             ...items.map(
               (itemText) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 1),
@@ -176,34 +177,37 @@ class _BingoTileContent extends StatelessWidget {
     }
 
     return Center(
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 4,
-        runSpacing: 2,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0)
-              Text(
-                'AND',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white60,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 9,
-                ),
-              ),
-            Text(
-              items[i],
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              'All of:',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white,
+                color: Colors.white70,
                 fontWeight: FontWeight.w600,
-                fontSize: 10,
+                fontSize: 9,
               ),
               textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-          ],
+          ),
+          ...items.map(
+            (itemText) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 1),
+              child: Text(
+                itemText,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
         ],
       ),
     );

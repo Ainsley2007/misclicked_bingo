@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:backend/config.dart';
@@ -10,10 +11,18 @@ Future<HttpServer> run(Handler handler, InternetAddress ip, int port) async {
 
   final db = Db.instance;
 
-  // Seed bosses on startup (idempotent - won't create duplicates)
-  await db.seedBosses();
-
   final dbHandler = handler.use(provider<AppDatabase>((_) => db));
 
-  return serve(dbHandler, ip, port);
+  final server = await serve(dbHandler, ip, port);
+
+  db.seedBosses().catchError((Object error, StackTrace stackTrace) {
+    developer.log(
+      'Boss seeding failed',
+      name: 'main',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  });
+
+  return server;
 }

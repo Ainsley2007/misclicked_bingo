@@ -387,17 +387,16 @@ class AppDatabase extends _$AppDatabase {
           .toList();
       const uuid = Uuid();
 
+      final existingBosses = await getAllBosses();
+      final existingBossMap = {
+        for (final boss in existingBosses) boss.name.toLowerCase(): boss,
+      };
+
       var createdCount = 0;
       var skippedCount = 0;
 
       for (final bossData in bosses) {
-        final existingBosses = await getAllBosses();
-        BossesData? existingBoss;
-        try {
-          existingBoss = existingBosses.firstWhere(
-            (b) => b.name.toLowerCase() == bossData.name.toLowerCase(),
-          );
-        } catch (e) {}
+        final existingBoss = existingBossMap[bossData.name.toLowerCase()];
 
         String bossId;
         if (existingBoss != null) {

@@ -31,7 +31,7 @@ class BingoTileCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
-                    color: const Color(0xFF4CAF50).withValues(alpha: 0.08),
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
                   ),
                 ),
               ],

@@ -375,6 +375,19 @@ class AppDatabase extends _$AppDatabase {
     return query.get();
   }
 
+  Future<List<TileUniqueItem>> getUniqueItemsByTileIds(
+    List<String> tileIds,
+  ) async {
+    if (tileIds.isEmpty) return [];
+    final query = select(tileUniqueItems)
+      ..where((t) => t.tileId.isIn(tileIds))
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.tileId),
+        (t) => OrderingTerm.asc(t.itemName),
+      ]);
+    return query.get();
+  }
+
   Future<void> seedBosses() async {
     try {
       if (bossesJson.isEmpty || bossesJson == '[]') {

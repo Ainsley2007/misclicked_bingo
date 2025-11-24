@@ -116,9 +116,7 @@ class _BingoBoardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final completedTiles = tiles
-        .where((tile) => tile.isCompleted)
-        .length;
+    final completedTiles = tiles.where((tile) => tile.isCompleted).length;
     final totalTiles = tiles.length;
 
     return Center(
@@ -188,18 +186,22 @@ class _BingoBoardSection extends StatelessWidget {
                             tile: tile,
                             isCompleted: tile.isCompleted,
                             onTap: () {
+                              final bloc = context.read<GameBloc>();
                               showDialog(
                                 context: context,
-                                builder: (context) => TileDetailsDialog(
-                                  tile: tile,
-                                  onToggleCompletion: () {
-                                    context.read<GameBloc>().add(
-                                          TileCompletionToggled(
-                                            gameId: gameId,
-                                            tileId: tile.id,
-                                          ),
-                                        );
-                                  },
+                                builder: (dialogContext) => BlocProvider.value(
+                                  value: bloc,
+                                  child: TileDetailsDialog(
+                                    tile: tile,
+                                    onToggleCompletion: () {
+                                      bloc.add(
+                                        TileCompletionToggled(
+                                          gameId: gameId,
+                                          tileId: tile.id,
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               );
                             },

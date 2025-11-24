@@ -11,6 +11,7 @@ sealed class ManageTeamsState {
   int? get teamSize => null;
   List<AppUser> get teamMembers => const [];
   List<AppUser> get availableUsers => const [];
+  List<AppUser> get unavailableUsers => const [];
 }
 
 @immutable
@@ -42,13 +43,15 @@ final class ManageTeamsLoaded extends ManageTeamsState {
     required int teamSize,
     required List<AppUser> teamMembers,
     required List<AppUser> availableUsers,
+    List<AppUser>? unavailableUsers,
     this.message,
   }) : _teamId = teamId,
        _gameId = gameId,
        _teamName = teamName,
        _teamSize = teamSize,
        _teamMembers = teamMembers,
-       _availableUsers = availableUsers;
+       _availableUsers = availableUsers,
+       _unavailableUsers = unavailableUsers ?? const [];
 
   final String _teamId;
   final String _gameId;
@@ -56,6 +59,7 @@ final class ManageTeamsLoaded extends ManageTeamsState {
   final int _teamSize;
   final List<AppUser> _teamMembers;
   final List<AppUser> _availableUsers;
+  final List<AppUser> _unavailableUsers;
   final String? message;
 
   @override
@@ -70,6 +74,8 @@ final class ManageTeamsLoaded extends ManageTeamsState {
   List<AppUser> get teamMembers => _teamMembers;
   @override
   List<AppUser> get availableUsers => _availableUsers;
+  @override
+  List<AppUser> get unavailableUsers => _unavailableUsers;
 }
 
 @immutable

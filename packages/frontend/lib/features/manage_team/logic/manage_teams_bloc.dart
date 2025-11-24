@@ -3,6 +3,7 @@ import 'package:frontend/features/game/data/game_repository.dart';
 import 'package:frontend/features/manage_team/data/teams_repository.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_event.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_state.dart';
+import 'package:shared_models/shared_models.dart';
 
 class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
   ManageTeamsBloc({
@@ -31,13 +32,21 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
       final allUsers = await _gameRepository.getAllUsers();
 
       final teamMemberIds = teamMembers.map((u) => u.id).toSet();
-      final availableUsers = allUsers
-          .where(
-            (u) =>
-                !teamMemberIds.contains(u.id) && // Not in current team
-                u.teamId == null, // Not in any team (including not a captain)
-          )
-          .toList();
+
+      // Split users into available and unavailable
+      final availableUsers = <AppUser>[];
+      final unavailableUsers = <AppUser>[];
+
+      for (final user in allUsers) {
+        if (teamMemberIds.contains(user.id)) {
+          continue; // Skip current team members
+        }
+        if (user.teamId == null) {
+          availableUsers.add(user);
+        } else {
+          unavailableUsers.add(user);
+        }
+      }
 
       emit(
         ManageTeamsLoaded(
@@ -47,6 +56,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamSize: game.teamSize,
           teamMembers: teamMembers,
           availableUsers: availableUsers,
+          unavailableUsers: unavailableUsers,
         ),
       );
     } catch (e) {
@@ -74,6 +84,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamSize: state.teamSize!,
           teamMembers: state.teamMembers,
           availableUsers: state.availableUsers,
+          unavailableUsers: state.unavailableUsers,
           message: 'Team is full (${state.teamSize} members max)',
         ),
       );
@@ -91,13 +102,21 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
       final allUsers = await _gameRepository.getAllUsers();
 
       final teamMemberIds = teamMembers.map((u) => u.id).toSet();
-      final availableUsers = allUsers
-          .where(
-            (u) =>
-                !teamMemberIds.contains(u.id) && // Not in current team
-                u.teamId == null, // Not in any team (including not a captain)
-          )
-          .toList();
+
+      // Split users into available and unavailable
+      final availableUsers = <AppUser>[];
+      final unavailableUsers = <AppUser>[];
+
+      for (final user in allUsers) {
+        if (teamMemberIds.contains(user.id)) {
+          continue; // Skip current team members
+        }
+        if (user.teamId == null) {
+          availableUsers.add(user);
+        } else {
+          unavailableUsers.add(user);
+        }
+      }
 
       emit(
         ManageTeamsLoaded(
@@ -107,6 +126,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamSize: state.teamSize!,
           teamMembers: teamMembers,
           availableUsers: availableUsers,
+          unavailableUsers: unavailableUsers,
         ),
       );
     } catch (e) {
@@ -135,13 +155,21 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
       final allUsers = await _gameRepository.getAllUsers();
 
       final teamMemberIds = teamMembers.map((u) => u.id).toSet();
-      final availableUsers = allUsers
-          .where(
-            (u) =>
-                !teamMemberIds.contains(u.id) && // Not in current team
-                u.teamId == null, // Not in any team (including not a captain)
-          )
-          .toList();
+
+      // Split users into available and unavailable
+      final availableUsers = <AppUser>[];
+      final unavailableUsers = <AppUser>[];
+
+      for (final user in allUsers) {
+        if (teamMemberIds.contains(user.id)) {
+          continue; // Skip current team members
+        }
+        if (user.teamId == null) {
+          availableUsers.add(user);
+        } else {
+          unavailableUsers.add(user);
+        }
+      }
 
       emit(
         ManageTeamsLoaded(
@@ -151,6 +179,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamSize: state.teamSize!,
           teamMembers: teamMembers,
           availableUsers: availableUsers,
+          unavailableUsers: unavailableUsers,
         ),
       );
     } catch (e) {

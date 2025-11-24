@@ -115,6 +115,7 @@ class _ManageTeamsView extends StatelessWidget {
                           Expanded(
                             child: AvailableUsersSection(
                               availableUsers: state.availableUsers,
+                              unavailableUsers: state.unavailableUsers,
                             ),
                           ),
                         ],
@@ -131,6 +132,7 @@ class _ManageTeamsView extends StatelessWidget {
                           const SizedBox(height: 24),
                           AvailableUsersSection(
                             availableUsers: state.availableUsers,
+                            unavailableUsers: state.unavailableUsers,
                           ),
                         ],
                       );

@@ -20,7 +20,9 @@ final class ManageTeamsInitial extends ManageTeamsState {
 
 @immutable
 final class ManageTeamsLoading extends ManageTeamsState {
-  const ManageTeamsLoading({String? teamId, String? gameId}) : _teamId = teamId, _gameId = gameId;
+  const ManageTeamsLoading({String? teamId, String? gameId})
+    : _teamId = teamId,
+      _gameId = gameId;
 
   final String? _teamId;
   final String? _gameId;
@@ -40,6 +42,7 @@ final class ManageTeamsLoaded extends ManageTeamsState {
     required int teamSize,
     required List<AppUser> teamMembers,
     required List<AppUser> availableUsers,
+    this.message,
   }) : _teamId = teamId,
        _gameId = gameId,
        _teamName = teamName,
@@ -53,6 +56,7 @@ final class ManageTeamsLoaded extends ManageTeamsState {
   final int _teamSize;
   final List<AppUser> _teamMembers;
   final List<AppUser> _availableUsers;
+  final String? message;
 
   @override
   String get teamId => _teamId;
@@ -70,7 +74,11 @@ final class ManageTeamsLoaded extends ManageTeamsState {
 
 @immutable
 final class ManageTeamsError extends ManageTeamsState {
-  const ManageTeamsError(this.message);
+  const ManageTeamsError(this.message, {String? gameId}) : _gameId = gameId;
 
   final String message;
+  final String? _gameId;
+
+  @override
+  String? get gameId => _gameId;
 }

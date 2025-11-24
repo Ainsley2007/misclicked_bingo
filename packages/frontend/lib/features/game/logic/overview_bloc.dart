@@ -1,0 +1,70 @@
+import 'dart:developer' as developer;
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/bosses/data/boss_repository.dart';
+import 'package:frontend/features/game/data/game_repository.dart';
+import 'package:frontend/features/game/logic/overview_event.dart';
+import 'package:frontend/features/game/logic/overview_state.dart';
+import 'package:shared_models/shared_models.dart';
+
+class OverviewBloc extends Bloc<OverviewEvent, OverviewState> {
+  OverviewBloc(this._repository, this._bossRepository)
+    : super(const OverviewInitial()) {
+    on<OverviewLoadRequested>(_onOverviewLoadRequested);
+  }
+
+  final GameRepository _repository;
+  final BossRepository _bossRepository;
+
+  Future<void> _onOverviewLoadRequested(
+    OverviewLoadRequested event,
+    Emitter<OverviewState> emit,
+  ) async {
+    emit(const OverviewLoading());
+    try {
+      final data = await _repository.getOverview(event.gameId);
+      final game = Game.fromJson(data['game'] as Map<String, dynamic>);
+      final tilesJson = data['tiles'] as List<dynamic>;
+      final teamsJson = data['teams'] as List<dynamic>;
+
+      final tiles = tilesJson
+          .map((json) => BingoTile.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      final bosses = await _bossRepository.getAllBosses();
+      final bossesMap = {for (var boss in bosses) boss.id: boss};
+      final enrichedTiles = tiles.map((tile) {
+        if (tile.isAnyUnique) {
+          final boss = bossesMap[tile.bossId];
+          if (boss != null) {
+            return tile.copyWith(possibleUniqueItems: boss.uniqueItems);
+          }
+        }
+        return tile;
+      }).toList();
+
+      final teams = teamsJson.map((json) {
+        final teamData = json as Map<String, dynamic>;
+        return TeamOverview(
+          id: teamData['id'] as String,
+          name: teamData['name'] as String,
+          boardStates: Map<String, String>.from(
+            teamData['boardStates'] as Map<String, dynamic>,
+          ),
+        );
+      }).toList();
+
+      emit(OverviewLoaded(game: game, tiles: enrichedTiles, teams: teams));
+      developer.log('Loaded overview for game ${game.id}', name: 'overview');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Failed to load overview',
+        name: 'overview',
+        level: 1000,
+        error: e,
+        stackTrace: stackTrace,
+      );
+      emit(OverviewError(e.toString()));
+    }
+  }
+}

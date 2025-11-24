@@ -23,7 +23,13 @@ class ManageTeamScreen extends StatelessWidget {
         }
 
         return BlocProvider(
-          create: (_) => sl<ManageTeamsBloc>()..add(ManageTeamsLoadRequested(teamId: user.teamId!, gameId: user.gameId!)),
+          create: (_) => sl<ManageTeamsBloc>()
+            ..add(
+              ManageTeamsLoadRequested(
+                teamId: user.teamId!,
+                gameId: user.gameId!,
+              ),
+            ),
           child: _ManageTeamsView(teamId: user.teamId!, currentUserId: user.id),
         );
       },
@@ -39,69 +45,103 @@ class _ManageTeamsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ManageTeamsBloc, ManageTeamsState>(
-      builder: (context, state) {
-        if (state is ManageTeamsInitial || state is ManageTeamsLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state is ManageTeamsError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Error: ${state.message}', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () {
-                    context.read<ManageTeamsBloc>().add(ManageTeamsLoadRequested(teamId: teamId, gameId: state.gameId ?? ''));
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
+    return BlocListener<ManageTeamsBloc, ManageTeamsState>(
+      listener: (context, state) {
+        if (state is ManageTeamsLoaded && state.message != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message!),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
             ),
           );
         }
+      },
+      child: BlocBuilder<ManageTeamsBloc, ManageTeamsState>(
+        builder: (context, state) {
+          if (state is ManageTeamsInitial || state is ManageTeamsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth > 800;
-                  if (isWide) {
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: TeamMembersSection(
+          if (state is ManageTeamsError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error: ${state.message}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () {
+                      context.read<ManageTeamsBloc>().add(
+                        ManageTeamsLoadRequested(
+                          teamId: teamId,
+                          gameId: state.gameId ?? '',
+                        ),
+                      );
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 800;
+                    if (isWide) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: TeamMembersSection(
+                              teamName: state.teamName ?? 'Your Team',
+                              teamMembers: state.teamMembers,
+                              currentUserId: currentUserId,
+                              teamSize: state.teamSize,
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: AvailableUsersSection(
+                              availableUsers: state.availableUsers,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          TeamMembersSection(
                             teamName: state.teamName ?? 'Your Team',
                             teamMembers: state.teamMembers,
                             currentUserId: currentUserId,
                             teamSize: state.teamSize,
                           ),
-                        ),
-                        const SizedBox(width: 24),
-                        Expanded(child: AvailableUsersSection(availableUsers: state.availableUsers)),
-                      ],
-                    );
-                  } else {
-                    return Column(
-                      children: [
-                        TeamMembersSection(teamName: state.teamName ?? 'Your Team', teamMembers: state.teamMembers, currentUserId: currentUserId, teamSize: state.teamSize),
-                        const SizedBox(height: 24),
-                        AvailableUsersSection(availableUsers: state.availableUsers),
-                      ],
-                    );
-                  }
-                },
+                          const SizedBox(height: 24),
+                          AvailableUsersSection(
+                            availableUsers: state.availableUsers,
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

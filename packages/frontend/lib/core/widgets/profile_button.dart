@@ -19,9 +19,7 @@ class ProfileButton extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: Theme.of(context).dividerColor,
-        ),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -40,7 +38,9 @@ class ProfileButton extends StatelessWidget {
             _buildUserInfo(context, accent),
             Icon(
               Icons.arrow_drop_down,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
               size: 20,
             ),
           ],
@@ -48,21 +48,21 @@ class ProfileButton extends StatelessWidget {
       ),
       itemBuilder: (context) => [
         if (user.gameId == null)
-        PopupMenuItem<String>(
-          value: 'home',
-          height: 40,
-          child: Row(
-            children: [
-              Icon(
-                Icons.home_rounded,
-                size: 18,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const SizedBox(width: 12),
-              Text('Home', style: const TextStyle(fontSize: 14)),
-            ],
+          PopupMenuItem<String>(
+            value: 'home',
+            height: 40,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.home_rounded,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(width: 12),
+                Text('Home', style: const TextStyle(fontSize: 14)),
+              ],
+            ),
           ),
-        ),
         if (user.gameId != null)
           PopupMenuItem<String>(
             value: 'game',
@@ -92,6 +92,22 @@ class ProfileButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text('Manage Team', style: const TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        if (user.gameId != null)
+          PopupMenuItem<String>(
+            value: 'overview',
+            height: 40,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.dashboard_rounded,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(width: 12),
+                Text('Overview', style: const TextStyle(fontSize: 14)),
               ],
             ),
           ),
@@ -134,10 +150,13 @@ class ProfileButton extends StatelessWidget {
 
         // Don't navigate if already on the target page
         if ((value == 'home' && currentLocation == '/lobby') ||
-            (value == 'game' && currentLocation.startsWith('/game/')) ||
+            (value == 'game' &&
+                currentLocation.startsWith('/game/') &&
+                !currentLocation.endsWith('/overview')) ||
             (value == 'manage-team' && currentLocation == '/manage-team') ||
             (value == 'profile' && currentLocation == '/profile') ||
-            (value == 'admin' && currentLocation == '/admin')) {
+            (value == 'admin' && currentLocation == '/admin') ||
+            (value == 'overview' && currentLocation.endsWith('/overview'))) {
           return;
         }
 
@@ -148,6 +167,11 @@ class ProfileButton extends StatelessWidget {
           Router.neglect(context, () => context.go('/game/${user.gameId}'));
         } else if (value == 'manage-team') {
           Router.neglect(context, () => context.go('/manage-team'));
+        } else if (value == 'overview' && user.gameId != null) {
+          Router.neglect(
+            context,
+            () => context.go('/game/${user.gameId}/overview'),
+          );
         } else if (value == 'profile') {
           Router.neglect(context, () => context.go('/profile'));
         } else if (value == 'admin') {
@@ -201,18 +225,18 @@ class ProfileButton extends StatelessWidget {
         Text(
           user.globalName ?? user.username ?? 'Unknown',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
         ),
         Text(
           user.role.name.toUpperCase(),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
-                fontSize: 10,
-              ),
+            color: accent,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+            fontSize: 10,
+          ),
         ),
       ],
     );

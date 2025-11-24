@@ -7,6 +7,7 @@ import 'package:frontend/features/lobby/presentation/lobby_screen.dart';
 import 'package:frontend/features/auth/presentation/login_screen.dart';
 import 'package:frontend/features/auth/presentation/profile_screen.dart';
 import 'package:frontend/features/game/presentation/game_screen.dart';
+import 'package:frontend/features/game/presentation/overview_screen.dart';
 import 'package:frontend/features/manage_team/presentation/manage_team_screen.dart';
 import 'package:frontend/features/game_creation/presentation/game_creation_screen.dart';
 import 'package:frontend/core/widgets/app_shell.dart';
@@ -42,7 +43,8 @@ class AppRouter {
       routes: [
         GoRoute(
           path: '/login',
-          pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LoginScreen()),
+          pageBuilder: (context, state) =>
+              _noTransitionPage(state: state, child: const LoginScreen()),
         ),
         ShellRoute(
           pageBuilder: (context, state, child) => _noTransitionPage(
@@ -52,7 +54,8 @@ class AppRouter {
           routes: [
             GoRoute(
               path: '/lobby',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const LobbyScreen()),
+              pageBuilder: (context, state) =>
+                  _noTransitionPage(state: state, child: const LobbyScreen()),
             ),
             GoRoute(
               path: '/game/:gameId',
@@ -65,21 +68,42 @@ class AppRouter {
               },
             ),
             GoRoute(
+              path: '/game/:gameId/overview',
+              pageBuilder: (context, state) {
+                final gameId = state.pathParameters['gameId']!;
+                return _noTransitionPage(
+                  state: state,
+                  child: OverviewScreen(gameId: gameId),
+                );
+              },
+            ),
+            GoRoute(
               path: '/manage-team',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const ManageTeamScreen()),
+              pageBuilder: (context, state) => _noTransitionPage(
+                state: state,
+                child: const ManageTeamScreen(),
+              ),
             ),
             GoRoute(
               path: '/profile',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const ProfileScreen()),
+              pageBuilder: (context, state) =>
+                  _noTransitionPage(state: state, child: const ProfileScreen()),
             ),
-            GoRoute(path: '/admin', redirect: (context, state) => '/admin/games'),
+            GoRoute(
+              path: '/admin',
+              redirect: (context, state) => '/admin/games',
+            ),
             GoRoute(
               path: '/admin/games',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const AdminScreen()),
+              pageBuilder: (context, state) =>
+                  _noTransitionPage(state: state, child: const AdminScreen()),
             ),
             GoRoute(
               path: '/admin/games/create',
-              pageBuilder: (context, state) => _noTransitionPage(state: state, child: const GameCreationScreen()),
+              pageBuilder: (context, state) => _noTransitionPage(
+                state: state,
+                child: const GameCreationScreen(),
+              ),
             ),
           ],
         ),
@@ -87,11 +111,15 @@ class AppRouter {
     );
   }
 
-  static CustomTransitionPage<void> _noTransitionPage({required GoRouterState state, required Widget child}) {
+  static CustomTransitionPage<void> _noTransitionPage({
+    required GoRouterState state,
+    required Widget child,
+  }) {
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: child,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          child,
       transitionDuration: Duration.zero,
     );
   }

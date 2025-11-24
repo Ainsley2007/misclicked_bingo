@@ -9,6 +9,7 @@ import 'package:frontend/features/lobby/data/lobby_repository.dart';
 import 'package:frontend/features/lobby/logic/join_game_bloc.dart';
 import 'package:frontend/features/game/data/game_repository.dart';
 import 'package:frontend/features/game/logic/game_bloc.dart';
+import 'package:frontend/features/game/logic/overview_bloc.dart';
 import 'package:frontend/features/manage_team/data/teams_repository.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
 import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
@@ -62,6 +63,9 @@ void setupDi() {
   sl.registerFactory<JoinGameBloc>(() => JoinGameBloc(sl<LobbyRepository>()));
   sl.registerFactory<GameBloc>(
     () => GameBloc(sl<GameRepository>(), sl<BossRepository>()),
+  );
+  sl.registerFactory<OverviewBloc>(
+    () => OverviewBloc(sl<GameRepository>(), sl<BossRepository>()),
   );
   sl.registerFactory<ManageTeamsBloc>(
     () => ManageTeamsBloc(

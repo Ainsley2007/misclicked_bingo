@@ -38,4 +38,11 @@ class GameRepository {
   }) async {
     await _dio.put('/games/$gameId/tiles/$tileId/complete');
   }
+
+  Future<Map<String, dynamic>> getOverview(String gameId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/games/$gameId/overview',
+    );
+    return response.data!;
+  }
 }

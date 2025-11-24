@@ -186,9 +186,47 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteGame(String id) async {
+    // Get all teams for this game
+    final teamsForGame = await (select(
+      teams,
+    )..where((t) => t.gameId.equals(id))).get();
+    final teamIds = teamsForGame.map((t) => t.id).toList();
+
+    // Get all tiles for this game
+    final tilesForGame = await (select(
+      bingoTiles,
+    )..where((t) => t.gameId.equals(id))).get();
+    final tileIds = tilesForGame.map((t) => t.id).toList();
+
+    // 1. Delete team_board_state entries for these tiles/teams
+    if (tileIds.isNotEmpty) {
+      await (delete(teamBoardState)..where((t) => t.tileId.isIn(tileIds))).go();
+    }
+
+    // 2. Delete tile_unique_items for these tiles
+    if (tileIds.isNotEmpty) {
+      await (delete(
+        tileUniqueItems,
+      )..where((t) => t.tileId.isIn(tileIds))).go();
+    }
+
+    // 3. Delete bingo_tiles for this game
+    await (delete(bingoTiles)..where((t) => t.gameId.equals(id))).go();
+
+    // 4. Delete team_members for these teams
+    if (teamIds.isNotEmpty) {
+      await (delete(teamMembers)..where((t) => t.teamId.isIn(teamIds))).go();
+    }
+
+    // 5. Delete teams for this game
+    await (delete(teams)..where((t) => t.gameId.equals(id))).go();
+
+    // 6. Update users to remove gameId and teamId references
     await (update(users)..where((t) => t.gameId.equals(id))).write(
-      const UsersCompanion(gameId: Value(null)),
+      const UsersCompanion(gameId: Value(null), teamId: Value(null)),
     );
+
+    // 7. Finally, delete the game itself
     await (delete(games)..where((t) => t.id.equals(id))).go();
   }
 
@@ -211,6 +249,11 @@ class AppDatabase extends _$AppDatabase {
   Future<Team?> getTeamById(String id) async {
     final query = select(teams)..where((t) => t.id.equals(id));
     return query.getSingleOrNull();
+  }
+
+  Future<List<Team>> getTeamsByGameId(String gameId) async {
+    final query = select(teams)..where((t) => t.gameId.equals(gameId));
+    return query.get();
   }
 
   Future<List<User>> getTeamMembers(String teamId) async {
@@ -264,7 +307,13 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteTeam(String teamId) async {
-    // Get all team members to preserve admin roles
+    // 1. Delete team_board_state entries for this team
+    await (delete(teamBoardState)..where((t) => t.teamId.equals(teamId))).go();
+
+    // 2. Delete team_members entries for this team
+    await (delete(teamMembers)..where((t) => t.teamId.equals(teamId))).go();
+
+    // 3. Update users to remove teamId and gameId references (preserve admin roles)
     final members = await (select(
       users,
     )..where((t) => t.teamId.equals(teamId))).get();
@@ -280,6 +329,7 @@ class AppDatabase extends _$AppDatabase {
       );
     }
 
+    // 4. Finally, delete the team itself
     await (delete(teams)..where((t) => t.id.equals(teamId))).go();
   }
 

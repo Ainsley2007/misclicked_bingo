@@ -40,20 +40,16 @@ class AvailableUsersSection extends StatelessWidget {
                           ),
                         ),
                   title: Text(user.globalName ?? user.username ?? 'Unknown'),
-                  subtitle: user.teamId != null
-                      ? const Text('In another team')
-                      : const Text('No team'),
-                  trailing: user.teamId == null
-                      ? IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          color: Theme.of(context).colorScheme.primary,
-                          onPressed: () {
-                            context.read<ManageTeamsBloc>().add(
-                              ManageTeamsAddMember(user.id),
-                            );
-                          },
-                        )
-                      : null,
+                  subtitle: const Text('No team'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    color: Theme.of(context).colorScheme.primary,
+                    onPressed: () {
+                      context.read<ManageTeamsBloc>().add(
+                        ManageTeamsAddMember(user.id),
+                      );
+                    },
+                  ),
                 );
               },
             ),

@@ -32,7 +32,11 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
 
       final teamMemberIds = teamMembers.map((u) => u.id).toSet();
       final availableUsers = allUsers
-          .where((u) => !teamMemberIds.contains(u.id))
+          .where(
+            (u) =>
+                !teamMemberIds.contains(u.id) && // Not in current team
+                u.teamId == null, // Not in any team (including not a captain)
+          )
           .toList();
 
       emit(
@@ -88,7 +92,11 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
 
       final teamMemberIds = teamMembers.map((u) => u.id).toSet();
       final availableUsers = allUsers
-          .where((u) => !teamMemberIds.contains(u.id))
+          .where(
+            (u) =>
+                !teamMemberIds.contains(u.id) && // Not in current team
+                u.teamId == null, // Not in any team (including not a captain)
+          )
           .toList();
 
       emit(
@@ -128,7 +136,11 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
 
       final teamMemberIds = teamMembers.map((u) => u.id).toSet();
       final availableUsers = allUsers
-          .where((u) => !teamMemberIds.contains(u.id))
+          .where(
+            (u) =>
+                !teamMemberIds.contains(u.id) && // Not in current team
+                u.teamId == null, // Not in any team (including not a captain)
+          )
           .toList();
 
       emit(

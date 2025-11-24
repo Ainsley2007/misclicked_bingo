@@ -72,6 +72,22 @@ Future<Response> _addTeamMember(RequestContext context, String id) async {
       );
     }
 
+    // Check if user is already in a team (including being a captain)
+    final userToAdd = await db.getUserById(userIdToAdd);
+    if (userToAdd == null) {
+      return Response.json(
+        statusCode: HttpStatus.notFound,
+        body: {'error': 'User not found'},
+      );
+    }
+
+    if (userToAdd.teamId != null) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'error': 'User is already in a team'},
+      );
+    }
+
     await db.addUserToTeam(
       userId: userIdToAdd,
       teamId: id,

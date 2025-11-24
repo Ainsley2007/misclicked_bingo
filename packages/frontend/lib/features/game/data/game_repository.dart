@@ -31,4 +31,11 @@ class GameRepository {
         .map((json) => BingoTile.fromJson(json as Map<String, dynamic>))
         .toList();
   }
+
+  Future<void> toggleTileCompletion({
+    required String gameId,
+    required String tileId,
+  }) async {
+    await _dio.put('/games/$gameId/tiles/$tileId/complete');
+  }
 }

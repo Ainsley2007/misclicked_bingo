@@ -23,6 +23,7 @@ BingoTile _$BingoTileFromJson(Map<String, dynamic> json) => BingoTile(
   isAnyUnique: json['isAnyUnique'] as bool? ?? false,
   isOrLogic: json['isOrLogic'] as bool? ?? false,
   anyNCount: (json['anyNCount'] as num?)?.toInt(),
+  isCompleted: json['isCompleted'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$BingoTileToJson(BingoTile instance) => <String, dynamic>{
@@ -38,4 +39,5 @@ Map<String, dynamic> _$BingoTileToJson(BingoTile instance) => <String, dynamic>{
   'isAnyUnique': instance.isAnyUnique,
   'isOrLogic': instance.isOrLogic,
   'anyNCount': instance.anyNCount,
+  'isCompleted': instance.isCompleted,
 };

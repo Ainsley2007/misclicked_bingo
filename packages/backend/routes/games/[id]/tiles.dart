@@ -22,14 +22,24 @@ Future<Response> _getTiles(RequestContext context, String id) async {
     // Collect all tile IDs for bulk query
     final tileIds = tiles.map((t) => t.id).toList();
 
-    // Fetch all bosses and unique items in parallel (bulk queries)
+    // Get current user's team for completion states
+    final userId = context.read<String>();
+    final user = await db.getUserById(userId);
+    final teamId = user?.teamId;
+
+    // Fetch all bosses, unique items, and completion states in parallel
     final futures = await Future.wait([
       db.getAllBosses(),
       db.getUniqueItemsByTileIds(tileIds),
+      if (teamId != null)
+        db.getTeamBoardStates(teamId)
+      else
+        Future.value(<String, String>{}),
     ]);
 
     final allBosses = futures[0] as List<BossesData>;
     final allUniqueItems = futures[1] as List<TileUniqueItem>;
+    final completionStates = futures[2] as Map<String, String>;
 
     // Create lookup maps for O(1) access
     final bossMap = {
@@ -44,6 +54,7 @@ Future<Response> _getTiles(RequestContext context, String id) async {
     final tilesWithData = tiles.map((t) {
       final boss = bossMap[t.bossId];
       final uniqueItems = uniqueItemsMap[t.id] ?? [];
+      final isCompleted = completionStates[t.id] == 'completed';
 
       return {
         'id': t.id,
@@ -57,6 +68,7 @@ Future<Response> _getTiles(RequestContext context, String id) async {
         'isAnyUnique': t.isAnyUnique,
         'isOrLogic': t.isOrLogic,
         'anyNCount': t.anyNCount,
+        'isCompleted': isCompleted,
         'uniqueItems': uniqueItems
             .map(
               (item) => {

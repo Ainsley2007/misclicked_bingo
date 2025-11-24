@@ -7,3 +7,13 @@ final class GameLoadRequested extends GameEvent {
 
   final String gameId;
 }
+
+final class TileCompletionToggled extends GameEvent {
+  const TileCompletionToggled({
+    required this.gameId,
+    required this.tileId,
+  });
+
+  final String gameId;
+  final String tileId;
+}

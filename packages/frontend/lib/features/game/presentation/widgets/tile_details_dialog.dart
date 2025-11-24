@@ -4,12 +4,12 @@ import 'package:shared_models/shared_models.dart';
 class TileDetailsDialog extends StatelessWidget {
   const TileDetailsDialog({
     required this.tile,
-    required this.isCompleted,
+    required this.onToggleCompletion,
     super.key,
   });
 
   final BingoTile tile;
-  final bool isCompleted;
+  final VoidCallback onToggleCompletion;
 
   @override
   Widget build(BuildContext context) {
@@ -73,18 +73,31 @@ class TileDetailsDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FilledButton.icon(
-                    onPressed: null,
+                    onPressed: () {
+                      onToggleCompletion();
+                      Navigator.of(context).pop();
+                    },
                     icon: Icon(
-                      isCompleted
+                      tile.isCompleted
                           ? Icons.check_circle_rounded
                           : Icons.check_circle_outline,
                     ),
-                    label: Text(isCompleted ? 'Completed' : 'Mark Complete'),
+                    label: Text(tile.isCompleted ? 'Completed' : 'Mark Complete'),
                   ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close'),
-                  ),
+                  if (tile.isCompleted)
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        onToggleCompletion();
+                        Navigator.of(context).pop();
+                      },
+                      icon: const Icon(Icons.undo),
+                      label: const Text('Undo'),
+                    )
+                  else
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Close'),
+                    ),
                 ],
               ),
             ),

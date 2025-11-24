@@ -10,6 +10,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc(this._repository, this._bossRepository)
     : super(const GameInitial()) {
     on<GameLoadRequested>(_onGameLoadRequested);
+    on<TileCompletionToggled>(_onTileCompletionToggled);
   }
 
   final GameRepository _repository;
@@ -41,6 +42,39 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     } catch (e, stackTrace) {
       developer.log(
         'Failed to load game',
+        name: 'game',
+        level: 1000,
+        error: e,
+        stackTrace: stackTrace,
+      );
+      emit(GameError(e.toString()));
+    }
+  }
+
+  Future<void> _onTileCompletionToggled(
+    TileCompletionToggled event,
+    Emitter<GameState> emit,
+  ) async {
+    final state = this.state;
+    if (state is! GameLoaded) return;
+
+    try {
+      await _repository.toggleTileCompletion(
+        gameId: event.gameId,
+        tileId: event.tileId,
+      );
+
+      final updatedTiles = state.tiles.map((tile) {
+        if (tile.id == event.tileId) {
+          return tile.copyWith(isCompleted: !tile.isCompleted);
+        }
+        return tile;
+      }).toList();
+
+      emit(GameLoaded(game: state.game, tiles: updatedTiles));
+    } catch (e, stackTrace) {
+      developer.log(
+        'Failed to toggle tile completion',
         name: 'game',
         level: 1000,
         error: e,

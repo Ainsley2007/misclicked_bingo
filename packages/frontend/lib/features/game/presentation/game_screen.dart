@@ -74,8 +74,6 @@ class _GameScreenContentState extends State<_GameScreenContent> {
         final game = loadedState.game;
         final tiles = loadedState.tiles;
 
-        final tileStates = <int, bool>{};
-
         return LayoutBuilder(
           builder: (context, constraints) {
             final availableHeight = constraints.maxHeight;
@@ -88,9 +86,9 @@ class _GameScreenContentState extends State<_GameScreenContent> {
                   child: Center(
                     child: _BingoBoardSection(
                       tiles: tiles,
-                      tileStates: tileStates,
                       boardSize: game.boardSize,
                       availableHeight: availableHeight,
+                      gameId: game.id,
                     ),
                   ),
                 ),
@@ -106,20 +104,20 @@ class _GameScreenContentState extends State<_GameScreenContent> {
 class _BingoBoardSection extends StatelessWidget {
   const _BingoBoardSection({
     required this.tiles,
-    required this.tileStates,
     required this.boardSize,
     required this.availableHeight,
+    required this.gameId,
   });
 
   final List<BingoTile> tiles;
-  final Map<int, bool> tileStates;
   final int boardSize;
   final double availableHeight;
+  final String gameId;
 
   @override
   Widget build(BuildContext context) {
-    final completedTiles = tileStates.values
-        .where((isCompleted) => isCompleted)
+    final completedTiles = tiles
+        .where((tile) => tile.isCompleted)
         .length;
     final totalTiles = tiles.length;
 
@@ -185,17 +183,23 @@ class _BingoBoardSection extends StatelessWidget {
                         itemCount: tiles.length,
                         itemBuilder: (context, index) {
                           final tile = tiles[index];
-                          final isCompleted = tileStates[index] ?? false;
 
                           return BingoTileCard(
                             tile: tile,
-                            isCompleted: isCompleted,
+                            isCompleted: tile.isCompleted,
                             onTap: () {
                               showDialog(
                                 context: context,
                                 builder: (context) => TileDetailsDialog(
                                   tile: tile,
-                                  isCompleted: isCompleted,
+                                  onToggleCompletion: () {
+                                    context.read<GameBloc>().add(
+                                          TileCompletionToggled(
+                                            gameId: gameId,
+                                            tileId: tile.id,
+                                          ),
+                                        );
+                                  },
                                 ),
                               );
                             },

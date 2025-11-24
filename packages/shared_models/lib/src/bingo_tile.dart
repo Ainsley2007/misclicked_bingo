@@ -21,6 +21,7 @@ class BingoTile extends Equatable {
   final bool isAnyUnique;
   final bool isOrLogic;
   final int? anyNCount;
+  final bool isCompleted;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final List<String>? possibleUniqueItems;
 
@@ -37,6 +38,7 @@ class BingoTile extends Equatable {
     this.isAnyUnique = false,
     this.isOrLogic = false,
     this.anyNCount,
+    this.isCompleted = false,
     this.possibleUniqueItems,
   });
 
@@ -61,6 +63,7 @@ class BingoTile extends Equatable {
     bool? isAnyUnique,
     bool? isOrLogic,
     int? anyNCount,
+    bool? isCompleted,
     List<String>? possibleUniqueItems,
   }) {
     return BingoTile(
@@ -76,6 +79,7 @@ class BingoTile extends Equatable {
       isAnyUnique: isAnyUnique ?? this.isAnyUnique,
       isOrLogic: isOrLogic ?? this.isOrLogic,
       anyNCount: anyNCount ?? this.anyNCount,
+      isCompleted: isCompleted ?? this.isCompleted,
       possibleUniqueItems: possibleUniqueItems ?? this.possibleUniqueItems,
     );
   }
@@ -94,6 +98,7 @@ class BingoTile extends Equatable {
     isAnyUnique,
     isOrLogic,
     anyNCount,
+    isCompleted,
     possibleUniqueItems,
   ];
 }

@@ -477,4 +477,36 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteUser(String userId) async {
     await (delete(users)..where((t) => t.id.equals(userId))).go();
   }
+
+  Future<void> setTeamBoardState({
+    required String teamId,
+    required String tileId,
+    required String status,
+  }) async {
+    await into(teamBoardState).insert(
+      TeamBoardStateCompanion.insert(
+        teamId: teamId,
+        tileId: tileId,
+        status: status,
+      ),
+      mode: InsertMode.replace,
+    );
+  }
+
+  Future<String?> getTeamBoardState({
+    required String teamId,
+    required String tileId,
+  }) async {
+    final query = select(teamBoardState)
+      ..where((t) => t.teamId.equals(teamId))
+      ..where((t) => t.tileId.equals(tileId));
+    final result = await query.getSingleOrNull();
+    return result?.status;
+  }
+
+  Future<Map<String, String>> getTeamBoardStates(String teamId) async {
+    final query = select(teamBoardState)..where((t) => t.teamId.equals(teamId));
+    final results = await query.get();
+    return {for (final result in results) result.tileId: result.status};
+  }
 }

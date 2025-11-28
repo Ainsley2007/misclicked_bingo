@@ -1,0 +1,1791 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Misclicked Bingo API",
+    "description": "Backend API for the Misclicked Bingo application with Discord OAuth2 authentication",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development server"
+    },
+    {
+      "url": "https://osrs-bingo.globeapp.dev",
+      "description": "Production server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Discord OAuth2 authentication endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Games",
+      "description": "Game management endpoints"
+    },
+    {
+      "name": "Teams",
+      "description": "Team management endpoints"
+    },
+    {
+      "name": "Bosses",
+      "description": "Boss data endpoints"
+    },
+    {
+      "name": "Admin",
+      "description": "Admin-only endpoints"
+    }
+  ],
+  "paths": {
+    "/auth/discord/login": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Initiate Discord OAuth login",
+        "description": "Redirects to Discord OAuth2 authorization page",
+        "responses": {
+          "302": {
+            "description": "Redirect to Discord OAuth",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Discord OAuth authorization URL"
+              }
+            }
+          },
+          "500": {
+            "description": "Discord OAuth not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/discord/callback": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Discord OAuth callback",
+        "description": "Handles Discord OAuth callback and sets authentication cookie",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Authorization code from Discord"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to frontend with auth cookie set",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Frontend URL"
+              },
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "HttpOnly auth_token cookie"
+              }
+            }
+          },
+          "400": {
+            "description": "Missing authorization code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Logout user",
+        "description": "Clears authentication cookie",
+        "responses": {
+          "200": {
+            "description": "Logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Logged out successfully"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get current user",
+        "description": "Returns the authenticated user's information",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get all users",
+        "description": "Returns a list of all users",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Delete a user",
+        "description": "Deletes a user by ID",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId"],
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID to delete"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "User deleted successfully"
+          },
+          "400": {
+            "description": "User ID is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to delete user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "Get all games",
+        "description": "Returns a list of all games",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of games",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Game"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch games",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Games"],
+        "summary": "Create a new game",
+        "description": "Creates a new bingo game with tiles",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGameRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Game created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Game"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create game",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{id}": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "Get game by ID",
+        "description": "Returns a specific game by its ID",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Game ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Game information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Game"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch game",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Games"],
+        "summary": "Delete a game",
+        "description": "Deletes a game by ID",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Game ID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Game deleted successfully"
+          },
+          "500": {
+            "description": "Failed to delete game",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{code}/join": {
+      "post": {
+        "tags": ["Games"],
+        "summary": "Join a game by code",
+        "description": "Creates a team and joins a game using the game code",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{6}$"
+            },
+            "description": "6-character game code"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["teamName"],
+                "properties": {
+                  "teamName": {
+                    "type": "string",
+                    "description": "Name of the team to create"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully joined game",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "game": {
+                      "$ref": "#/components/schemas/Game"
+                    },
+                    "team": {
+                      "$ref": "#/components/schemas/Team"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Team name is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to join game",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{id}/tiles": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "Get game tiles",
+        "description": "Returns all tiles for a game with completion status",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Game ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BingoTile"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch tiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{id}/tiles/{tileId}/complete": {
+      "put": {
+        "tags": ["Games"],
+        "summary": "Toggle tile completion",
+        "description": "Toggles the completion status of a tile for the user's team",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Game ID"
+          },
+          {
+            "name": "tileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Tile ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tile completion status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["completed", "incomplete"],
+                      "description": "New completion status"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User must be part of a team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to toggle tile completion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{id}/users": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "Get game users",
+        "description": "Returns all users in a game",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Game ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users in the game",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get game users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{id}/overview": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "Get game overview",
+        "description": "Returns comprehensive game overview with teams and tiles",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Game ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Game overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameOverview"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{id}": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "Get team by ID",
+        "description": "Returns team information",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Team"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Teams"],
+        "summary": "Disband team",
+        "description": "Deletes a team (captain only)",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team disbanded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Team disbanded successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only team captain can disband the team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to disband team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{id}/info": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "Get team info",
+        "description": "Returns team information (alias for GET /teams/{id})",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Team"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{id}/members": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "Get team members",
+        "description": "Returns all members of a team",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of team members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to get team members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Teams"],
+        "summary": "Add team member",
+        "description": "Adds a user to a team (captain only)",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId"],
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID to add to the team"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Member added successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only team captain can add members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team or user not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to add team member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{id}/members/{userId}": {
+      "delete": {
+        "tags": ["Teams"],
+        "summary": "Remove team member",
+        "description": "Removes a user from a team (captain only)",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to remove"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Member removed successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Captain cannot remove themselves",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only team captain can remove members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to remove team member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bosses": {
+      "get": {
+        "tags": ["Bosses"],
+        "summary": "Get all bosses",
+        "description": "Returns a list of all bosses with their unique items",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of bosses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Boss"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch bosses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/bosses": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create a new boss",
+        "description": "Creates a new boss with unique items (admin only)",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBossRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Boss created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Boss"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create boss",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/promote/{userId}": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Promote user to admin",
+        "description": "Promotes a user to admin role (admin only)",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to promote"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User promoted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User promoted to admin"
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "username": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to promote user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "auth_token",
+        "description": "HttpOnly cookie containing JWT token. Set automatically after Discord OAuth login."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        },
+        "required": ["error"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User ID"
+          },
+          "discordId": {
+            "type": "string",
+            "description": "Discord user ID"
+          },
+          "globalName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Discord global name"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "description": "Discord username"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "description": "User email"
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true,
+            "description": "Discord avatar hash"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "captain", "admin"],
+            "description": "User role"
+          },
+          "teamId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid",
+            "description": "Team ID the user belongs to"
+          },
+          "gameId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid",
+            "description": "Game ID the user is in"
+          }
+        },
+        "required": ["id", "discordId", "role"]
+      },
+      "Game": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Game ID"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]{6}$",
+            "description": "6-character game code"
+          },
+          "name": {
+            "type": "string",
+            "description": "Game name"
+          },
+          "teamSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 5,
+            "description": "Maximum team size"
+          },
+          "boardSize": {
+            "type": "integer",
+            "enum": [2, 3, 4, 5],
+            "default": 3,
+            "description": "Bingo board size (NxN)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Game creation timestamp"
+          }
+        },
+        "required": ["id", "code", "name", "teamSize", "boardSize", "createdAt"]
+      },
+      "CreateGameRequest": {
+        "type": "object",
+        "required": ["name", "tiles"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Game name"
+          },
+          "teamSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 5,
+            "description": "Maximum team size"
+          },
+          "boardSize": {
+            "type": "integer",
+            "enum": [2, 3, 4, 5],
+            "default": 3,
+            "description": "Bingo board size (NxN). Must match number of tiles."
+          },
+          "tiles": {
+            "type": "array",
+            "description": "Array of tiles. Must have exactly boardSize * boardSize tiles.",
+            "items": {
+              "$ref": "#/components/schemas/CreateTileRequest"
+            }
+          }
+        }
+      },
+      "CreateTileRequest": {
+        "type": "object",
+        "required": ["bossId"],
+        "properties": {
+          "bossId": {
+            "type": "string",
+            "description": "Boss ID"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional tile description"
+          },
+          "isAnyUnique": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, any unique item from the boss counts"
+          },
+          "isOrLogic": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, any of the unique items counts (OR logic)"
+          },
+          "anyNCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "If isAnyUnique is true, number of unique items required"
+          },
+          "uniqueItems": {
+            "type": "array",
+            "description": "Required if isAnyUnique is false. List of unique items for this tile.",
+            "items": {
+              "$ref": "#/components/schemas/UniqueItemRequest"
+            }
+          }
+        }
+      },
+      "UniqueItemRequest": {
+        "type": "object",
+        "required": ["itemName"],
+        "properties": {
+          "itemName": {
+            "type": "string",
+            "description": "Name of the unique item"
+          },
+          "requiredCount": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Number of this item required"
+          }
+        }
+      },
+      "BingoTile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Tile ID"
+          },
+          "gameId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Game ID"
+          },
+          "bossId": {
+            "type": "string",
+            "description": "Boss ID"
+          },
+          "bossName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Boss name"
+          },
+          "bossType": {
+            "type": "string",
+            "nullable": true,
+            "description": "Boss type"
+          },
+          "bossIconUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Boss icon URL"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Tile description"
+          },
+          "position": {
+            "type": "integer",
+            "description": "Position on the board (0-indexed)"
+          },
+          "isAnyUnique": {
+            "type": "boolean",
+            "description": "If true, any unique item from the boss counts"
+          },
+          "isOrLogic": {
+            "type": "boolean",
+            "description": "If true, any of the unique items counts (OR logic)"
+          },
+          "anyNCount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "If isAnyUnique is true, number of unique items required"
+          },
+          "isCompleted": {
+            "type": "boolean",
+            "description": "Whether the tile is completed for the user's team"
+          },
+          "uniqueItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UniqueItem"
+            },
+            "description": "List of unique items for this tile"
+          }
+        },
+        "required": ["id", "gameId", "bossId", "position", "isAnyUnique", "isOrLogic", "isCompleted", "uniqueItems"]
+      },
+      "UniqueItem": {
+        "type": "object",
+        "properties": {
+          "itemName": {
+            "type": "string",
+            "description": "Name of the unique item"
+          },
+          "requiredCount": {
+            "type": "integer",
+            "description": "Number of this item required"
+          }
+        },
+        "required": ["itemName", "requiredCount"]
+      },
+      "Team": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Team ID"
+          },
+          "gameId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Game ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Team name"
+          },
+          "captainUserId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Team captain user ID"
+          }
+        },
+        "required": ["id", "gameId", "name", "captainUserId"]
+      },
+      "GameOverview": {
+        "type": "object",
+        "properties": {
+          "game": {
+            "$ref": "#/components/schemas/Game"
+          },
+          "tiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BingoTile"
+            },
+            "description": "All tiles in the game (without isCompleted field)"
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamWithBoardStates"
+            },
+            "description": "All teams in the game with their board completion states"
+          }
+        },
+        "required": ["game", "tiles", "teams"]
+      },
+      "TeamWithBoardStates": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Team ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Team name"
+          },
+          "gameId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Game ID"
+          },
+          "captainUserId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Team captain user ID"
+          },
+          "boardStates": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": ["completed", "incomplete"]
+            },
+            "description": "Map of tile ID to completion status"
+          }
+        },
+        "required": ["id", "name", "gameId", "captainUserId", "boardStates"]
+      },
+      "Boss": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Boss ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Boss name"
+          },
+          "type": {
+            "type": "string",
+            "description": "Boss type"
+          },
+          "iconUrl": {
+            "type": "string",
+            "description": "Boss icon URL"
+          },
+          "uniqueItems": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of unique item names for this boss"
+          }
+        },
+        "required": ["id", "name", "type", "iconUrl", "uniqueItems"]
+      },
+      "CreateBossRequest": {
+        "type": "object",
+        "required": ["name", "type", "iconUrl", "uniqueItems"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Boss name"
+          },
+          "type": {
+            "type": "string",
+            "description": "Boss type"
+          },
+          "iconUrl": {
+            "type": "string",
+            "description": "Boss icon URL"
+          },
+          "uniqueItems": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "description": "List of unique item names (at least one required)"
+          }
+        }
+      }
+    }
+  }
+}
+
+

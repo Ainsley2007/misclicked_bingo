@@ -2,3 +2,20 @@ name: bingo-globe
 packages:
   - packages/**
 
+scripts:
+  frontend:
+    description: Run the frontend on Chrome at port 3000 (localhost backend)
+    run: flutter run -d chrome --web-port 3000 --dart-define=API_BASE_URL=http://localhost:8080
+    exec:
+      concurrency: 1
+    packageFilters:
+      scope: 'frontend'
+  
+  frontend:prod:
+    description: Run the frontend on Chrome at port 3000 (production backend)
+    run: flutter run -d chrome --web-port 3000 --dart-define=API_BASE_URL=https://osrs-bingo.globeapp.dev
+    exec:
+      concurrency: 1
+    packageFilters:
+      scope: 'frontend'
+

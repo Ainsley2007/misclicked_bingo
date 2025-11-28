@@ -12,7 +12,7 @@ class TileDetailsDialog extends StatelessWidget {
     final bossTypeColor = _getBossTypeColor(tile.bossType);
 
     return Dialog(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: ConstrainedBox(
@@ -22,7 +22,7 @@ class TileDetailsDialog extends StatelessWidget {
           children: [
             Flexible(
               child: Container(
-                color: Theme.of(context).colorScheme.surface,
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(32),
                   child: Column(
@@ -64,14 +64,14 @@ class TileDetailsDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
                 border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 spacing: 12,
                 children: [
-                  if (!tile.isCompleted) _buildButton(context: context, label: 'Close', onPressed: () => Navigator.of(context).pop(), isPrimary: false),
+                  _buildButton(context: context, label: 'Close', onPressed: () => Navigator.of(context).pop(), isPrimary: false),
                   if (tile.isCompleted)
                     _buildButton(
                       context: context,
@@ -82,16 +82,16 @@ class TileDetailsDialog extends StatelessWidget {
                       },
                       isPrimary: false,
                     ),
-                  _buildButton(
-                    context: context,
-                    label: tile.isCompleted ? 'Completed' : 'Mark Complete',
-                    onPressed: () {
-                      onToggleCompletion();
-                      Navigator.of(context).pop();
-                    },
-                    isPrimary: true,
-                    isCompleted: tile.isCompleted,
-                  ),
+                  if (!tile.isCompleted)
+                    _buildButton(
+                      context: context,
+                      label: 'Mark Complete',
+                      onPressed: () {
+                        onToggleCompletion();
+                        Navigator.of(context).pop();
+                      },
+                      isPrimary: true,
+                    ),
                 ],
               ),
             ),
@@ -101,20 +101,18 @@ class TileDetailsDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildButton({required BuildContext context, required String label, required VoidCallback onPressed, required bool isPrimary, bool isCompleted = false}) {
+  Widget _buildButton({required BuildContext context, required String label, required VoidCallback onPressed, required bool isPrimary}) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isPrimary) {
       return ElevatedButton(
-        onPressed: isCompleted ? null : onPressed,
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isCompleted ? colorScheme.surfaceContainerHighest : colorScheme.primary,
-          foregroundColor: isCompleted ? colorScheme.onSurface.withValues(alpha: 0.6) : colorScheme.onPrimary,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           elevation: 0,
-          disabledBackgroundColor: colorScheme.surfaceContainerHighest,
-          disabledForegroundColor: colorScheme.onSurface.withValues(alpha: 0.6),
         ),
         child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       );
@@ -147,7 +145,7 @@ class TileDetailsDialog extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: Theme.of(context).dividerColor),
         ),
@@ -194,7 +192,7 @@ class TileDetailsDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),

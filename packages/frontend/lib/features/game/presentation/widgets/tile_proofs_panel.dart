@@ -10,12 +10,14 @@ import 'package:shared_models/shared_models.dart';
 class TileProofsPanel extends StatelessWidget {
   final BingoTile tile;
   final String gameId;
+  final String? teamId;
   final String? teamName;
   final VoidCallback onClose;
 
   const TileProofsPanel({
     required this.tile,
     required this.gameId,
+    this.teamId,
     this.teamName,
     required this.onClose,
     super.key,
@@ -24,7 +26,13 @@ class TileProofsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<ProofsBloc>()..add(ProofsLoadRequested(gameId: gameId, tileId: tile.id)),
+      create: (_) => sl<ProofsBloc>()..add(
+        ProofsLoadRequested(
+          gameId: gameId,
+          tileId: tile.id,
+          teamId: teamId,
+        ),
+      ),
       child: _TileProofsPanelContent(
         tile: tile,
         teamName: teamName,

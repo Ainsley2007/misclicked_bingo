@@ -22,6 +22,7 @@ abstract class ProofsApi {
   Future<List<TileProof>> getProofs(
     @Path('gameId') String gameId,
     @Path('tileId') String tileId,
+    @Query('teamId') String? teamId,
   );
 
   @DELETE('/games/{gameId}/tiles/{tileId}/proofs/{proofId}')
@@ -40,4 +41,3 @@ abstract class ProofsApi {
   @GET('/games/{gameId}/stats')
   Future<ProofStats> getStats(@Path('gameId') String gameId);
 }
-

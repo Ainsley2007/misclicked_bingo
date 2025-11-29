@@ -12,8 +12,9 @@ class ProofsRepository {
   Future<List<TileProof>> getProofs({
     required String gameId,
     required String tileId,
+    String? teamId,
   }) async {
-    return _api.getProofs(gameId, tileId);
+    return _api.getProofs(gameId, tileId, teamId);
   }
 
   Future<TileProof> uploadProof({

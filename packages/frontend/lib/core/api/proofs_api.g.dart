@@ -82,9 +82,11 @@ class _ProofsApi implements ProofsApi {
   Future<List<TileProof>> getProofs(
     String gameId,
     String tileId,
+    String? teamId,
   ) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'teamId': teamId};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result =

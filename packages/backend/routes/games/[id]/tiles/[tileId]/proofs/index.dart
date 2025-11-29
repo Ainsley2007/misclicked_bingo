@@ -30,9 +30,22 @@ Future<Response> _getProofs(RequestContext context, String tileId) async {
       );
     }
 
+    // Allow viewing proofs from any team in the same game (for overview screen)
+    final teamIdParam = context.request.uri.queryParameters['teamId'];
+    final teamId = teamIdParam ?? user.teamId!;
+
+    // Verify the requested team is in the same game
+    final requestedTeam = await db.getTeamById(teamId);
+    if (requestedTeam == null || requestedTeam.gameId != user.gameId) {
+      return Response.json(
+        statusCode: HttpStatus.forbidden,
+        body: {'error': 'Team not found or not in same game'},
+      );
+    }
+
     final proofs = await proofsService.getProofsForTile(
       tileId: tileId,
-      teamId: user.teamId!,
+      teamId: teamId,
     );
 
     return Response.json(body: proofs.map((p) => p.toJson()).toList());

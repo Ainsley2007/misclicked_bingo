@@ -12,11 +12,16 @@ sealed class ProofsEvent extends Equatable {
 final class ProofsLoadRequested extends ProofsEvent {
   final String gameId;
   final String tileId;
+  final String? teamId;
 
-  const ProofsLoadRequested({required this.gameId, required this.tileId});
+  const ProofsLoadRequested({
+    required this.gameId,
+    required this.tileId,
+    this.teamId,
+  });
 
   @override
-  List<Object?> get props => [gameId, tileId];
+  List<Object?> get props => [gameId, tileId, teamId];
 }
 
 final class ProofUploadRequested extends ProofsEvent {

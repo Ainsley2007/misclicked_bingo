@@ -37,6 +37,7 @@ class _OverviewScreenContent extends StatefulWidget {
 
 class _OverviewScreenContentState extends State<_OverviewScreenContent> {
   BingoTile? _selectedTile;
+  String? _selectedTeamId;
   String? _selectedTeamName;
 
   @override
@@ -105,11 +106,14 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                                         team: team,
                                         tiles: tiles,
                                         boardSize: game.boardSize,
-                                        onTileTap: (tile) {
-                                          setState(() {
-                                            _selectedTile = tile;
-                                            _selectedTeamName = team.name;
-                                          });
+                                        onTileTap: (tile, isCompleted) {
+                                          if (isCompleted) {
+                                            setState(() {
+                                              _selectedTile = tile;
+                                              _selectedTeamId = team.id;
+                                              _selectedTeamName = team.name;
+                                            });
+                                          }
                                         },
                                       );
                                     },
@@ -150,14 +154,14 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                 right: _selectedTile != null ? 0 : -360,
                 child: _selectedTile != null
                     ? TileProofsPanel(
-                        key: ValueKey(
-                          '${_selectedTile!.id}_$_selectedTeamName',
-                        ),
+                        key: ValueKey('${_selectedTile!.id}_$_selectedTeamId'),
                         tile: _selectedTile!,
                         gameId: widget.gameId,
+                        teamId: _selectedTeamId,
                         teamName: _selectedTeamName,
                         onClose: () => setState(() {
                           _selectedTile = null;
+                          _selectedTeamId = null;
                           _selectedTeamName = null;
                         }),
                       )
@@ -253,7 +257,7 @@ class _TeamBoardSection extends StatelessWidget {
   final TeamOverview team;
   final List<BingoTile> tiles;
   final int boardSize;
-  final void Function(BingoTile tile) onTileTap;
+  final void Function(BingoTile tile, bool isCompleted) onTileTap;
 
   @override
   Widget build(BuildContext context) {
@@ -304,10 +308,15 @@ class _TeamBoardSection extends StatelessWidget {
                   final isCompleted = team.boardStates[tile.id] == 'completed';
 
                   return GestureDetector(
-                    onTap: () => onTileTap(tile),
-                    child: OverviewTileCard(
-                      tile: tile,
-                      isCompleted: isCompleted,
+                    onTap: isCompleted
+                        ? () => onTileTap(tile, isCompleted)
+                        : null,
+                    child: Opacity(
+                      opacity: isCompleted ? 1.0 : 0.6,
+                      child: OverviewTileCard(
+                        tile: tile,
+                        isCompleted: isCompleted,
+                      ),
                     ),
                   );
                 },

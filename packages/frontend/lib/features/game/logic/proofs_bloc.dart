@@ -26,6 +26,7 @@ class ProofsBloc extends Bloc<ProofsEvent, ProofsState> {
       final proofs = await _repository.getProofs(
         gameId: event.gameId,
         tileId: event.tileId,
+        teamId: event.teamId,
       );
       emit(ProofsState.loaded(proofs));
     } catch (e) {

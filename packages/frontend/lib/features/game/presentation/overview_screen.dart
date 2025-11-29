@@ -241,18 +241,21 @@ class _SlidingSidebarPanelState extends State<_SlidingSidebarPanel>
     final proofsPanelToShow = _cachedProofsPanel;
 
     return ClipRect(
-      child: Stack(
-        children: [
-          SlideTransition(
-            position: _activitySlideAnimation,
-            child: widget.activityPanel,
-          ),
-          if (proofsPanelToShow != null)
+      child: SizedBox.expand(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
             SlideTransition(
-              position: _proofsSlideAnimation,
-              child: proofsPanelToShow,
+              position: _activitySlideAnimation,
+              child: SizedBox.expand(child: widget.activityPanel),
             ),
-        ],
+            if (proofsPanelToShow != null)
+              SlideTransition(
+                position: _proofsSlideAnimation,
+                child: SizedBox.expand(child: proofsPanelToShow),
+              ),
+          ],
+        ),
       ),
     );
   }

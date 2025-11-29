@@ -55,18 +55,14 @@ class _TileProofsPanelContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 8,
-      child: Container(
-        width: 360,
-        color: Theme.of(context).colorScheme.surface,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            Expanded(child: _buildContent(context)),
-          ],
-        ),
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(context),
+          Expanded(child: _buildContent(context)),
+        ],
       ),
     );
   }

@@ -126,36 +126,52 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                   ),
                 ),
               ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                width: _selectedTile != null ? 360 : 0,
-                child: _selectedTile != null
-                    ? TileProofsPanel(
-                        key: ValueKey('${_selectedTile!.id}_$_selectedTeamId'),
-                        tile: _selectedTile!,
-                        gameId: widget.gameId,
-                        teamId: _selectedTeamId,
-                        teamName: _selectedTeamName,
-                        onClose: () => setState(() {
-                          _selectedTile = null;
-                          _selectedTeamId = null;
-                          _selectedTeamName = null;
-                        }),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              Container(
-                width: 360,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  border: Border(
-                    left: BorderSide(color: Theme.of(context).dividerColor),
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: SizedBox(
+                  width: 360,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (child, animation) {
+                        final isProofsPanel =
+                            child.key == const ValueKey('proofs');
+                        final slideAnimation =
+                            Tween<Offset>(
+                              begin: Offset(isProofsPanel ? 1.0 : -1.0, 0),
+                              end: Offset.zero,
+                            ).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              ),
+                            );
+                        return SlideTransition(
+                          position: slideAnimation,
+                          child: child,
+                        );
+                      },
+                      child: _selectedTile != null
+                          ? _ProofsSidebarCard(
+                              key: const ValueKey('proofs'),
+                              tile: _selectedTile!,
+                              gameId: widget.gameId,
+                              teamId: _selectedTeamId,
+                              teamName: _selectedTeamName,
+                              onClose: () => setState(() {
+                                _selectedTile = null;
+                                _selectedTeamId = null;
+                                _selectedTeamName = null;
+                              }),
+                            )
+                          : _ActivitySidebarCard(
+                              key: const ValueKey('activity'),
+                              activities: loadedState.activities,
+                              stats: loadedState.stats,
+                            ),
+                    ),
                   ),
-                ),
-                child: _ActivitySidebar(
-                  activities: loadedState.activities,
-                  stats: loadedState.stats,
                 ),
               ),
             ],
@@ -166,17 +182,17 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
   }
 }
 
-class _ActivitySidebar extends StatefulWidget {
+class _ActivitySidebarCard extends StatefulWidget {
   final List<TileActivity> activities;
   final ProofStats? stats;
 
-  const _ActivitySidebar({required this.activities, this.stats});
+  const _ActivitySidebarCard({super.key, required this.activities, this.stats});
 
   @override
-  State<_ActivitySidebar> createState() => _ActivitySidebarState();
+  State<_ActivitySidebarCard> createState() => _ActivitySidebarCardState();
 }
 
-class _ActivitySidebarState extends State<_ActivitySidebar>
+class _ActivitySidebarCardState extends State<_ActivitySidebarCard>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -196,8 +212,10 @@ class _ActivitySidebarState extends State<_ActivitySidebar>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      color: colorScheme.surfaceContainerLow,
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      elevation: 2,
       child: Column(
         children: [
           Container(
@@ -232,6 +250,39 @@ class _ActivitySidebarState extends State<_ActivitySidebar>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProofsSidebarCard extends StatelessWidget {
+  final BingoTile tile;
+  final String gameId;
+  final String? teamId;
+  final String? teamName;
+  final VoidCallback onClose;
+
+  const _ProofsSidebarCard({
+    super.key,
+    required this.tile,
+    required this.gameId,
+    this.teamId,
+    this.teamName,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      elevation: 2,
+      child: TileProofsPanel(
+        tile: tile,
+        gameId: gameId,
+        teamId: teamId,
+        teamName: teamName,
+        onClose: onClose,
       ),
     );
   }

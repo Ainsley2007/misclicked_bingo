@@ -54,9 +54,8 @@ app.*.map.json
 .melos_tool/
 
 # Generated files
-# NOTE: shared_models .g.dart files are committed for deployment
-# Only ignore generated files in other packages
-packages/frontend/**/*.g.dart
+# NOTE: shared_models and frontend API .g.dart files are committed for deployment
+# Only ignore generated files in backend package
 packages/backend/**/*.g.dart
 *.freezed.dart
 *.mocks.dart

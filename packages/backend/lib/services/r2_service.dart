@@ -60,4 +60,3 @@ class R2Service {
     return '$gameId/$teamId/$uuid.$ext';
   }
 }
-

@@ -193,11 +193,13 @@ class _SlidingSidebarPanelState extends State<_SlidingSidebarPanel>
       vsync: this,
     );
 
+    // Activity slides OUT to the right
     _activitySlideAnimation = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(-1.0, 0),
+      end: const Offset(1.0, 0),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
+    // Proofs slides IN from the right
     _proofsSlideAnimation = Tween<Offset>(
       begin: const Offset(1.0, 0),
       end: Offset.zero,
@@ -240,20 +242,23 @@ class _SlidingSidebarPanelState extends State<_SlidingSidebarPanel>
   Widget build(BuildContext context) {
     final proofsPanelToShow = _cachedProofsPanel;
 
-    return ClipRect(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
       child: SizedBox.expand(
         child: Stack(
           fit: StackFit.expand,
           children: [
-            SlideTransition(
-              position: _activitySlideAnimation,
-              child: SizedBox.expand(child: widget.activityPanel),
-            ),
+            // Proofs panel renders first (behind) so activity slides over it
             if (proofsPanelToShow != null)
               SlideTransition(
                 position: _proofsSlideAnimation,
                 child: SizedBox.expand(child: proofsPanelToShow),
               ),
+            // Activity panel on top, slides out to reveal proofs
+            SlideTransition(
+              position: _activitySlideAnimation,
+              child: SizedBox.expand(child: widget.activityPanel),
+            ),
           ],
         ),
       ),

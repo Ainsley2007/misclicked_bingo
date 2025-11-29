@@ -26,13 +26,10 @@ class TileProofsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<ProofsBloc>()..add(
-        ProofsLoadRequested(
-          gameId: gameId,
-          tileId: tile.id,
-          teamId: teamId,
+      create: (_) => sl<ProofsBloc>()
+        ..add(
+          ProofsLoadRequested(gameId: gameId, tileId: tile.id, teamId: teamId),
         ),
-      ),
       child: _TileProofsPanelContent(
         tile: tile,
         teamName: teamName,
@@ -72,7 +69,9 @@ class _TileProofsPanelContent extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +93,9 @@ class _TileProofsPanelContent extends StatelessWidget {
                   children: [
                     Text(
                       tile.description ?? tile.bossName ?? 'Unknown',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -112,7 +113,9 @@ class _TileProofsPanelContent extends StatelessWidget {
                 onPressed: onClose,
                 icon: const Icon(Icons.close),
                 style: IconButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
                 ),
               ),
             ],
@@ -137,7 +140,9 @@ class _TileProofsPanelContent extends StatelessWidget {
                 Icon(
                   Icons.image_not_supported_outlined,
                   size: 64,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -188,12 +193,14 @@ class _ProofCard extends StatelessWidget {
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     child: Center(
                       child: CircularProgressIndicator(
                         value: loadingProgress.expectedTotalBytes != null
                             ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
+                                  loadingProgress.expectedTotalBytes!
                             : null,
                       ),
                     ),
@@ -225,7 +232,9 @@ class _ProofCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     proof.uploadedByUsername ?? 'Unknown',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -249,9 +258,7 @@ class _ProofCard extends StatelessWidget {
       builder: (context) => Dialog(
         child: Stack(
           children: [
-            InteractiveViewer(
-              child: Image.network(proof.imageUrl),
-            ),
+            InteractiveViewer(child: Image.network(proof.imageUrl)),
             Positioned(
               top: 8,
               right: 8,
@@ -277,4 +284,3 @@ class _ProofCard extends StatelessWidget {
     return DateFormat('MMM d').format(date);
   }
 }
-

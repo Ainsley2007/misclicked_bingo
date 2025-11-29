@@ -130,53 +130,129 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                 padding: const EdgeInsets.all(24),
                 child: SizedBox(
                   width: 360,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) {
-                        final isProofsPanel =
-                            child.key == const ValueKey('proofs');
-                        final slideAnimation =
-                            Tween<Offset>(
-                              begin: Offset(isProofsPanel ? 1.0 : -1.0, 0),
-                              end: Offset.zero,
-                            ).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeInOut,
-                              ),
-                            );
-                        return SlideTransition(
-                          position: slideAnimation,
-                          child: child,
-                        );
-                      },
-                      child: _selectedTile != null
-                          ? _ProofsSidebarCard(
-                              key: const ValueKey('proofs'),
-                              tile: _selectedTile!,
-                              gameId: widget.gameId,
-                              teamId: _selectedTeamId,
-                              teamName: _selectedTeamName,
-                              onClose: () => setState(() {
-                                _selectedTile = null;
-                                _selectedTeamId = null;
-                                _selectedTeamName = null;
-                              }),
-                            )
-                          : _ActivitySidebarCard(
-                              key: const ValueKey('activity'),
-                              activities: loadedState.activities,
-                              stats: loadedState.stats,
-                            ),
+                  child: _SlidingSidebarPanel(
+                    showProofs: _selectedTile != null,
+                    activityPanel: _ActivitySidebarCard(
+                      activities: loadedState.activities,
+                      stats: loadedState.stats,
                     ),
+                    proofsPanel: _selectedTile != null
+                        ? _ProofsSidebarCard(
+                            key: ValueKey(
+                              '${_selectedTile!.id}_$_selectedTeamId',
+                            ),
+                            tile: _selectedTile!,
+                            gameId: widget.gameId,
+                            teamId: _selectedTeamId,
+                            teamName: _selectedTeamName,
+                            onClose: () => setState(() {
+                              _selectedTile = null;
+                              _selectedTeamId = null;
+                              _selectedTeamName = null;
+                            }),
+                          )
+                        : null,
                   ),
                 ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _SlidingSidebarPanel extends StatefulWidget {
+  final bool showProofs;
+  final Widget activityPanel;
+  final Widget? proofsPanel;
+
+  const _SlidingSidebarPanel({
+    required this.showProofs,
+    required this.activityPanel,
+    this.proofsPanel,
+  });
+
+  @override
+  State<_SlidingSidebarPanel> createState() => _SlidingSidebarPanelState();
+}
+
+class _SlidingSidebarPanelState extends State<_SlidingSidebarPanel>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _activitySlideAnimation;
+  late Animation<Offset> _proofsSlideAnimation;
+  Widget? _cachedProofsPanel;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _activitySlideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(-1.0, 0),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _proofsSlideAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    if (widget.showProofs) {
+      _controller.value = 1.0;
+      _cachedProofsPanel = widget.proofsPanel;
+    }
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.dismissed) {
+        setState(() => _cachedProofsPanel = null);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(_SlidingSidebarPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showProofs != oldWidget.showProofs) {
+      if (widget.showProofs) {
+        _cachedProofsPanel = widget.proofsPanel;
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    } else if (widget.showProofs && widget.proofsPanel != null) {
+      _cachedProofsPanel = widget.proofsPanel;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final proofsPanelToShow = _cachedProofsPanel;
+
+    return ClipRect(
+      child: Stack(
+        children: [
+          SlideTransition(
+            position: _activitySlideAnimation,
+            child: widget.activityPanel,
+          ),
+          if (proofsPanelToShow != null)
+            SlideTransition(
+              position: _proofsSlideAnimation,
+              child: proofsPanelToShow,
+            ),
+        ],
       ),
     );
   }

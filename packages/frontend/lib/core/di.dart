@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:frontend/core/services/auth_service.dart';
+import 'package:frontend/core/api/proofs_api.dart';
 import 'package:frontend/features/admin/logic/games_bloc.dart';
 import 'package:frontend/features/admin/data/games_repository.dart';
 import 'package:frontend/features/admin/logic/users_bloc.dart';
@@ -8,8 +9,10 @@ import 'package:frontend/features/admin/data/users_repository.dart';
 import 'package:frontend/features/lobby/data/lobby_repository.dart';
 import 'package:frontend/features/lobby/logic/join_game_bloc.dart';
 import 'package:frontend/features/game/data/game_repository.dart';
+import 'package:frontend/features/game/data/proofs_repository.dart';
 import 'package:frontend/features/game/logic/game_bloc.dart';
 import 'package:frontend/features/game/logic/overview_bloc.dart';
+import 'package:frontend/features/game/logic/proofs_bloc.dart';
 import 'package:frontend/features/manage_team/data/teams_repository.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
 import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
@@ -46,6 +49,9 @@ void setupDi() {
   // Services
   sl.registerSingleton<AuthService>(AuthService(sl<Dio>()));
 
+  // APIs
+  sl.registerLazySingleton<ProofsApi>(() => ProofsApi(sl<Dio>()));
+
   // Repositories
   sl.registerLazySingleton<GamesRepository>(() => GamesRepository(sl<Dio>()));
   sl.registerLazySingleton<UsersRepository>(() => UsersRepository(sl<Dio>()));
@@ -56,6 +62,9 @@ void setupDi() {
     () => GameCreationRepository(sl<Dio>()),
   );
   sl.registerLazySingleton<BossRepository>(() => BossRepository(sl<Dio>()));
+  sl.registerLazySingleton<ProofsRepository>(
+    () => ProofsRepository(sl<ProofsApi>()),
+  );
 
   // BLoCs
   sl.registerFactory<GamesBloc>(() => GamesBloc(sl<GamesRepository>()));
@@ -65,7 +74,7 @@ void setupDi() {
     () => GameBloc(sl<GameRepository>(), sl<BossRepository>()),
   );
   sl.registerFactory<OverviewBloc>(
-    () => OverviewBloc(sl<GameRepository>(), sl<BossRepository>()),
+    () => OverviewBloc(sl<GameRepository>(), sl<BossRepository>(), sl<ProofsRepository>()),
   );
   sl.registerFactory<ManageTeamsBloc>(
     () => ManageTeamsBloc(
@@ -76,4 +85,5 @@ void setupDi() {
   sl.registerFactory<GameCreationBloc>(
     () => GameCreationBloc(sl<GameCreationRepository>(), sl<BossRepository>()),
   );
+  sl.registerFactory<ProofsBloc>(() => ProofsBloc(sl<ProofsRepository>()));
 }

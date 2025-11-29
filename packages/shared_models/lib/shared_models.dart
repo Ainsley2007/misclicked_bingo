@@ -8,3 +8,7 @@ export 'src/boss.dart';
 export 'src/boss_data.dart';
 export 'src/tile_unique_item.dart';
 export 'src/game_tile_creation.dart';
+export 'src/tile_proof.dart';
+export 'src/tile_activity.dart';
+export 'src/proof_stats.dart';
+export 'src/proof_request.dart';

@@ -1,28 +1,31 @@
 import 'dart:io';
 
 import 'package:backend/database.dart';
-import 'package:backend/services/tiles_service.dart';
+import 'package:backend/services/proofs_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(
   RequestContext context,
-  String gameId,
+  String id,
   String tileId,
+  String proofId,
 ) async {
   return switch (context.request.method) {
-    HttpMethod.put => _toggleTileCompletion(context, tileId),
+    HttpMethod.delete => _deleteProof(context, id, tileId, proofId),
     _ => Response(statusCode: HttpStatus.methodNotAllowed),
   };
 }
 
-Future<Response> _toggleTileCompletion(
+Future<Response> _deleteProof(
   RequestContext context,
+  String gameId,
   String tileId,
+  String proofId,
 ) async {
   try {
     final userId = context.read<String>();
     final db = context.read<AppDatabase>();
-    final tilesService = context.read<TilesService>();
+    final proofsService = context.read<ProofsService>();
 
     final user = await db.getUserById(userId);
     if (user == null || user.teamId == null) {
@@ -32,24 +35,25 @@ Future<Response> _toggleTileCompletion(
       );
     }
 
-    final result = await tilesService.toggleTileCompletion(
-      tileId: tileId,
+    final tileStatus = await db.getTeamBoardState(
       teamId: user.teamId!,
-      userId: userId,
+      tileId: tileId,
     );
-
-    if (!result.success) {
+    if (tileStatus == 'completed') {
       return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': result.error},
+        statusCode: HttpStatus.forbidden,
+        body: {'error': 'Cannot delete proof from completed tile'},
       );
     }
 
-    return Response.json(body: {'status': result.status});
+    await proofsService.deleteProof(proofId);
+
+    return Response.json(body: {'success': true});
   } catch (e) {
     return Response.json(
       statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to toggle tile completion: $e'},
+      body: {'error': 'Failed to delete proof: $e'},
     );
   }
 }
+

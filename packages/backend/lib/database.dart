@@ -101,9 +101,23 @@ class TeamBoardState extends Table {
   TextColumn get teamId => text()();
   TextColumn get tileId => text()();
   TextColumn get status => text()();
+  TextColumn get completedByUserId => text().nullable()();
+  TextColumn get completedAt => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {teamId, tileId};
+}
+
+class TileProofs extends Table {
+  TextColumn get id => text()();
+  TextColumn get teamId => text()();
+  TextColumn get tileId => text()();
+  TextColumn get imageUrl => text()();
+  TextColumn get uploadedByUserId => text()();
+  TextColumn get uploadedAt => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 @DriftDatabase(
@@ -117,6 +131,7 @@ class TeamBoardState extends Table {
     BingoTiles,
     TileUniqueItems,
     TeamBoardState,
+    TileProofs,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -186,47 +201,42 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteGame(String id) async {
-    // Get all teams for this game
     final teamsForGame = await (select(
       teams,
     )..where((t) => t.gameId.equals(id))).get();
     final teamIds = teamsForGame.map((t) => t.id).toList();
 
-    // Get all tiles for this game
     final tilesForGame = await (select(
       bingoTiles,
     )..where((t) => t.gameId.equals(id))).get();
     final tileIds = tilesForGame.map((t) => t.id).toList();
 
-    // 1. Delete team_board_state entries for these tiles/teams
     if (tileIds.isNotEmpty) {
       await (delete(teamBoardState)..where((t) => t.tileId.isIn(tileIds))).go();
     }
 
-    // 2. Delete tile_unique_items for these tiles
+    if (teamIds.isNotEmpty) {
+      await (delete(tileProofs)..where((t) => t.teamId.isIn(teamIds))).go();
+    }
+
     if (tileIds.isNotEmpty) {
       await (delete(
         tileUniqueItems,
       )..where((t) => t.tileId.isIn(tileIds))).go();
     }
 
-    // 3. Delete bingo_tiles for this game
     await (delete(bingoTiles)..where((t) => t.gameId.equals(id))).go();
 
-    // 4. Delete team_members for these teams
     if (teamIds.isNotEmpty) {
       await (delete(teamMembers)..where((t) => t.teamId.isIn(teamIds))).go();
     }
 
-    // 5. Delete teams for this game
     await (delete(teams)..where((t) => t.gameId.equals(id))).go();
 
-    // 6. Update users to remove gameId and teamId references
     await (update(users)..where((t) => t.gameId.equals(id))).write(
       const UsersCompanion(gameId: Value(null), teamId: Value(null)),
     );
 
-    // 7. Finally, delete the game itself
     await (delete(games)..where((t) => t.id.equals(id))).go();
   }
 
@@ -307,13 +317,10 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteTeam(String teamId) async {
-    // 1. Delete team_board_state entries for this team
     await (delete(teamBoardState)..where((t) => t.teamId.equals(teamId))).go();
-
-    // 2. Delete team_members entries for this team
+    await (delete(tileProofs)..where((t) => t.teamId.equals(teamId))).go();
     await (delete(teamMembers)..where((t) => t.teamId.equals(teamId))).go();
 
-    // 3. Update users to remove teamId and gameId references (preserve admin roles)
     final members = await (select(
       users,
     )..where((t) => t.teamId.equals(teamId))).get();
@@ -329,7 +336,6 @@ class AppDatabase extends _$AppDatabase {
       );
     }
 
-    // 4. Finally, delete the team itself
     await (delete(teams)..where((t) => t.id.equals(teamId))).go();
   }
 
@@ -532,12 +538,16 @@ class AppDatabase extends _$AppDatabase {
     required String teamId,
     required String tileId,
     required String status,
+    String? completedByUserId,
+    DateTime? completedAt,
   }) async {
     await into(teamBoardState).insert(
-      TeamBoardStateCompanion.insert(
-        teamId: teamId,
-        tileId: tileId,
-        status: status,
+      TeamBoardStateCompanion(
+        teamId: Value(teamId),
+        tileId: Value(tileId),
+        status: Value(status),
+        completedByUserId: Value(completedByUserId),
+        completedAt: Value(completedAt?.toIso8601String()),
       ),
       mode: InsertMode.replace,
     );
@@ -558,5 +568,113 @@ class AppDatabase extends _$AppDatabase {
     final query = select(teamBoardState)..where((t) => t.teamId.equals(teamId));
     final results = await query.get();
     return {for (final result in results) result.tileId: result.status};
+  }
+
+  Future<TeamBoardStateData?> getTeamBoardStateData({
+    required String teamId,
+    required String tileId,
+  }) async {
+    final query = select(teamBoardState)
+      ..where((t) => t.teamId.equals(teamId))
+      ..where((t) => t.tileId.equals(tileId));
+    return query.getSingleOrNull();
+  }
+
+  Future<void> createTileProof({
+    required String id,
+    required String teamId,
+    required String tileId,
+    required String imageUrl,
+    required String uploadedByUserId,
+    required DateTime uploadedAt,
+  }) async {
+    await into(tileProofs).insert(
+      TileProofsCompanion.insert(
+        id: id,
+        teamId: teamId,
+        tileId: tileId,
+        imageUrl: imageUrl,
+        uploadedByUserId: uploadedByUserId,
+        uploadedAt: uploadedAt.toIso8601String(),
+      ),
+    );
+  }
+
+  Future<List<TileProof>> getProofsByTileAndTeam({
+    required String tileId,
+    required String teamId,
+  }) async {
+    final query = select(tileProofs)
+      ..where((t) => t.tileId.equals(tileId))
+      ..where((t) => t.teamId.equals(teamId))
+      ..orderBy([(t) => OrderingTerm.desc(t.uploadedAt)]);
+    return query.get();
+  }
+
+  Future<List<TileProof>> getProofsByTeam(String teamId) async {
+    final query = select(tileProofs)
+      ..where((t) => t.teamId.equals(teamId))
+      ..orderBy([(t) => OrderingTerm.desc(t.uploadedAt)]);
+    return query.get();
+  }
+
+  Future<List<TileProof>> getProofsByGame(String gameId) async {
+    final teamsList = await getTeamsByGameId(gameId);
+    if (teamsList.isEmpty) return [];
+    final teamIds = teamsList.map((t) => t.id).toList();
+    final query = select(tileProofs)
+      ..where((t) => t.teamId.isIn(teamIds))
+      ..orderBy([(t) => OrderingTerm.desc(t.uploadedAt)]);
+    return query.get();
+  }
+
+  Future<int> getProofCountByTileAndTeam({
+    required String tileId,
+    required String teamId,
+  }) async {
+    final query = select(tileProofs)
+      ..where((t) => t.tileId.equals(tileId))
+      ..where((t) => t.teamId.equals(teamId));
+    final results = await query.get();
+    return results.length;
+  }
+
+  Future<void> deleteTileProof(String id) async {
+    await (delete(tileProofs)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<List<TeamBoardStateData>> getCompletedTilesByGame(
+    String gameId,
+  ) async {
+    final teamsList = await getTeamsByGameId(gameId);
+    if (teamsList.isEmpty) return [];
+    final teamIds = teamsList.map((t) => t.id).toList();
+    final query = select(teamBoardState)
+      ..where((t) => t.teamId.isIn(teamIds))
+      ..where((t) => t.status.equals('completed'))
+      ..orderBy([(t) => OrderingTerm.desc(t.completedAt)]);
+    return query.get();
+  }
+
+  Future<Map<String, int>> getProofCountsByUser(String gameId) async {
+    final proofs = await getProofsByGame(gameId);
+    final counts = <String, int>{};
+    for (final proof in proofs) {
+      counts[proof.uploadedByUserId] =
+          (counts[proof.uploadedByUserId] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  Future<Map<String, int>> getCompletionCountsByUser(String gameId) async {
+    final completions = await getCompletedTilesByGame(gameId);
+    final counts = <String, int>{};
+    for (final completion in completions) {
+      if (completion.completedByUserId != null) {
+        counts[completion.completedByUserId!] =
+            (counts[completion.completedByUserId!] ?? 0) + 1;
+      }
+    }
+    return counts;
   }
 }

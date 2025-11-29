@@ -3,18 +3,20 @@ import 'dart:developer' as developer;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/bosses/data/boss_repository.dart';
 import 'package:frontend/features/game/data/game_repository.dart';
+import 'package:frontend/features/game/data/proofs_repository.dart';
 import 'package:frontend/features/game/logic/overview_event.dart';
 import 'package:frontend/features/game/logic/overview_state.dart';
 import 'package:shared_models/shared_models.dart';
 
 class OverviewBloc extends Bloc<OverviewEvent, OverviewState> {
-  OverviewBloc(this._repository, this._bossRepository)
+  OverviewBloc(this._repository, this._bossRepository, this._proofsRepository)
     : super(const OverviewInitial()) {
     on<OverviewLoadRequested>(_onOverviewLoadRequested);
   }
 
   final GameRepository _repository;
   final BossRepository _bossRepository;
+  final ProofsRepository _proofsRepository;
 
   Future<void> _onOverviewLoadRequested(
     OverviewLoadRequested event,
@@ -54,8 +56,31 @@ class OverviewBloc extends Bloc<OverviewEvent, OverviewState> {
         );
       }).toList();
 
-      emit(OverviewLoaded(game: game, tiles: enrichedTiles, teams: teams));
+      var loadedState = OverviewLoaded(
+        game: game,
+        tiles: enrichedTiles,
+        teams: teams,
+      );
+      emit(loadedState);
       developer.log('Loaded overview for game ${game.id}', name: 'overview');
+
+      try {
+        final results = await Future.wait([
+          _proofsRepository.getActivity(gameId: event.gameId, limit: 20),
+          _proofsRepository.getStats(gameId: event.gameId),
+        ]);
+
+        final activities = results[0] as List<TileActivity>;
+        final stats = results[1] as ProofStats;
+
+        emit(loadedState.copyWith(activities: activities, stats: stats));
+      } catch (e) {
+        developer.log(
+          'Failed to load activity/stats',
+          name: 'overview',
+          error: e,
+        );
+      }
     } catch (e, stackTrace) {
       developer.log(
         'Failed to load overview',

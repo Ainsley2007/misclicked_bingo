@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di.dart';
+import 'package:frontend/core/services/auth_service.dart';
 import 'package:frontend/features/game/logic/game_bloc.dart';
 import 'package:frontend/features/game/logic/game_event.dart';
 import 'package:frontend/features/game/logic/game_state.dart';
@@ -33,70 +34,51 @@ class _GameScreenContent extends StatefulWidget {
 class _GameScreenContentState extends State<_GameScreenContent> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GameBloc, GameState>(
-      builder: (context, state) {
-        if (state is GameInitial || state is GameLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
+    return BlocListener<GameBloc, GameState>(
+      listener: (context, state) async {
         if (state is GameError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Game Not Found',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'This game may have been deleted or you no longer have access to it.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () => context.go('/lobby'),
-                    icon: const Icon(Icons.home_rounded),
-                    label: const Text('Return to Lobby'),
-                  ),
-                ],
-              ),
-            ),
-          );
+          await sl<AuthService>().checkAuth();
+          if (context.mounted) {
+            context.go('/lobby');
+          }
         }
+      },
+      child: BlocBuilder<GameBloc, GameState>(
+        builder: (context, state) {
+          if (state is GameInitial ||
+              state is GameLoading ||
+              state is GameError) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        final loadedState = state as GameLoaded;
-        final game = loadedState.game;
-        final tiles = loadedState.tiles;
+          final loadedState = state as GameLoaded;
+          final game = loadedState.game;
+          final tiles = loadedState.tiles;
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final availableHeight = constraints.maxHeight;
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final availableHeight = constraints.maxHeight;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1600),
-                  child: Center(
-                    child: _BingoBoardSection(
-                      tiles: tiles,
-                      boardSize: game.boardSize,
-                      availableHeight: availableHeight,
-                      gameId: game.id,
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1600),
+                    child: Center(
+                      child: _BingoBoardSection(
+                        tiles: tiles,
+                        boardSize: game.boardSize,
+                        availableHeight: availableHeight,
+                        gameId: game.id,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -193,7 +175,8 @@ class _BingoBoardSection extends StatelessWidget {
                                   value: bloc,
                                   child: TileDetailsDialog(
                                     tile: tile,
-                                    onToggleCompletion: () {
+                                    gameId: gameId,
+                                    onToggleCompletion: (_) {
                                       bloc.add(
                                         TileCompletionToggled(
                                           gameId: gameId,

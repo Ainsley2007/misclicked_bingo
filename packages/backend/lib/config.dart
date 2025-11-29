@@ -32,4 +32,10 @@ class Config {
       get('FRONTEND_ORIGIN', defaultValue: 'http://localhost:3000');
   static String get cookieDomain =>
       get('COOKIE_DOMAIN', defaultValue: 'localhost');
+
+  static String get r2AccountId => get('R2_ACCOUNT_ID');
+  static String get r2AccessKeyId => get('R2_ACCESS_KEY_ID');
+  static String get r2SecretAccessKey => get('R2_SECRET_ACCESS_KEY');
+  static String get r2BucketName => get('R2_BUCKET_NAME');
+  static String get r2PublicUrl => get('R2_PUBLIC_URL');
 }

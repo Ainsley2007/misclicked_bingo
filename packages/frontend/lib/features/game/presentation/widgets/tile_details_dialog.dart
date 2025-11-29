@@ -1,115 +1,203 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di.dart';
+import 'package:frontend/core/services/auth_service.dart';
+import 'package:frontend/features/game/logic/proofs_bloc.dart';
+import 'package:frontend/features/game/logic/proofs_event.dart';
+import 'package:frontend/features/game/logic/proofs_state.dart';
+import 'package:frontend/features/game/presentation/widgets/proof_upload_section.dart';
 import 'package:shared_models/shared_models.dart';
 
 class TileDetailsDialog extends StatelessWidget {
-  const TileDetailsDialog({required this.tile, required this.onToggleCompletion, super.key});
+  const TileDetailsDialog({
+    required this.tile,
+    required this.gameId,
+    required this.onToggleCompletion,
+    super.key,
+  });
 
   final BingoTile tile;
-  final VoidCallback onToggleCompletion;
+  final String gameId;
+  final void Function(bool canComplete) onToggleCompletion;
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = sl<AuthService>();
+    final isAdmin = authService.currentUser?.role == UserRole.admin;
+    
+    return BlocProvider(
+      create: (_) => sl<ProofsBloc>()..add(ProofsLoadRequested(gameId: gameId, tileId: tile.id)),
+      child: _TileDetailsDialogContent(
+        tile: tile,
+        gameId: gameId,
+        onToggleCompletion: onToggleCompletion,
+        isAdmin: isAdmin,
+      ),
+    );
+  }
+}
+
+class _TileDetailsDialogContent extends StatelessWidget {
+  const _TileDetailsDialogContent({
+    required this.tile,
+    required this.gameId,
+    required this.onToggleCompletion,
+    required this.isAdmin,
+  });
+
+  final BingoTile tile;
+  final String gameId;
+  final void Function(bool canComplete) onToggleCompletion;
+  final bool isAdmin;
 
   @override
   Widget build(BuildContext context) {
     final bossTypeColor = _getBossTypeColor(tile.bossType);
 
-    return Dialog(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Container(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      if (tile.bossIconUrl != null) ...[
-                        Image.network(
-                          tile.bossIconUrl!,
-                          fit: BoxFit.contain,
-                          width: 96,
-                          height: 96,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox.shrink();
-                          },
+    return BlocListener<ProofsBloc, ProofsState>(
+      listener: (context, state) {
+        if (state.status == ProofsStatus.error && state.error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error!),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      },
+      child: Dialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 550, maxHeight: 800),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Container(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        if (tile.bossIconUrl != null) ...[
+                          Image.network(
+                            tile.bossIconUrl!,
+                            fit: BoxFit.contain,
+                            width: 96,
+                            height: 96,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        Container(
+                          height: 2,
+                          margin: const EdgeInsets.symmetric(horizontal: 60),
+                          color: bossTypeColor,
                         ),
-                        const SizedBox(height: 16),
-                      ],
-                      Container(height: 2, margin: const EdgeInsets.symmetric(horizontal: 60), color: bossTypeColor),
-                      const SizedBox(height: 24),
-                      Text(
-                        tile.description ?? tile.bossName ?? 'Unknown Boss',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (tile.bossName != null && tile.description != null) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 24),
                         Text(
-                          tile.bossName!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          tile.description ?? tile.bossName ?? 'Unknown Boss',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
+                        if (tile.bossName != null && tile.description != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            tile.bossName!,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        _buildUniqueItemsSection(context),
+                        const SizedBox(height: 24),
+                        ProofUploadSection(
+                          gameId: gameId,
+                          tileId: tile.id,
+                          isCompleted: tile.isCompleted,
+                        ),
                       ],
-                      const SizedBox(height: 32),
-                      _buildUniqueItemsSection(context),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                spacing: 12,
-                children: [
-                  _buildButton(context: context, label: 'Close', onPressed: () => Navigator.of(context).pop(), isPrimary: false),
-                  if (tile.isCompleted)
-                    _buildButton(
-                      context: context,
-                      label: 'Undo Completion',
-                      onPressed: () {
-                        onToggleCompletion();
-                        Navigator.of(context).pop();
-                      },
-                      isPrimary: false,
-                    ),
-                  if (!tile.isCompleted)
-                    _buildButton(
-                      context: context,
-                      label: 'Mark Complete',
-                      onPressed: () {
-                        onToggleCompletion();
-                        Navigator.of(context).pop();
-                      },
-                      isPrimary: true,
-                    ),
-                ],
-              ),
-            ),
-          ],
+              _buildFooter(context),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildButton({required BuildContext context, required String label, required VoidCallback onPressed, required bool isPrimary}) {
+  Widget _buildFooter(BuildContext context) {
+    return BlocBuilder<ProofsBloc, ProofsState>(
+      builder: (context, state) {
+        final canComplete = state.canComplete;
+        final isLoading = state.status == ProofsStatus.loading || state.status == ProofsStatus.uploading;
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainer,
+            border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            spacing: 12,
+            children: [
+              _buildButton(
+                context: context,
+                label: 'Close',
+                onPressed: () => Navigator.of(context).pop(),
+                isPrimary: false,
+              ),
+              if (tile.isCompleted && isAdmin)
+                _buildButton(
+                  context: context,
+                  label: 'Undo Completion',
+                  onPressed: () {
+                    onToggleCompletion(true);
+                    Navigator.of(context).pop();
+                  },
+                  isPrimary: false,
+                ),
+              if (!tile.isCompleted)
+                _buildButton(
+                  context: context,
+                  label: canComplete ? 'Mark Complete' : 'Add Proof First',
+                  onPressed: canComplete && !isLoading
+                      ? () {
+                          onToggleCompletion(true);
+                          Navigator.of(context).pop();
+                        }
+                      : null,
+                  isPrimary: true,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildButton({
+    required BuildContext context,
+    required String label,
+    required VoidCallback? onPressed,
+    required bool isPrimary,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isPrimary) {
       return ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
+          backgroundColor: onPressed != null ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+          foregroundColor: onPressed != null ? colorScheme.onPrimary : colorScheme.onSurface.withValues(alpha: 0.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           elevation: 0,
@@ -131,11 +219,11 @@ class TileDetailsDialog extends StatelessWidget {
 
   Color _getBossTypeColor(BossType? type) {
     return switch (type) {
-      BossType.easy => const Color(0xFF4CAF50), // Green
-      BossType.solo => const Color(0xFF9C27B0), // Purple
-      BossType.group => const Color(0xFFE11D48), // Red
-      BossType.slayer => const Color(0xFFFF9800), // Orange
-      null => const Color(0xFF4CAF50), // Default to green
+      BossType.easy => const Color(0xFF4CAF50),
+      BossType.solo => const Color(0xFF9C27B0),
+      BossType.group => const Color(0xFFE11D48),
+      BossType.slayer => const Color(0xFFFF9800),
+      null => const Color(0xFF4CAF50),
     };
   }
 
@@ -145,22 +233,32 @@ class TileDetailsDialog extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Any unique', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 15)),
+            Text(
+              'Any unique',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 15),
+            ),
             const SizedBox(height: 8),
             Text(
               'Any unique item from ${tile.bossName ?? "this boss"}\'s drop table:',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
             ),
             const SizedBox(height: 16),
             if (uniqueItems == null || uniqueItems.isEmpty)
-              Text('No unique items available', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant))
+              Text(
+                'No unique items available',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              )
             else
               ...uniqueItems.map(
                 (itemName) => Padding(
@@ -172,10 +270,18 @@ class TileDetailsDialog extends StatelessWidget {
                         margin: const EdgeInsets.only(top: 8),
                         width: 4,
                         height: 4,
-                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: Text(itemName, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5))),
+                      Expanded(
+                        child: Text(
+                          itemName,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -192,7 +298,7 @@ class TileDetailsDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),
@@ -200,7 +306,9 @@ class TileDetailsDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            tile.isOrLogic ? (tile.anyNCount != null && tile.anyNCount! > 1 ? 'Any ${tile.anyNCount} of:' : 'Any of:') : 'All of:',
+            tile.isOrLogic
+                ? (tile.anyNCount != null && tile.anyNCount! > 1 ? 'Any ${tile.anyNCount} of:' : 'Any of:')
+                : 'All of:',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 15),
           ),
           const SizedBox(height: 16),
@@ -214,21 +322,35 @@ class TileDetailsDialog extends StatelessWidget {
                     margin: const EdgeInsets.only(top: 8),
                     width: 4,
                     height: 4,
-                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(item.itemName, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5))),
+                  Expanded(
+                    child: Text(
+                      item.itemName,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),
+                    ),
+                  ),
                   if (item.requiredCount > 1)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(3),
-                        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Text(
                         'x${item.requiredCount}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w700, fontSize: 11),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                 ],

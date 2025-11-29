@@ -2,10 +2,6 @@ import 'package:backend/config.dart';
 import 'package:minio/minio.dart';
 
 class R2Service {
-  late final Minio _minio;
-  late final String _bucketName;
-  late final String _publicUrl;
-
   R2Service() {
     final accountId = Config.r2AccountId;
     final accessKey = Config.r2AccessKeyId;
@@ -32,6 +28,9 @@ class R2Service {
       useSSL: true,
     );
   }
+  late final Minio _minio;
+  late final String _bucketName;
+  late final String _publicUrl;
 
   Future<String> generatePresignedUploadUrl({
     required String objectKey,

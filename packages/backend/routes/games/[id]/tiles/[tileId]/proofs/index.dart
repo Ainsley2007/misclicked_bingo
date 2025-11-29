@@ -119,4 +119,3 @@ Future<Response> _createProof(RequestContext context, String tileId) async {
     );
   }
 }
-

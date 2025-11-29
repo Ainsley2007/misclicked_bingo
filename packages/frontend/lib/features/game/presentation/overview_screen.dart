@@ -64,94 +64,70 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
           final tiles = loadedState.tiles;
           final teams = loadedState.teams;
 
-          return Stack(
+          return Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            game.name,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final screenWidth = constraints.maxWidth;
-                                const targetBoardWidth = 300.0;
-                                final crossAxisCount =
-                                    (screenWidth / targetBoardWidth)
-                                        .floor()
-                                        .clamp(2, 6);
-
-                                return Center(
-                                  child: GridView.builder(
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: crossAxisCount,
-                                          crossAxisSpacing: 12,
-                                          mainAxisSpacing: 12,
-                                          childAspectRatio: 0.85,
-                                        ),
-                                    itemCount: teams.length,
-                                    itemBuilder: (context, index) {
-                                      final team = teams[index];
-                                      return _TeamBoardSection(
-                                        team: team,
-                                        tiles: tiles,
-                                        boardSize: game.boardSize,
-                                        onTileTap: (tile, isCompleted) {
-                                          if (isCompleted) {
-                                            setState(() {
-                                              _selectedTile = tile;
-                                              _selectedTeamId = team.id;
-                                              _selectedTeamName = team.name;
-                                            });
-                                          }
-                                        },
-                                      );
-                                    },
-                                  ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        game.name,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final screenWidth = constraints.maxWidth;
+                            const targetBoardWidth = 300.0;
+                            final crossAxisCount =
+                                (screenWidth / targetBoardWidth).floor().clamp(
+                                  2,
+                                  6,
                                 );
-                              },
-                            ),
-                          ),
-                        ],
+
+                            return Center(
+                              child: GridView.builder(
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 0.85,
+                                    ),
+                                itemCount: teams.length,
+                                itemBuilder: (context, index) {
+                                  final team = teams[index];
+                                  return _TeamBoardSection(
+                                    team: team,
+                                    tiles: tiles,
+                                    boardSize: game.boardSize,
+                                    onTileTap: (tile, isCompleted) {
+                                      if (isCompleted) {
+                                        setState(() {
+                                          _selectedTile = tile;
+                                          _selectedTeamId = team.id;
+                                          _selectedTeamName = team.name;
+                                        });
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  Container(
-                    width: 360,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      border: Border(
-                        left: BorderSide(color: Theme.of(context).dividerColor),
-                      ),
-                    ),
-                    child: _ActivitySidebar(
-                      activities: loadedState.activities,
-                      stats: loadedState.stats,
-                    ),
-                  ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: _selectedTile != null ? 360 : 0,
-                    curve: Curves.easeInOut,
-                  ),
-                ],
+                ),
               ),
-              AnimatedPositioned(
+              AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                top: 0,
-                bottom: 0,
-                right: _selectedTile != null ? 0 : -360,
+                width: _selectedTile != null ? 360 : 0,
                 child: _selectedTile != null
                     ? TileProofsPanel(
                         key: ValueKey('${_selectedTile!.id}_$_selectedTeamId'),
@@ -166,6 +142,19 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                         }),
                       )
                     : const SizedBox.shrink(),
+              ),
+              Container(
+                width: 360,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    left: BorderSide(color: Theme.of(context).dividerColor),
+                  ),
+                ),
+                child: _ActivitySidebar(
+                  activities: loadedState.activities,
+                  stats: loadedState.stats,
+                ),
               ),
             ],
           );
@@ -311,12 +300,9 @@ class _TeamBoardSection extends StatelessWidget {
                     onTap: isCompleted
                         ? () => onTileTap(tile, isCompleted)
                         : null,
-                    child: Opacity(
-                      opacity: isCompleted ? 1.0 : 0.6,
-                      child: OverviewTileCard(
-                        tile: tile,
-                        isCompleted: isCompleted,
-                      ),
+                    child: OverviewTileCard(
+                      tile: tile,
+                      isCompleted: isCompleted,
                     ),
                   );
                 },

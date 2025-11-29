@@ -48,7 +48,9 @@ class _GameScreenContentState extends State<_GameScreenContent> {
           if (state is GameInitial ||
               state is GameLoading ||
               state is GameError) {
-            return const Center(child: CircularProgressIndicator());
+            return const SizedBox.expand(
+              child: Center(child: CircularProgressIndicator()),
+            );
           }
 
           final loadedState = state as GameLoaded;

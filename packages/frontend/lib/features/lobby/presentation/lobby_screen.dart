@@ -20,7 +20,9 @@ class LobbyScreen extends StatelessWidget {
       builder: (context, snapshot) {
         final user = snapshot.data?.user;
         if (user == null) {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox.expand(
+            child: Center(child: CircularProgressIndicator()),
+          );
         }
 
         // Redirect users in a game to the game screen
@@ -28,7 +30,9 @@ class LobbyScreen extends StatelessWidget {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             context.go('/game/${user.gameId}');
           });
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox.expand(
+            child: Center(child: CircularProgressIndicator()),
+          );
         }
 
         return BlocProvider(

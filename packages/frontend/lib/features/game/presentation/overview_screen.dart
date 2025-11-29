@@ -56,7 +56,9 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
           if (state is OverviewInitial ||
               state is OverviewLoading ||
               state is OverviewError) {
-            return const Center(child: CircularProgressIndicator());
+            return const SizedBox.expand(
+              child: Center(child: CircularProgressIndicator()),
+            );
           }
 
           final loadedState = state as OverviewLoaded;

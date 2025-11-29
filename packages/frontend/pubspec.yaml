@@ -26,6 +26,7 @@ dependencies:
   cross_file: ^0.3.5+1
   shared_models:
     path: ../shared_models
+  super_clipboard: ^0.9.1
 
 dev_dependencies:
   flutter_test:

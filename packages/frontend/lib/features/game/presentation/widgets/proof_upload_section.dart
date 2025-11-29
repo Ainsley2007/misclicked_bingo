@@ -3,12 +3,14 @@ import 'dart:typed_data';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/game/logic/proofs_bloc.dart';
 import 'package:frontend/features/game/logic/proofs_event.dart';
 import 'package:frontend/features/game/logic/proofs_state.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_models/shared_models.dart';
+import 'package:super_clipboard/super_clipboard.dart';
 
 class ProofUploadSection extends StatefulWidget {
   final String gameId;
@@ -28,35 +30,98 @@ class ProofUploadSection extends StatefulWidget {
 
 class _ProofUploadSectionState extends State<ProofUploadSection> {
   bool _isDragging = false;
+  final _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProofsBloc, ProofsState>(
       builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context, state),
-            const SizedBox(height: 12),
-            if (state.proofs.isNotEmpty) ...[
-              _buildProofGallery(context, state),
-              const SizedBox(height: 12),
-            ],
-            if (!widget.isCompleted && state.proofs.length < 10) 
-              _buildDropZone(context, state),
-            if (widget.isCompleted && state.proofs.isEmpty)
-              _buildCompletedEmptyState(context),
-            if (state.status == ProofsStatus.error && state.error != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                state.error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
-              ),
-            ],
-          ],
+        final canUpload = !widget.isCompleted && state.proofs.length < 10;
+
+        return Focus(
+          focusNode: _focusNode,
+          autofocus: true,
+          onKeyEvent: canUpload ? _handleKeyEvent : null,
+          child: GestureDetector(
+            onTap: () => _focusNode.requestFocus(),
+            behavior: HitTestBehavior.opaque,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, state),
+                const SizedBox(height: 12),
+                if (state.proofs.isNotEmpty) ...[
+                  _buildProofGallery(context, state),
+                  const SizedBox(height: 12),
+                ],
+                if (canUpload) _buildDropZone(context, state),
+                if (widget.isCompleted && state.proofs.isEmpty)
+                  _buildCompletedEmptyState(context),
+                if (state.status == ProofsStatus.error &&
+                    state.error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    state.error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         );
       },
     );
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.keyV &&
+        (HardwareKeyboard.instance.isControlPressed ||
+            HardwareKeyboard.instance.isMetaPressed)) {
+      _handlePaste();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  Future<void> _handlePaste() async {
+    final clipboard = SystemClipboard.instance;
+    if (clipboard == null) return;
+
+    final reader = await clipboard.read();
+
+    final formats = <(SimpleFileFormat, String)>[
+      (Formats.png, 'png'),
+      (Formats.jpeg, 'jpg'),
+      (Formats.gif, 'gif'),
+      (Formats.webp, 'webp'),
+    ];
+
+    for (final (format, extension) in formats) {
+      if (reader.canProvide(format)) {
+        reader.getFile(format, (file) async {
+          final stream = file.getStream();
+          final chunks = <List<int>>[];
+          await for (final chunk in stream) {
+            chunks.add(chunk);
+          }
+          final bytes = Uint8List.fromList(chunks.expand((x) => x).toList());
+          final fileName =
+              'pasted_${DateTime.now().millisecondsSinceEpoch}.$extension';
+          _uploadFile(fileName, bytes);
+        });
+        return;
+      }
+    }
   }
 
   Widget _buildHeader(BuildContext context, ProofsState state) {
@@ -64,7 +129,9 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
       children: [
         Text(
           'Proof Screenshots',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(width: 8),
         Container(
@@ -101,7 +168,11 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
                 SizedBox(width: 4),
                 Text(
                   'Locked',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4CAF50)),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF4CAF50),
+                  ),
                 ),
               ],
             ),
@@ -113,19 +184,21 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
 
   Widget _buildProofGallery(BuildContext context, ProofsState state) {
     final isDeleting = state.status == ProofsStatus.deleting;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...state.proofs.map((proof) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: _ProofRow(
-            proof: proof,
-            gameId: widget.gameId,
-            tileId: widget.tileId,
-            canDelete: !widget.isCompleted && !isDeleting,
+        ...state.proofs.map(
+          (proof) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _ProofRow(
+              proof: proof,
+              gameId: widget.gameId,
+              tileId: widget.tileId,
+              canDelete: !widget.isCompleted && !isDeleting,
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -134,12 +207,18 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.info_outline,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -169,8 +248,12 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: _isDragging
-              ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              ? Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: _isDragging
@@ -190,7 +273,7 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
               ),
               const SizedBox(height: 8),
               Text(
-                state.uploadTotal > 1 
+                state.uploadTotal > 1
                     ? 'Uploading ${state.uploadCurrent}/${state.uploadTotal}...'
                     : 'Uploading...',
                 style: Theme.of(context).textTheme.bodySmall,
@@ -203,7 +286,7 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Drop images here or',
+                'Drop, paste, or',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -216,10 +299,12 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
               ),
               const SizedBox(height: 4),
               Text(
-                'JPG, PNG, GIF, WebP • Max 5MB each • Select multiple',
+                'JPG, PNG, GIF, WebP • Max 5MB • Ctrl+V to paste',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -241,7 +326,7 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
           .where((f) => f.bytes != null && f.name.isNotEmpty)
           .map((f) => (fileName: f.name, fileBytes: f.bytes!))
           .toList();
-      
+
       if (files.length == 1) {
         _uploadFile(files.first.fileName, files.first.fileBytes);
       } else if (files.isNotEmpty) {
@@ -254,7 +339,7 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
     if (files.isEmpty) return;
 
     final fileData = <({String fileName, Uint8List fileBytes})>[];
-    
+
     for (final file in files) {
       final bytes = await file.readAsBytes() as Uint8List;
       final name = file.name as String;
@@ -306,13 +391,15 @@ class _ProofRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [
@@ -344,7 +431,11 @@ class _ProofRow extends StatelessWidget {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       color: colorScheme.errorContainer,
-                      child: Icon(Icons.broken_image, size: 20, color: colorScheme.onErrorContainer),
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 20,
+                        color: colorScheme.onErrorContainer,
+                      ),
                     );
                   },
                 ),
@@ -358,7 +449,11 @@ class _ProofRow extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.person_outline, size: 14, color: colorScheme.primary),
+                    Icon(
+                      Icons.person_outline,
+                      size: 14,
+                      color: colorScheme.primary,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -384,14 +479,22 @@ class _ProofRow extends StatelessWidget {
           ),
           IconButton(
             onPressed: () => _openFullImage(context),
-            icon: Icon(Icons.open_in_new, size: 18, color: colorScheme.onSurfaceVariant),
+            icon: Icon(
+              Icons.open_in_new,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
             tooltip: 'View full size',
             visualDensity: VisualDensity.compact,
           ),
           if (canDelete)
             IconButton(
               onPressed: () => _confirmDelete(context),
-              icon: Icon(Icons.delete_outline, size: 18, color: colorScheme.error),
+              icon: Icon(
+                Icons.delete_outline,
+                size: 18,
+                color: colorScheme.error,
+              ),
               tooltip: 'Delete proof',
               visualDensity: VisualDensity.compact,
             ),
@@ -402,12 +505,14 @@ class _ProofRow extends StatelessWidget {
 
   void _confirmDelete(BuildContext context) {
     final bloc = context.read<ProofsBloc>();
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Proof?'),
-        content: const Text('This will permanently delete this screenshot. This action cannot be undone.'),
+        content: const Text(
+          'This will permanently delete this screenshot. This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -416,11 +521,13 @@ class _ProofRow extends StatelessWidget {
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              bloc.add(ProofDeleteRequested(
-                gameId: gameId,
-                tileId: tileId,
-                proofId: proof.id,
-              ));
+              bloc.add(
+                ProofDeleteRequested(
+                  gameId: gameId,
+                  tileId: tileId,
+                  proofId: proof.id,
+                ),
+              );
             },
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(dialogContext).colorScheme.error,
@@ -464,4 +571,3 @@ class _ProofRow extends StatelessWidget {
     return DateFormat('MMM d, y • h:mm a').format(date);
   }
 }
-

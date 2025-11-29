@@ -2,25 +2,29 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 
 class Config {
-  static late DotEnv _env;
+  static DotEnv? _env;
   static bool _initialized = false;
 
   static void init() {
     if (_initialized) return;
-    _env = DotEnv();
-
-    try {
-      _env.load();
-    } catch (e) {
-      // Silently fall back to Platform.environment
-    }
-
     _initialized = true;
+
+    // Only try to load .env file if it exists (local development)
+    final envFile = File('.env');
+    if (envFile.existsSync()) {
+      try {
+        _env = DotEnv()..load();
+      } catch (e) {
+        // Failed to load .env, will use Platform.environment
+        _env = null;
+      }
+    }
   }
 
   static String get(String key, {String? defaultValue}) {
     if (!_initialized) init();
-    return _env[key] ?? Platform.environment[key] ?? defaultValue ?? '';
+    // First try dotenv (if loaded), then Platform.environment, then default
+    return _env?[key] ?? Platform.environment[key] ?? defaultValue ?? '';
   }
 
   static String get discordClientId => get('DISCORD_CLIENT_ID');

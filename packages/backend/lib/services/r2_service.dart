@@ -8,16 +8,29 @@ class R2Service {
 
   R2Service() {
     final accountId = Config.r2AccountId;
+    final accessKey = Config.r2AccessKeyId;
+    final secretKey = Config.r2SecretAccessKey;
+    _bucketName = Config.r2BucketName;
+    _publicUrl = Config.r2PublicUrl;
+
+    if (accountId.isEmpty || accessKey.isEmpty || secretKey.isEmpty) {
+      throw StateError(
+        'R2 configuration missing. Required env vars: '
+        'R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL. '
+        'Current values - Account ID: ${accountId.isEmpty ? "MISSING" : "set"}, '
+        'Access Key: ${accessKey.isEmpty ? "MISSING" : "set"}, '
+        'Secret Key: ${secretKey.isEmpty ? "MISSING" : "set"}',
+      );
+    }
+
     final endpoint = '$accountId.r2.cloudflarestorage.com';
 
     _minio = Minio(
       endPoint: endpoint,
-      accessKey: Config.r2AccessKeyId,
-      secretKey: Config.r2SecretAccessKey,
+      accessKey: accessKey,
+      secretKey: secretKey,
       useSSL: true,
     );
-    _bucketName = Config.r2BucketName;
-    _publicUrl = Config.r2PublicUrl;
   }
 
   Future<String> generatePresignedUploadUrl({

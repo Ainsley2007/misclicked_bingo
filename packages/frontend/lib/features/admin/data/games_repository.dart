@@ -14,7 +14,11 @@ class GamesRepository {
         .toList();
   }
 
-  Future<Game> createGame(String name, int teamSize, {int boardSize = 3}) async {
+  Future<Game> createGame(
+    String name,
+    int teamSize, {
+    int boardSize = 3,
+  }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/games',
       data: {'name': name, 'teamSize': teamSize, 'boardSize': boardSize},
@@ -29,10 +33,7 @@ class GamesRepository {
     await _dio.delete('/games/$gameId');
   }
 
-  Future<Game> updateGame({
-    required String gameId,
-    String? name,
-  }) async {
+  Future<Game> updateGame({required String gameId, String? name}) async {
     final response = await _dio.put<Map<String, dynamic>>(
       '/games/$gameId',
       data: {'name': name},

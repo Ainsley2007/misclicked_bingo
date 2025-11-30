@@ -624,9 +624,9 @@ class _GameEditDialogState extends State<_GameEditDialog> {
               const SizedBox(height: 16),
               Text(
                 'Undo Tile Completions',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -645,7 +645,9 @@ class _GameEditDialogState extends State<_GameEditDialog> {
                       Icon(
                         Icons.grid_off,
                         size: 48,
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -667,7 +669,8 @@ class _GameEditDialogState extends State<_GameEditDialog> {
                         ),
                         value: _selectedTileId,
                         items: _tiles!.map((tile) {
-                          final name = tile['bossName'] as String? ??
+                          final name =
+                              tile['bossName'] as String? ??
                               tile['description'] as String? ??
                               'Tile ${tile['position']}';
                           return DropdownMenuItem(
@@ -725,15 +728,15 @@ class _GameEditDialogState extends State<_GameEditDialog> {
 
       if (mounted) {
         context.read<GamesBloc>().add(const GamesLoadRequested());
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Game name updated')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Game name updated')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update: $e')));
       }
     }
   }
@@ -766,9 +769,9 @@ class _GameEditDialogState extends State<_GameEditDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to uncomplete: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to uncomplete: $e')));
       }
     }
   }
@@ -806,10 +809,14 @@ class _QuickCreateRandomButtonState extends State<_QuickCreateRandomButton> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.shuffle_rounded),
-            label: Text(_isCreating ? 'Creating...' : 'Quick Create (Random Tiles)'),
+            label: Text(
+              _isCreating ? 'Creating...' : 'Quick Create (Random Tiles)',
+            ),
             style: OutlinedButton.styleFrom(
               foregroundColor: colorScheme.tertiary,
-              side: BorderSide(color: colorScheme.tertiary.withValues(alpha: 0.5)),
+              side: BorderSide(
+                color: colorScheme.tertiary.withValues(alpha: 0.5),
+              ),
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),

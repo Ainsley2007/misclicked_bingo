@@ -42,11 +42,11 @@ class RandomBoardService {
       final hasUniques = uniqueItems.isNotEmpty;
 
       String? description;
-      
+
       if (hasUniques) {
         // 30% chance of "any unique", 70% chance of specific unique
         final useAnyUnique = _random.nextDouble() < 0.3;
-        
+
         if (useAnyUnique) {
           final anyNCount = _random.nextInt(2) + 1; // 1 or 2
           description = 'Get $anyNCount unique(s) from ${boss.name}';
@@ -62,7 +62,8 @@ class RandomBoardService {
           );
         } else {
           // Pick a specific unique item
-          final selectedUnique = uniqueItems[_random.nextInt(uniqueItems.length)];
+          final selectedUnique =
+              uniqueItems[_random.nextInt(uniqueItems.length)];
           description = 'Get $selectedUnique from ${boss.name}';
           await _db.createBingoTile(
             id: tileId,
@@ -97,4 +98,3 @@ class RandomBoardService {
     }
   }
 }
-

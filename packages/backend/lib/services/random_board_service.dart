@@ -40,13 +40,49 @@ class RandomBoardService {
 
       final uniqueItems = bossUniqueItems[boss.id] ?? [];
       final hasUniques = uniqueItems.isNotEmpty;
-      final useAnyUnique = hasUniques && _random.nextBool();
-      final useSpecificUnique = hasUniques && !useAnyUnique && _random.nextBool();
 
       String? description;
-      if (useAnyUnique) {
-        final anyNCount = _random.nextInt(3) + 1;
-        description = 'Get $anyNCount unique(s) from ${boss.name}';
+      
+      if (hasUniques) {
+        // 30% chance of "any unique", 70% chance of specific unique
+        final useAnyUnique = _random.nextDouble() < 0.3;
+        
+        if (useAnyUnique) {
+          final anyNCount = _random.nextInt(2) + 1; // 1 or 2
+          description = 'Get $anyNCount unique(s) from ${boss.name}';
+          await _db.createBingoTile(
+            id: tileId,
+            gameId: gameId,
+            bossId: boss.id,
+            description: description,
+            position: position,
+            isAnyUnique: true,
+            isOrLogic: false,
+            anyNCount: anyNCount,
+          );
+        } else {
+          // Pick a specific unique item
+          final selectedUnique = uniqueItems[_random.nextInt(uniqueItems.length)];
+          description = 'Get $selectedUnique from ${boss.name}';
+          await _db.createBingoTile(
+            id: tileId,
+            gameId: gameId,
+            bossId: boss.id,
+            description: description,
+            position: position,
+            isAnyUnique: false,
+            isOrLogic: false,
+            anyNCount: null,
+          );
+          await _db.createTileUniqueItem(
+            tileId: tileId,
+            itemName: selectedUnique,
+            requiredCount: 1,
+          );
+        }
+      } else {
+        // Boss has no uniques - use "any unique" as fallback
+        description = 'Get any unique from ${boss.name}';
         await _db.createBingoTile(
           id: tileId,
           gameId: gameId,
@@ -55,37 +91,7 @@ class RandomBoardService {
           position: position,
           isAnyUnique: true,
           isOrLogic: false,
-          anyNCount: anyNCount,
-        );
-      } else if (useSpecificUnique && uniqueItems.isNotEmpty) {
-        final selectedUnique = uniqueItems[_random.nextInt(uniqueItems.length)];
-        description = 'Get $selectedUnique from ${boss.name}';
-        await _db.createBingoTile(
-          id: tileId,
-          gameId: gameId,
-          bossId: boss.id,
-          description: description,
-          position: position,
-          isAnyUnique: false,
-          isOrLogic: false,
-          anyNCount: null,
-        );
-        await _db.createTileUniqueItem(
-          tileId: tileId,
-          itemName: selectedUnique,
-          requiredCount: 1,
-        );
-      } else {
-        description = 'Kill ${boss.name}';
-        await _db.createBingoTile(
-          id: tileId,
-          gameId: gameId,
-          bossId: boss.id,
-          description: description,
-          position: position,
-          isAnyUnique: false,
-          isOrLogic: false,
-          anyNCount: null,
+          anyNCount: 1,
         );
       }
     }

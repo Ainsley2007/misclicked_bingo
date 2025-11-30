@@ -71,12 +71,14 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
               final screenWidth = constraints.maxWidth;
               final showSidebar = screenWidth > 800;
               const sidebarWidth = 360.0;
-              
+
               // Calculate board area width
-              final boardAreaWidth = showSidebar 
-                  ? screenWidth - sidebarWidth - 72 // 72 = padding
+              final boardAreaWidth = showSidebar
+                  ? screenWidth -
+                        sidebarWidth -
+                        72 // 72 = padding
                   : screenWidth - 48;
-              
+
               const targetBoardWidth = 380.0;
               final crossAxisCount = (boardAreaWidth / targetBoardWidth)
                   .floor()
@@ -445,8 +447,10 @@ class _TeamBoardSection extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: teamColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),

@@ -53,32 +53,45 @@ class _BingoTileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final bossTypeColor = _getBossTypeColor(tile.bossType);
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          if (tile.bossIconUrl != null) ...[
-            const SizedBox(height: 16),
-            Image.network(
-              tile.bossIconUrl!,
-              fit: BoxFit.contain,
-              width: 48,
-              height: 48,
-              errorBuilder: (context, error, stackTrace) {
-                return const SizedBox.shrink();
-              },
-            ),
-            const SizedBox(height: 12),
-          ],
-          Container(
-            height: 1.5,
-            margin: const EdgeInsets.symmetric(horizontal: 40),
-            color: bossTypeColor,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tileSize = constraints.maxWidth;
+        final iconSize = (tileSize * 0.35).clamp(24.0, 48.0);
+        final fontSize = (tileSize * 0.08).clamp(8.0, 11.0);
+        final smallFontSize = (tileSize * 0.065).clamp(7.0, 9.0);
+        final spacing = tileSize * 0.05;
+        final lineMargin = tileSize * 0.2;
+
+        return Padding(
+          padding: EdgeInsets.all(tileSize * 0.05),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (tile.bossIconUrl != null) ...[
+                Image.network(
+                  tile.bossIconUrl!,
+                  fit: BoxFit.contain,
+                  width: iconSize,
+                  height: iconSize,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+                SizedBox(height: spacing),
+              ],
+              Container(
+                height: 1.5,
+                margin: EdgeInsets.symmetric(horizontal: lineMargin),
+                color: bossTypeColor,
+              ),
+              SizedBox(height: spacing),
+              Flexible(
+                child: _buildUniqueItemsSection(context, fontSize, smallFontSize),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          _buildUniqueItemsSection(context),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -92,7 +105,7 @@ class _BingoTileContent extends StatelessWidget {
     };
   }
 
-  Widget _buildUniqueItemsSection(BuildContext context) {
+  Widget _buildUniqueItemsSection(BuildContext context, double fontSize, double smallFontSize) {
     if (tile.isAnyUnique) {
       return Center(
         child: Text(
@@ -100,7 +113,7 @@ class _BingoTileContent extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.w600,
-            fontSize: 11,
+            fontSize: fontSize,
           ),
           textAlign: TextAlign.center,
         ),
@@ -121,7 +134,7 @@ class _BingoTileContent extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.w600,
-            fontSize: 11,
+            fontSize: fontSize,
           ),
           textAlign: TextAlign.center,
           maxLines: 2,
@@ -136,78 +149,55 @@ class _BingoTileContent extends StatelessWidget {
           : item.itemName;
     }).toList();
 
-    if (tile.isOrLogic) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                tile.anyNCount != null && tile.anyNCount! > 1
-                    ? 'Any ${tile.anyNCount} of:'
-                    : 'Any of:',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 9,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            ...items.map(
-              (itemText) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child: Text(
-                  itemText,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 10,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    // Limit to max 3 items to prevent overflow
+    final displayItems = items.take(3).toList();
+    final hasMore = items.length > 3;
+
+    final headerText = tile.isOrLogic
+        ? (tile.anyNCount != null && tile.anyNCount! > 1
+            ? 'Any ${tile.anyNCount} of:'
+            : 'Any of:')
+        : 'All of:';
 
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.only(bottom: 2),
             child: Text(
-              'All of:',
+              headerText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.white70,
                 fontWeight: FontWeight.w600,
-                fontSize: 9,
+                fontSize: smallFontSize,
               ),
               textAlign: TextAlign.center,
             ),
           ),
-          ...items.map(
-            (itemText) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 1),
-              child: Text(
-                itemText,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 10,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          ...displayItems.map(
+            (itemText) => Text(
+              itemText,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: smallFontSize,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (hasMore)
+            Text(
+              '+${items.length - 3} more',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white54,
+                fontWeight: FontWeight.w600,
+                fontSize: smallFontSize,
+              ),
+              textAlign: TextAlign.center,
+            ),
         ],
       ),
     );

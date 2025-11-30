@@ -64,4 +64,3 @@ Future<Response> _getPublicProofs(
     );
   }
 }
-

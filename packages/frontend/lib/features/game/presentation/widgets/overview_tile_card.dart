@@ -43,29 +43,38 @@ class _OverviewTileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final bossTypeColor = _getBossTypeColor(tile.bossType);
 
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (tile.bossIconUrl != null) ...[
-            Image.network(
-              tile.bossIconUrl!,
-              fit: BoxFit.contain,
-              width: 48,
-              height: 48,
-              errorBuilder: (context, error, stackTrace) {
-                return const SizedBox.shrink();
-              },
-            ),
-            const SizedBox(height: 12),
-          ],
-          Container(
-            height: 1.5,
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-            color: bossTypeColor,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Scale icon to ~55% of tile size
+        final iconSize = (constraints.maxWidth * 0.55).clamp(16.0, 48.0);
+        final lineMargin = constraints.maxWidth * 0.15;
+        final spacing = constraints.maxHeight * 0.08;
+
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (tile.bossIconUrl != null) ...[
+                Image.network(
+                  tile.bossIconUrl!,
+                  fit: BoxFit.contain,
+                  width: iconSize,
+                  height: iconSize,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+                SizedBox(height: spacing),
+              ],
+              Container(
+                height: 1.5,
+                margin: EdgeInsets.symmetric(horizontal: lineMargin),
+                color: bossTypeColor,
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

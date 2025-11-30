@@ -83,11 +83,11 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             final screenWidth = constraints.maxWidth;
-                            const targetBoardWidth = 300.0;
+                            const targetBoardWidth = 380.0;
                             final crossAxisCount =
                                 (screenWidth / targetBoardWidth).floor().clamp(
-                                  2,
-                                  6,
+                                  1,
+                                  4,
                                 );
 
                             return Center(
@@ -458,13 +458,13 @@ class _TeamBoardSection extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(6),
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: boardSize,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
                   childAspectRatio: 1,
                 ),
                 itemCount: tiles.length,

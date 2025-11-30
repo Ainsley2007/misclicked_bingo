@@ -106,16 +106,25 @@ class _BingoBoardSection extends StatelessWidget {
     return Center(
       child: LayoutBuilder(
         builder: (context, outerConstraints) {
-          const minTileSize = 100.0;
-          const maxTileSize = 200.0;
-          const headerAndPadding = 150.0;
+          const minTileSize = 80.0;
+          const maxTileSize = 160.0;
+          const headerAndPadding = 100.0;
+          const spacing = 10.0;
           final maxBoardHeight = availableHeight - headerAndPadding;
 
-          final calculatedTileSize =
-              (outerConstraints.maxWidth - (boardSize - 1) * 12 - 40) /
+          // Calculate tile size based on BOTH width and height to fit screen
+          final tileSizeFromWidth =
+              (outerConstraints.maxWidth - (boardSize - 1) * spacing - 40) /
               boardSize;
+          final tileSizeFromHeight =
+              (maxBoardHeight - (boardSize - 1) * spacing) / boardSize;
+          
+          // Use the smaller of the two to ensure it fits
+          final calculatedTileSize = tileSizeFromWidth < tileSizeFromHeight
+              ? tileSizeFromWidth
+              : tileSizeFromHeight;
           final tileSize = calculatedTileSize.clamp(minTileSize, maxTileSize);
-          final boardWidth = (tileSize * boardSize) + ((boardSize - 1) * 12);
+          final boardWidth = (tileSize * boardSize) + ((boardSize - 1) * spacing);
 
           return Padding(
             padding: const EdgeInsets.all(20),
@@ -142,11 +151,11 @@ class _BingoBoardSection extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   Builder(
                     builder: (context) {
                       final boardHeight =
-                          (tileSize * boardSize) + ((boardSize - 1) * 12);
+                          (tileSize * boardSize) + ((boardSize - 1) * spacing);
 
                       // If board would be too tall or tiles too small, make it scrollable
                       final shouldScroll = boardHeight > maxBoardHeight;
@@ -158,8 +167,8 @@ class _BingoBoardSection extends StatelessWidget {
                             : const NeverScrollableScrollPhysics(),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: boardSize,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
+                          mainAxisSpacing: spacing,
+                          crossAxisSpacing: spacing,
                           childAspectRatio: 1,
                         ),
                         itemCount: tiles.length,

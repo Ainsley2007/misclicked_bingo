@@ -72,7 +72,8 @@ Future<Response> _createGame(RequestContext context) async {
 
     final requiredTiles = boardSize * boardSize;
 
-    if (tiles.length != requiredTiles) {
+    // Allow empty games (tiles can be added later via random board generator)
+    if (tiles.isNotEmpty && tiles.length != requiredTiles) {
       return Response.json(
         statusCode: HttpStatus.badRequest,
         body: {

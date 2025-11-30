@@ -882,7 +882,7 @@ class _QuickCreateRandomButtonState extends State<_QuickCreateRandomButton> {
     try {
       final repository = sl<GamesRepository>();
 
-      final game = await repository.createGame(name, 5);
+      final game = await repository.createGame(name, 5, boardSize: 5);
       await repository.generateRandomBoard(game.id);
 
       if (mounted) {

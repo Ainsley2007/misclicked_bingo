@@ -14,10 +14,10 @@ class GamesRepository {
         .toList();
   }
 
-  Future<Game> createGame(String name, int teamSize) async {
+  Future<Game> createGame(String name, int teamSize, {int boardSize = 3}) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/games',
-      data: {'name': name, 'teamSize': teamSize},
+      data: {'name': name, 'teamSize': teamSize, 'boardSize': boardSize},
     );
     if (response.data == null) {
       throw Exception('Failed to create game: null response');

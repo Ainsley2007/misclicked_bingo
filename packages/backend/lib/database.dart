@@ -686,4 +686,43 @@ class AppDatabase extends _$AppDatabase {
     }
     return counts;
   }
+
+  Future<void> updateGameName(String gameId, String name) async {
+    await (update(games)..where((t) => t.id.equals(gameId))).write(
+      GamesCompanion(name: Value(name)),
+    );
+  }
+
+  Future<void> updateTile({
+    required String tileId,
+    required String bossId,
+    String? description,
+    required bool isAnyUnique,
+    required bool isOrLogic,
+    int? anyNCount,
+  }) async {
+    await (update(bingoTiles)..where((t) => t.id.equals(tileId))).write(
+      BingoTilesCompanion(
+        bossId: Value(bossId),
+        description: Value(description),
+        isAnyUnique: Value(isAnyUnique),
+        isOrLogic: Value(isOrLogic),
+        anyNCount: Value(anyNCount),
+      ),
+    );
+  }
+
+  Future<void> deleteUniqueItemsForTile(String tileId) async {
+    await (delete(tileUniqueItems)..where((t) => t.tileId.equals(tileId))).go();
+  }
+
+  Future<void> deleteProofsByTileAndTeam({
+    required String tileId,
+    required String teamId,
+  }) async {
+    await (delete(tileProofs)
+          ..where((t) => t.tileId.equals(tileId))
+          ..where((t) => t.teamId.equals(teamId)))
+        .go();
+  }
 }

@@ -28,4 +28,33 @@ class GamesRepository {
   Future<void> deleteGame(String gameId) async {
     await _dio.delete('/games/$gameId');
   }
+
+  Future<Game> updateGame({
+    required String gameId,
+    String? name,
+  }) async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      '/games/$gameId',
+      data: {'name': name},
+    );
+    return Game.fromJson(response.data!);
+  }
+
+  Future<Map<String, dynamic>> getGameOverview(String gameId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/games/$gameId/overview',
+    );
+    return response.data!;
+  }
+
+  Future<void> uncompleteTileForAllTeams({
+    required String gameId,
+    required String tileId,
+    required bool deleteProofs,
+  }) async {
+    await _dio.post(
+      '/games/$gameId/tiles/$tileId/uncomplete-all',
+      data: {'deleteProofs': deleteProofs},
+    );
+  }
 }

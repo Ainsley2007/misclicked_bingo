@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di.dart';
+import 'package:frontend/features/admin/data/games_repository.dart';
 import 'package:frontend/features/admin/logic/games_bloc.dart';
 import 'package:frontend/features/admin/logic/users_bloc.dart';
 import 'package:frontend/features/admin/logic/users_event.dart';
@@ -459,6 +460,11 @@ class _GameListItem extends StatelessWidget {
             },
           ),
           IconButton(
+            icon: const Icon(Icons.edit_rounded, size: 20),
+            tooltip: 'Edit game',
+            onPressed: () => _showEditDialog(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.delete_outline_rounded, size: 20),
             tooltip: 'Delete game',
             color: Colors.red.shade400,
@@ -466,6 +472,13 @@ class _GameListItem extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => _GameEditDialog(game: game),
     );
   }
 
@@ -506,5 +519,243 @@ class _GameListItem extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _GameEditDialog extends StatefulWidget {
+  const _GameEditDialog({required this.game});
+
+  final Game game;
+
+  @override
+  State<_GameEditDialog> createState() => _GameEditDialogState();
+}
+
+class _GameEditDialogState extends State<_GameEditDialog> {
+  late TextEditingController _nameController;
+  List<Map<String, dynamic>>? _tiles;
+  bool _isLoading = true;
+  String? _selectedTileId;
+  bool _deleteProofs = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.game.name);
+    _loadGameData();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadGameData() async {
+    try {
+      final repository = sl<GamesRepository>();
+      final data = await repository.getGameOverview(widget.game.id);
+
+      if (mounted) {
+        setState(() {
+          _tiles = (data['tiles'] as List<dynamic>?)
+              ?.map((t) => t as Map<String, dynamic>)
+              .toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.edit_rounded, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Edit Game',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Game Name',
+                  prefixIcon: Icon(Icons.title),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: _updateGameName,
+                  child: const Text('Update Name'),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              Text(
+                'Undo Tile Completions',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Reset tile completion status for all teams',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (_tiles == null || _tiles!.isEmpty)
+                Center(
+                  child: Text(
+                    'No tiles found',
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                )
+              else
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          labelText: 'Select Tile',
+                          prefixIcon: Icon(Icons.grid_3x3),
+                        ),
+                        value: _selectedTileId,
+                        items: _tiles!.map((tile) {
+                          final name = tile['bossName'] as String? ??
+                              tile['description'] as String? ??
+                              'Tile ${tile['position']}';
+                          return DropdownMenuItem(
+                            value: tile['id'] as String,
+                            child: Text(name, overflow: TextOverflow.ellipsis),
+                          );
+                        }).toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedTileId = value),
+                      ),
+                      const SizedBox(height: 16),
+                      CheckboxListTile(
+                        value: _deleteProofs,
+                        onChanged: (value) =>
+                            setState(() => _deleteProofs = value ?? false),
+                        title: const Text('Also delete proofs'),
+                        subtitle: const Text(
+                          'Remove all screenshot proofs for this tile',
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: _selectedTileId != null
+                              ? _uncompleteTile
+                              : null,
+                          icon: const Icon(Icons.undo),
+                          label: const Text('Undo Completion for All Teams'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.error,
+                            foregroundColor: colorScheme.onError,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateGameName() async {
+    final newName = _nameController.text.trim();
+    if (newName.isEmpty) return;
+
+    try {
+      final repository = sl<GamesRepository>();
+      await repository.updateGame(gameId: widget.game.id, name: newName);
+
+      if (mounted) {
+        context.read<GamesBloc>().add(const GamesLoadRequested());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Game name updated')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _uncompleteTile() async {
+    if (_selectedTileId == null) return;
+
+    try {
+      final repository = sl<GamesRepository>();
+      await repository.uncompleteTileForAllTeams(
+        gameId: widget.game.id,
+        tileId: _selectedTileId!,
+        deleteProofs: _deleteProofs,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _deleteProofs
+                  ? 'Tile uncompleted and proofs deleted'
+                  : 'Tile uncompleted for all teams',
+            ),
+          ),
+        );
+        setState(() {
+          _selectedTileId = null;
+          _deleteProofs = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to uncomplete: $e')),
+        );
+      }
+    }
   }
 }

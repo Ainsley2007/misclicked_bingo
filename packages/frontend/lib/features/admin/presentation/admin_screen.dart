@@ -110,6 +110,8 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                                         icon: Icons.add_rounded,
                                         label: 'Create New Game',
                                       ),
+                                      const SizedBox(height: 12),
+                                      const _QuickCreateRandomButton(),
                                     ],
                                   ),
                                 ),
@@ -142,6 +144,8 @@ class _AdminScreenContentState extends State<_AdminScreenContent> {
                                   icon: Icons.add_rounded,
                                   label: 'Create New Game',
                                 ),
+                                const SizedBox(height: 12),
+                                const _QuickCreateRandomButton(),
                               ],
                             ),
                           ),
@@ -811,6 +815,143 @@ class _GameEditDialogState extends State<_GameEditDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to generate: $e')),
         );
+      }
+    }
+  }
+}
+
+// ============================================================
+// RANDOM BOARD GENERATOR - FOR TESTING PURPOSES
+// Remove this section when no longer needed.
+// ============================================================
+class _QuickCreateRandomButton extends StatefulWidget {
+  const _QuickCreateRandomButton();
+
+  @override
+  State<_QuickCreateRandomButton> createState() =>
+      _QuickCreateRandomButtonState();
+}
+
+class _QuickCreateRandomButtonState extends State<_QuickCreateRandomButton> {
+  bool _isCreating = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _isCreating ? null : _showCreateDialog,
+            icon: _isCreating
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.shuffle_rounded),
+            label: Text(_isCreating ? 'Creating...' : 'Quick Create (Random Tiles)'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: colorScheme.tertiary,
+              side: BorderSide(color: colorScheme.tertiary.withValues(alpha: 0.5)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Creates a game with 25 random tiles for testing',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showCreateDialog() {
+    final nameController = TextEditingController(
+      text: 'Test Game ${DateTime.now().millisecondsSinceEpoch % 10000}',
+    );
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.shuffle_rounded),
+            SizedBox(width: 12),
+            Text('Quick Create Game'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'This will create a new game with 25 random tiles (bosses and uniques).',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Game Name',
+                prefixIcon: Icon(Icons.title),
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _createGameWithRandomTiles(nameController.text.trim());
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createGameWithRandomTiles(String name) async {
+    if (name.isEmpty) return;
+
+    setState(() => _isCreating = true);
+
+    try {
+      final repository = sl<GamesRepository>();
+
+      final game = await repository.createGame(name, 5);
+      await repository.generateRandomBoard(game.id);
+
+      if (mounted) {
+        context.read<GamesBloc>().add(const GamesLoadRequested());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Game "$name" created with random tiles!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isCreating = false);
       }
     }
   }

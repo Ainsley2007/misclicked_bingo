@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -256,6 +258,81 @@ class _JoinGameViewState extends State<_JoinGameView> {
   }
 
   Widget _buildPlayerView() {
+    return _PlayerWaitingView(onBack: _goBack);
+  }
+}
+
+class _PlayerWaitingView extends StatefulWidget {
+  const _PlayerWaitingView({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  State<_PlayerWaitingView> createState() => _PlayerWaitingViewState();
+}
+
+class _PlayerWaitingViewState extends State<_PlayerWaitingView> {
+  static const int _maxPolls = 12;
+  static const Duration _pollInterval = Duration(seconds: 5);
+
+  Timer? _pollTimer;
+  int _pollCount = 0;
+  bool _isPolling = false;
+  StreamSubscription<AuthState>? _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _startPolling();
+    _authSubscription = sl<AuthService>().authStream.listen(_onAuthStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    _authSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _onAuthStateChanged(AuthState state) {
+    if (state.user?.teamId != null && mounted) {
+      context.go('/game/${state.user!.gameId}');
+    }
+  }
+
+  void _startPolling() {
+    setState(() {
+      _pollCount = 0;
+      _isPolling = true;
+    });
+
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _poll());
+    _poll();
+  }
+
+  Future<void> _poll() async {
+    if (!mounted) return;
+
+    await sl<AuthService>().checkAuth();
+
+    if (!mounted) return;
+
+    setState(() {
+      _pollCount++;
+      if (_pollCount >= _maxPolls) {
+        _pollTimer?.cancel();
+        _isPolling = false;
+      }
+    });
+  }
+
+  int get _remainingSeconds => (_maxPolls - _pollCount) * 5;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SectionCard(
       icon: Icons.how_to_reg_rounded,
       title: 'Waiting for Invitation',
@@ -263,34 +340,110 @@ class _JoinGameViewState extends State<_JoinGameView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 8),
-          Icon(
-            Icons.hourglass_empty_rounded,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          if (_isPolling) ...[
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: CircularProgressIndicator(
+                    value: _pollCount / _maxPolls,
+                    strokeWidth: 6,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${_remainingSeconds}s',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Checking for team invitation...',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Auto-refreshing every 5 seconds',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ] else ...[
+            Icon(
+              Icons.refresh_rounded,
+              size: 64,
+              color: colorScheme.primary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Auto-refresh paused',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Click below to check again',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FullWidthButton(
+              onPressed: _startPolling,
+              icon: Icons.refresh_rounded,
+              label: 'Check Again',
+            ),
+          ],
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Ask a team captain to add you from their Manage Team screen',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Waiting for a team captain to invite you...',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'You\'ll be notified when you receive an invitation to join a team.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: _goBack,
+              onPressed: widget.onBack,
               child: const Text('Back'),
             ),
           ),

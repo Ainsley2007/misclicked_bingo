@@ -725,4 +725,11 @@ class AppDatabase extends _$AppDatabase {
           ..where((t) => t.teamId.equals(teamId)))
         .go();
   }
+
+  Future<List<String>> getUniqueItemsForBoss(String bossId) async {
+    final query = select(bossUniqueItems)
+      ..where((t) => t.bossId.equals(bossId));
+    final results = await query.get();
+    return results.map((r) => r.itemName).toList();
+  }
 }

@@ -57,4 +57,18 @@ class GamesRepository {
       data: {'deleteProofs': deleteProofs},
     );
   }
+
+  // ============================================================
+  // RANDOM BOARD GENERATOR - FOR TESTING PURPOSES
+  // Remove this method when no longer needed.
+  // ============================================================
+  Future<void> generateRandomBoard(String gameId) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/games/$gameId/generate-random-board',
+    );
+    if (response.statusCode != 200) {
+      final error = response.data?['error'] ?? 'Unknown error';
+      throw Exception(error);
+    }
+  }
 }

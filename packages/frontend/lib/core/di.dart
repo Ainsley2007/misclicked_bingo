@@ -18,6 +18,8 @@ import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
 import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_bloc.dart';
 import 'package:frontend/features/bosses/data/boss_repository.dart';
+import 'package:frontend/features/guest/data/guest_repository.dart';
+import 'package:frontend/features/guest/logic/guest_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -65,6 +67,7 @@ void setupDi() {
   sl.registerLazySingleton<ProofsRepository>(
     () => ProofsRepository(sl<ProofsApi>()),
   );
+  sl.registerLazySingleton<GuestRepository>(() => GuestRepository(sl<Dio>()));
 
   // BLoCs
   sl.registerFactory<GamesBloc>(() => GamesBloc(sl<GamesRepository>()));
@@ -86,4 +89,5 @@ void setupDi() {
     () => GameCreationBloc(sl<GameCreationRepository>(), sl<BossRepository>()),
   );
   sl.registerFactory<ProofsBloc>(() => ProofsBloc(sl<ProofsRepository>()));
+  sl.registerFactory<GuestBloc>(() => GuestBloc(sl<GuestRepository>()));
 }

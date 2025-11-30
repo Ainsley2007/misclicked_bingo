@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/services/auth_service.dart';
 import 'package:frontend/core/di.dart';
 import 'package:frontend/theme/app_theme.dart';
@@ -54,6 +55,15 @@ class LoginScreen extends StatelessWidget {
                         onPressed: () => _loginWithDiscord(context),
                         icon: const Icon(Icons.discord, size: 20),
                         label: const Text('Continue with Discord'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.go('/guest'),
+                        icon: const Icon(Icons.visibility_outlined, size: 20),
+                        label: const Text('View Games as Guest'),
                       ),
                     ),
                   ],

@@ -10,6 +10,8 @@ import 'package:frontend/features/game/presentation/game_screen.dart';
 import 'package:frontend/features/game/presentation/overview_screen.dart';
 import 'package:frontend/features/manage_team/presentation/manage_team_screen.dart';
 import 'package:frontend/features/game_creation/presentation/game_creation_screen.dart';
+import 'package:frontend/features/guest/presentation/guest_games_screen.dart';
+import 'package:frontend/features/guest/presentation/guest_overview_screen.dart';
 import 'package:frontend/core/widgets/app_shell.dart';
 
 class AppRouter {
@@ -26,7 +28,8 @@ class AppRouter {
           return null;
         }
 
-        if (status == AuthStatus.unauthenticated && !isLoginRoute) {
+        final isGuestRoute = state.matchedLocation.startsWith('/guest');
+        if (status == AuthStatus.unauthenticated && !isLoginRoute && !isGuestRoute) {
           return '/login';
         }
 
@@ -45,6 +48,21 @@ class AppRouter {
           path: '/login',
           pageBuilder: (context, state) =>
               _noTransitionPage(state: state, child: const LoginScreen()),
+        ),
+        GoRoute(
+          path: '/guest',
+          pageBuilder: (context, state) =>
+              _noTransitionPage(state: state, child: const GuestGamesScreen()),
+        ),
+        GoRoute(
+          path: '/guest/game/:gameId',
+          pageBuilder: (context, state) {
+            final gameId = state.pathParameters['gameId']!;
+            return _noTransitionPage(
+              state: state,
+              child: GuestOverviewScreen(gameId: gameId),
+            );
+          },
         ),
         ShellRoute(
           pageBuilder: (context, state, child) => _noTransitionPage(

@@ -66,31 +66,37 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
           final tiles = loadedState.tiles;
           final teams = loadedState.teams;
 
-          return Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        game.name,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final screenWidth = constraints.maxWidth;
-                            const targetBoardWidth = 380.0;
-                            final crossAxisCount =
-                                (screenWidth / targetBoardWidth).floor().clamp(
-                                  1,
-                                  4,
-                                );
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              final showSidebar = screenWidth > 800;
+              const sidebarWidth = 360.0;
+              
+              // Calculate board area width
+              final boardAreaWidth = showSidebar 
+                  ? screenWidth - sidebarWidth - 72 // 72 = padding
+                  : screenWidth - 48;
+              
+              const targetBoardWidth = 380.0;
+              final crossAxisCount = (boardAreaWidth / targetBoardWidth)
+                  .floor()
+                  .clamp(1, 4);
 
-                            return Center(
+              return Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            game.name,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: Center(
                               child: GridView.builder(
                                 gridDelegate:
                                     SliverGridDelegateWithFixedCrossAxisCount(
@@ -118,44 +124,45 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                                   );
                                 },
                               ),
-                            );
-                          },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (showSidebar)
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: SizedBox(
+                        width: sidebarWidth,
+                        child: _SlidingSidebarPanel(
+                          showProofs: _selectedTile != null,
+                          activityPanel: _ActivitySidebarCard(
+                            activities: loadedState.activities,
+                            stats: loadedState.stats,
+                          ),
+                          proofsPanel: _selectedTile != null
+                              ? _ProofsSidebarCard(
+                                  key: ValueKey(
+                                    '${_selectedTile!.id}_$_selectedTeamId',
+                                  ),
+                                  tile: _selectedTile!,
+                                  gameId: widget.gameId,
+                                  teamId: _selectedTeamId,
+                                  teamName: _selectedTeamName,
+                                  onClose: () => setState(() {
+                                    _selectedTile = null;
+                                    _selectedTeamId = null;
+                                    _selectedTeamName = null;
+                                  }),
+                                )
+                              : null,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: SizedBox(
-                  width: 360,
-                  child: _SlidingSidebarPanel(
-                    showProofs: _selectedTile != null,
-                    activityPanel: _ActivitySidebarCard(
-                      activities: loadedState.activities,
-                      stats: loadedState.stats,
                     ),
-                    proofsPanel: _selectedTile != null
-                        ? _ProofsSidebarCard(
-                            key: ValueKey(
-                              '${_selectedTile!.id}_$_selectedTeamId',
-                            ),
-                            tile: _selectedTile!,
-                            gameId: widget.gameId,
-                            teamId: _selectedTeamId,
-                            teamName: _selectedTeamName,
-                            onClose: () => setState(() {
-                              _selectedTile = null;
-                              _selectedTeamId = null;
-                              _selectedTeamName = null;
-                            }),
-                          )
-                        : null,
-                  ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           );
         },
       ),

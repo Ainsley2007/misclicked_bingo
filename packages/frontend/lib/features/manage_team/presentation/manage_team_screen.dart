@@ -106,6 +106,7 @@ class _ManageTeamsView extends StatelessWidget {
                           Expanded(
                             child: TeamMembersSection(
                               teamName: state.teamName ?? 'Your Team',
+                              teamColor: state.teamColor ?? '#4CAF50',
                               teamMembers: state.teamMembers,
                               currentUserId: currentUserId,
                               teamSize: state.teamSize,
@@ -125,6 +126,7 @@ class _ManageTeamsView extends StatelessWidget {
                         children: [
                           TeamMembersSection(
                             teamName: state.teamName ?? 'Your Team',
+                            teamColor: state.teamColor ?? '#4CAF50',
                             teamMembers: state.teamMembers,
                             currentUserId: currentUserId,
                             teamSize: state.teamSize,

@@ -34,17 +34,19 @@ class Team extends Equatable {
   final String gameId;
   final String name;
   final String captainUserId;
+  final String color;
 
   const Team({
     required this.id,
     required this.gameId,
     required this.name,
     required this.captainUserId,
+    this.color = '#4CAF50',
   });
 
   factory Team.fromJson(Map<String, dynamic> json) => _$TeamFromJson(json);
   Map<String, dynamic> toJson() => _$TeamToJson(this);
 
   @override
-  List<Object?> get props => [id, gameId, name, captainUserId];
+  List<Object?> get props => [id, gameId, name, captainUserId, color];
 }

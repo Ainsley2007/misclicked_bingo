@@ -29,6 +29,7 @@ Team _$TeamFromJson(Map<String, dynamic> json) => Team(
   gameId: json['gameId'] as String,
   name: json['name'] as String,
   captainUserId: json['captainUserId'] as String,
+  color: json['color'] as String? ?? '#4CAF50',
 );
 
 Map<String, dynamic> _$TeamToJson(Team instance) => <String, dynamic>{
@@ -36,4 +37,5 @@ Map<String, dynamic> _$TeamToJson(Team instance) => <String, dynamic>{
   'gameId': instance.gameId,
   'name': instance.name,
   'captainUserId': instance.captainUserId,
+  'color': instance.color,
 };

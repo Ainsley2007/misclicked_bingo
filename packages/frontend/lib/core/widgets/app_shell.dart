@@ -15,8 +15,15 @@ class AppShell extends StatelessWidget {
     final borderColor = Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
 
     return Scaffold(
-      body: Column(
+      body: StreamBuilder<AuthState>(
+        stream: sl<AuthService>().authStream,
+        initialData: sl<AuthService>().currentState,
+        builder: (context, snapshot) {
+          final user = snapshot.data?.user;
+
+          return Column(
         children: [
+              if (user != null)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
             height: 64,
@@ -24,14 +31,7 @@ class AppShell extends StatelessWidget {
               color: Theme.of(context).colorScheme.surfaceContainer,
               border: Border(bottom: BorderSide(color: borderColor)),
             ),
-            child: StreamBuilder<AuthState>(
-              stream: sl<AuthService>().authStream,
-              initialData: sl<AuthService>().currentState,
-              builder: (context, snapshot) {
-                final user = snapshot.data?.user;
-                if (user == null) return const SizedBox.shrink();
-
-                return Row(
+                  child: Row(
                   children: [
                     _buildBrandSection(context),
                     const SizedBox(width: 32),
@@ -39,12 +39,12 @@ class AppShell extends StatelessWidget {
                     const SizedBox(width: 16),
                     ProfileButton(user: user),
                   ],
-                );
-              },
             ),
           ),
           Expanded(child: child),
         ],
+          );
+        },
       ),
     );
   }

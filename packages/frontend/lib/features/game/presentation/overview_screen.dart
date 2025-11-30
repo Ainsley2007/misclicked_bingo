@@ -385,23 +385,50 @@ class _TeamBoardSection extends StatelessWidget {
   final int boardSize;
   final void Function(BingoTile tile, bool isCompleted) onTileTap;
 
+  Color _parseColor(String hex) {
+    final hexCode = hex.replaceAll('#', '');
+    return Color(int.parse('FF$hexCode', radix: 16));
+  }
+
   @override
   Widget build(BuildContext context) {
     final completedTiles = tiles
         .where((tile) => team.boardStates[tile.id] == 'completed')
         .length;
     final totalTiles = tiles.length;
+    final teamColor = _parseColor(team.color);
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          spacing: 16,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: teamColor.withValues(alpha: 0.15),
+              border: Border(
+                bottom: BorderSide(color: teamColor.withValues(alpha: 0.3)),
+              ),
+            ),
+            child: Row(
               children: [
-                Flexible(
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: teamColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: teamColor.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
                   child: Text(
                     team.name,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -410,16 +437,28 @@ class _TeamBoardSection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Text(
-                  '$completedTiles / $totalTiles',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: teamColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$completedTiles / $totalTiles',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: teamColor,
+                    ),
                   ),
                 ),
               ],
             ),
-            Expanded(
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -445,8 +484,8 @@ class _TeamBoardSection extends StatelessWidget {
                 },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

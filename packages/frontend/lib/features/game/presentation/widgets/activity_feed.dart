@@ -67,10 +67,17 @@ class _ActivityCard extends StatelessWidget {
 
   const _ActivityCard({required this.activity});
 
+  Color _parseColor(String? hex) {
+    if (hex == null) return const Color(0xFF4CAF50);
+    final hexCode = hex.replaceAll('#', '');
+    return Color(int.parse('FF$hexCode', radix: 16));
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isCompletion = activity.type == ActivityType.tileCompleted;
+    final teamColor = _parseColor(activity.teamColor);
     final accentColor = isCompletion ? const Color(0xFF4CAF50) : colorScheme.primary;
 
     return Card(
@@ -147,23 +154,29 @@ class _ActivityCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                            color: teamColor.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: teamColor.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.group,
-                                size: 12,
-                                color: colorScheme.onPrimaryContainer,
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: teamColor,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 activity.teamName!,
                                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.w500,
+                                  color: teamColor,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],

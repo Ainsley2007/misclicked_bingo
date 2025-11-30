@@ -22,6 +22,7 @@ class TileActivity extends Equatable {
   final String? tileIconUrl;
   final String teamId;
   final String? teamName;
+  final String? teamColor;
   final String? proofImageUrl;
   final DateTime timestamp;
 
@@ -36,6 +37,7 @@ class TileActivity extends Equatable {
     this.tileIconUrl,
     required this.teamId,
     this.teamName,
+    this.teamColor,
     this.proofImageUrl,
     required this.timestamp,
   });

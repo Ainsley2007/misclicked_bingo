@@ -4,12 +4,14 @@ class SectionCard extends StatelessWidget {
   const SectionCard({
     required this.icon,
     this.title,
+    this.trailing,
     required this.child,
     super.key,
   });
 
   final IconData icon;
   final String? title;
+  final Widget? trailing;
   final Widget child;
 
   @override
@@ -21,7 +23,7 @@ class SectionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (title != null) ...[
-              _SectionHeader(icon: icon, title: title!),
+              _SectionHeader(icon: icon, title: title!, trailing: trailing),
               const SizedBox(height: 24),
             ] else ...[
               Icon(
@@ -40,10 +42,15 @@ class SectionCard extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.icon, required this.title});
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    this.trailing,
+  });
 
   final IconData icon;
   final String title;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -51,13 +58,16 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
         const SizedBox(width: 12),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
+          ),
         ),
+        if (trailing != null) trailing!,
       ],
     );
   }

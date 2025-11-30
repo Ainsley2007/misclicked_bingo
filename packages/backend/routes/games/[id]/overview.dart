@@ -94,6 +94,7 @@ Future<Response> _getOverview(RequestContext context, String id) async {
       return {
         'id': team.id,
         'name': team.name,
+        'color': team.color,
         'gameId': team.gameId,
         'captainUserId': team.captainUserId,
         'boardStates': teamBoardStates,

@@ -17,6 +17,7 @@ TileActivity _$TileActivityFromJson(Map<String, dynamic> json) => TileActivity(
   tileIconUrl: json['tileIconUrl'] as String?,
   teamId: json['teamId'] as String,
   teamName: json['teamName'] as String?,
+  teamColor: json['teamColor'] as String?,
   proofImageUrl: json['proofImageUrl'] as String?,
   timestamp: DateTime.parse(json['timestamp'] as String),
 );
@@ -33,6 +34,7 @@ Map<String, dynamic> _$TileActivityToJson(TileActivity instance) =>
       'tileIconUrl': instance.tileIconUrl,
       'teamId': instance.teamId,
       'teamName': instance.teamName,
+      'teamColor': instance.teamColor,
       'proofImageUrl': instance.proofImageUrl,
       'timestamp': instance.timestamp.toIso8601String(),
     };

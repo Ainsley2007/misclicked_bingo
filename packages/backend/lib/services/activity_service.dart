@@ -48,6 +48,7 @@ class ActivityService {
         tileIconUrl: boss?.iconUrl,
         teamId: proof.teamId,
         teamName: team?.name,
+        teamColor: team?.color,
         proofImageUrl: proof.imageUrl,
         timestamp: DateTime.parse(proof.uploadedAt),
       ));
@@ -72,6 +73,7 @@ class ActivityService {
         tileIconUrl: boss?.iconUrl,
         teamId: completion.teamId,
         teamName: team?.name,
+        teamColor: team?.color,
         timestamp: DateTime.parse(completion.completedAt!),
       ));
     }

@@ -15,6 +15,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
     on<ManageTeamsLoadRequested>(_onLoadRequested);
     on<ManageTeamsAddMember>(_onAddMember);
     on<ManageTeamsRemoveMember>(_onRemoveMember);
+    on<ManageTeamsUpdateColor>(_onUpdateColor);
   }
 
   final TeamsRepository _teamsRepository;
@@ -53,12 +54,45 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamId: event.teamId,
           gameId: event.gameId,
           teamName: team.name,
+          teamColor: team.color,
           teamSize: game.teamSize,
           teamMembers: teamMembers,
           availableUsers: availableUsers,
           unavailableUsers: unavailableUsers,
         ),
       );
+    } catch (e) {
+      emit(ManageTeamsError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateColor(
+    ManageTeamsUpdateColor event,
+    Emitter<ManageTeamsState> emit,
+  ) async {
+    if (state.teamId == null) return;
+
+    try {
+      await _teamsRepository.updateTeamColor(
+        teamId: state.teamId!,
+        color: event.color,
+      );
+
+      if (state is ManageTeamsLoaded) {
+        final loaded = state as ManageTeamsLoaded;
+        emit(
+          ManageTeamsLoaded(
+            teamId: loaded.teamId,
+            gameId: loaded.gameId,
+            teamName: loaded.teamName,
+            teamColor: event.color,
+            teamSize: loaded.teamSize,
+            teamMembers: loaded.teamMembers,
+            availableUsers: loaded.availableUsers,
+            unavailableUsers: loaded.unavailableUsers,
+          ),
+        );
+      }
     } catch (e) {
       emit(ManageTeamsError(e.toString()));
     }
@@ -81,6 +115,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamId: state.teamId!,
           gameId: state.gameId!,
           teamName: state.teamName!,
+          teamColor: state.teamColor ?? '#4CAF50',
           teamSize: state.teamSize!,
           teamMembers: state.teamMembers,
           availableUsers: state.availableUsers,
@@ -123,6 +158,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamId: state.teamId!,
           gameId: state.gameId!,
           teamName: state.teamName!,
+          teamColor: state.teamColor ?? '#4CAF50',
           teamSize: state.teamSize!,
           teamMembers: teamMembers,
           availableUsers: availableUsers,
@@ -176,6 +212,7 @@ class ManageTeamsBloc extends Bloc<ManageTeamsEvent, ManageTeamsState> {
           teamId: state.teamId!,
           gameId: state.gameId!,
           teamName: state.teamName!,
+          teamColor: state.teamColor ?? '#4CAF50',
           teamSize: state.teamSize!,
           teamMembers: teamMembers,
           availableUsers: availableUsers,

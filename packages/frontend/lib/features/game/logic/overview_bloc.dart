@@ -50,6 +50,7 @@ class OverviewBloc extends Bloc<OverviewEvent, OverviewState> {
         return TeamOverview(
           id: teamData['id'] as String,
           name: teamData['name'] as String,
+          color: teamData['color'] as String? ?? '#4CAF50',
           boardStates: Map<String, String>.from(
             teamData['boardStates'] as Map<String, dynamic>,
           ),

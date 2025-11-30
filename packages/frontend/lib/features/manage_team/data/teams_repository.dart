@@ -35,4 +35,15 @@ class TeamsRepository {
   Future<void> disbandTeam(String teamId) async {
     await _dio.delete<void>('/teams/$teamId');
   }
+
+  Future<Team> updateTeamColor({
+    required String teamId,
+    required String color,
+  }) async {
+    final response = await _dio.patch<Map<String, dynamic>>(
+      '/teams/$teamId',
+      data: {'color': color},
+    );
+    return Team.fromJson(response.data!);
+  }
 }

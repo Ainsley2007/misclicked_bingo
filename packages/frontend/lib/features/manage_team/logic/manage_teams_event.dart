@@ -20,3 +20,9 @@ final class ManageTeamsRemoveMember extends ManageTeamsEvent {
 
   final String userId;
 }
+
+final class ManageTeamsUpdateColor extends ManageTeamsEvent {
+  const ManageTeamsUpdateColor(this.color);
+
+  final String color;
+}

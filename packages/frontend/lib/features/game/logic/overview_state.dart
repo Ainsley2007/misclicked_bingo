@@ -60,10 +60,12 @@ class TeamOverview {
   const TeamOverview({
     required this.id,
     required this.name,
+    required this.color,
     required this.boardStates,
   });
 
   final String id;
   final String name;
+  final String color;
   final Map<String, String> boardStates;
 }

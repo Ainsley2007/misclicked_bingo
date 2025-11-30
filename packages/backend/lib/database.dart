@@ -42,6 +42,7 @@ class Teams extends Table {
   TextColumn get gameId => text()();
   TextColumn get name => text()();
   TextColumn get captainUserId => text()();
+  TextColumn get color => text().withDefault(const Constant('#4CAF50'))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -245,6 +246,7 @@ class AppDatabase extends _$AppDatabase {
     required String gameId,
     required String name,
     required String captainUserId,
+    String? color,
   }) async {
     await into(teams).insert(
       TeamsCompanion.insert(
@@ -252,7 +254,14 @@ class AppDatabase extends _$AppDatabase {
         gameId: gameId,
         name: name,
         captainUserId: captainUserId,
+        color: Value.absentIfNull(color),
       ),
+    );
+  }
+
+  Future<void> updateTeamColor(String teamId, String color) async {
+    await (update(teams)..where((t) => t.id.equals(teamId))).write(
+      TeamsCompanion(color: Value(color)),
     );
   }
 

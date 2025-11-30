@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:backend/database.dart';
-import 'package:backend/services/proofs_service.dart';
+import 'package:backend/database.dart' hide TileProof;
 import 'package:dart_frog/dart_frog.dart';
+import 'package:shared_models/shared_models.dart';
 
 Future<Response> onRequest(
   RequestContext context,
@@ -31,13 +31,32 @@ Future<Response> _getPublicProofs(
       );
     }
 
-    final proofsService = ProofsService(db, null);
-    final proofs = await proofsService.getProofsForTile(
+    final proofs = await db.getProofsByTileAndTeam(
       tileId: tileId,
       teamId: teamIdParam,
     );
 
-    return Response.json(body: proofs.map((p) => p.toJson()).toList());
+    final userIds = proofs.map((p) => p.uploadedByUserId).toSet();
+    final users = <String, User>{};
+    for (final userId in userIds) {
+      final user = await db.getUserById(userId);
+      if (user != null) users[userId] = user;
+    }
+
+    final result = proofs.map((p) {
+      final user = users[p.uploadedByUserId];
+      return TileProof(
+        id: p.id,
+        teamId: p.teamId,
+        tileId: p.tileId,
+        imageUrl: p.imageUrl,
+        uploadedByUserId: p.uploadedByUserId,
+        uploadedByUsername: user?.globalName ?? user?.username,
+        uploadedAt: DateTime.parse(p.uploadedAt),
+      ).toJson();
+    }).toList();
+
+    return Response.json(body: result);
   } catch (e) {
     return Response.json(
       statusCode: HttpStatus.internalServerError,

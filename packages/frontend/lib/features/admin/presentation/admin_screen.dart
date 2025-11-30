@@ -639,7 +639,22 @@ class _GameEditDialogState extends State<_GameEditDialog> {
               if (_isLoading)
                 const Center(child: CircularProgressIndicator())
               else if (_tiles == null || _tiles!.isEmpty)
-                _buildNoTilesSection(colorScheme)
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.grid_off,
+                        size: 48,
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No tiles found',
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                )
               else
                 Flexible(
                   child: Column(
@@ -753,67 +768,6 @@ class _GameEditDialogState extends State<_GameEditDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to uncomplete: $e')),
-        );
-      }
-    }
-  }
-
-  // ============================================================
-  // RANDOM BOARD GENERATOR - FOR TESTING PURPOSES
-  // Remove this section when no longer needed.
-  // ============================================================
-  Widget _buildNoTilesSection(ColorScheme colorScheme) {
-    return Column(
-      children: [
-        Icon(
-          Icons.grid_off,
-          size: 48,
-          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'No tiles found',
-          style: TextStyle(color: colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: _generateRandomBoard,
-          icon: const Icon(Icons.shuffle),
-          label: const Text('Generate 5x5 Random Board'),
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.tertiary,
-            foregroundColor: colorScheme.onTertiary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Creates 25 random tiles for testing',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _generateRandomBoard() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final repository = sl<GamesRepository>();
-      await repository.generateRandomBoard(widget.game.id);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Random board generated!')),
-        );
-        await _loadGameData();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate: $e')),
         );
       }
     }

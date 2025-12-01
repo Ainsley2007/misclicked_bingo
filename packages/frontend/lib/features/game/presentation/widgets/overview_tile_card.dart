@@ -81,11 +81,14 @@ class _OverviewTileContent extends StatelessWidget {
       builder: (context, constraints) {
         final tileSize = constraints.maxWidth;
         // Scale icon relative to tile size
-        final iconSize = (tileSize * 0.45).clamp(16.0, 48.0);
-        final lineMargin = tileSize * 0.18;
+        final iconSize = (tileSize * 0.40).clamp(16.0, 44.0);
+        final lineMargin = tileSize * 0.20;
         final spacing = tileSize * 0.04;
+        final padding = tileSize * 0.08;
 
-        return Center(
+        return Padding(
+          padding: EdgeInsets.all(padding),
+          child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -108,6 +111,7 @@ class _OverviewTileContent extends StatelessWidget {
               ),
             ],
           ),
+        ),
         );
       },
     );

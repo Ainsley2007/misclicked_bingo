@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 
 // Original tile image is 296x296 with 10px border
-// Border ratio: 10/296 ≈ 0.0338 (3.38%)
-const double _tileBorderRatio = 10 / 296;
+// Using 12/296 for a bit of extra padding to avoid overlap
+const double _tileBorderRatio = 12 / 296;
 
 class OverviewTileCard extends StatelessWidget {
   const OverviewTileCard({

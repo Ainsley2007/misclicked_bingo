@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 
 // Original tile image is 296x296 with 10px border
-// Border ratio: 10/296 ≈ 0.0338 (3.38%)
-const double _tileBorderRatio = 10 / 296;
+// Using 12/296 for a bit of extra padding to avoid overlap
+const double _tileBorderRatio = 12 / 296;
 
 class BingoTileCard extends StatelessWidget {
   const BingoTileCard({
@@ -45,7 +45,10 @@ class BingoTileCard extends StatelessWidget {
                   child: Container(
                     margin: EdgeInsets.all(borderPadding * 0.5),
                     decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFFFA000), width: 3),
+                      border: Border.all(
+                        color: const Color(0xFFFFA000),
+                        width: 3,
+                      ),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -57,7 +60,10 @@ class BingoTileCard extends StatelessWidget {
                   top: borderPadding * 0.5,
                   right: borderPadding * 0.5,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFFFFD54F), Color(0xFFFFA000)],
@@ -119,9 +125,7 @@ class TileCompletionOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(borderPadding),
-      child: Container(
-        color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
-      ),
+      child: Container(color: const Color(0xFF4CAF50).withValues(alpha: 0.2)),
     );
   }
 }

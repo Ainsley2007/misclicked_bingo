@@ -22,11 +22,28 @@ final class GameLoaded extends GameState {
     required this.game,
     required this.tiles,
     this.users = const [],
+    this.actionError,
   });
 
   final Game game;
   final List<BingoTile> tiles;
   final List<AppUser> users;
+  final String? actionError;
+  
+  GameLoaded copyWith({
+    Game? game,
+    List<BingoTile>? tiles,
+    List<AppUser>? users,
+    String? actionError,
+    bool clearError = false,
+  }) {
+    return GameLoaded(
+      game: game ?? this.game,
+      tiles: tiles ?? this.tiles,
+      users: users ?? this.users,
+      actionError: clearError ? null : (actionError ?? this.actionError),
+    );
+  }
 }
 
 @immutable

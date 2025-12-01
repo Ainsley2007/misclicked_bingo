@@ -71,7 +71,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         return tile;
       }).toList();
 
-      emit(GameLoaded(game: state.game, tiles: updatedTiles));
+      emit(state.copyWith(tiles: updatedTiles, clearError: true));
     } catch (e, stackTrace) {
       developer.log(
         'Failed to toggle tile completion',
@@ -80,7 +80,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         error: e,
         stackTrace: stackTrace,
       );
-      emit(GameError(e.toString()));
+      // Show error but keep the game loaded
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+      emit(state.copyWith(actionError: errorMessage));
     }
   }
 }

@@ -43,6 +43,16 @@ class _GameScreenContentState extends State<_GameScreenContent> {
             context.go('/lobby');
           }
         }
+        // Show error snackbar for action errors (completion failed, etc.)
+        if (state is GameLoaded && state.actionError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.actionError!),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       },
       child: BlocBuilder<GameBloc, GameState>(
         builder: (context, state) {

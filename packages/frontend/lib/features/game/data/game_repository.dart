@@ -36,7 +36,16 @@ class GameRepository {
     required String gameId,
     required String tileId,
   }) async {
-    await _dio.put('/games/$gameId/tiles/$tileId/complete');
+    try {
+      await _dio.put('/games/$gameId/tiles/$tileId/complete');
+    } on DioException catch (e) {
+      final errorData = e.response?.data;
+      if (errorData is Map<String, dynamic>) {
+        final errorMessage = errorData['error'] as String? ?? 'Failed to toggle completion';
+        throw Exception(errorMessage);
+      }
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> getOverview(String gameId) async {

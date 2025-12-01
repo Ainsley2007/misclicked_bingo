@@ -71,11 +71,16 @@ Future<Response> _toggleTileCompletion(
       }
     }
 
+    // Debug logging
+    print('[COMPLETE] User: $userId, TeamId: ${user.teamId}, TileId: $tileId');
+    
     final result = await tilesService.toggleTileCompletion(
       tileId: tileId,
       teamId: user.teamId!,
       userId: userId,
     );
+
+    print('[COMPLETE] Result: success=${result.success}, status=${result.status}, error=${result.error}');
 
     if (!result.success) {
       return Response.json(

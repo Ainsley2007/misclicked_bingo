@@ -26,6 +26,9 @@ Future<Response> _getTiles(RequestContext context, String id) async {
     final userId = context.read<String>();
     final user = await db.getUserById(userId);
     final teamId = user?.teamId;
+    
+    // Debug logging
+    print('[TILES] User: $userId, TeamId: $teamId');
 
     // Fetch all bosses, unique items, and completion states in parallel
     final futures = await Future.wait([
@@ -45,6 +48,9 @@ Future<Response> _getTiles(RequestContext context, String id) async {
     final allUniqueItems = futures[1] as List<TileUniqueItem>;
     final completionStates = futures[2] as Map<String, String>;
     final allProofs = futures[3] as List<TileProof>;
+    
+    // Debug logging
+    print('[TILES] Completion states for team: $completionStates');
 
     // Create lookup maps for O(1) access
     final bossMap = {

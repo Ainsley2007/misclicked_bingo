@@ -22,8 +22,9 @@ class GameCreationRepository {
         'teamSize': teamSize,
         'boardSize': boardSize,
         'gameMode': gameMode.value,
-        if (startTime != null) 'startTime': startTime.toIso8601String(),
-        if (endTime != null) 'endTime': endTime.toIso8601String(),
+        // Send times in UTC to ensure consistent comparison on server
+        if (startTime != null) 'startTime': startTime.toUtc().toIso8601String(),
+        if (endTime != null) 'endTime': endTime.toUtc().toIso8601String(),
         'tiles': tiles.map((tile) => tile.toJson()).toList(),
       },
     );

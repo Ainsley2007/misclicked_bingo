@@ -42,35 +42,36 @@ Future<Response> _toggleTileCompletion(
       );
     }
 
-    final now = DateTime.now().toUtc();
+    // All times are stored and compared in UTC
+    final nowUtc = DateTime.now().toUtc();
     
     if (game.startTime != null) {
-      final startTime = DateTime.tryParse(game.startTime!)?.toUtc();
-      if (startTime != null && now.isBefore(startTime)) {
-        print('[COMPLETE] Game not started: now=$now, startTime=$startTime');
+      final startTime = DateTime.tryParse(game.startTime!);
+      print('[COMPLETE] Start check: nowUtc=$nowUtc, startTime=$startTime');
+      if (startTime != null && nowUtc.isBefore(startTime)) {
         return Response.json(
           statusCode: HttpStatus.forbidden,
           body: {
             'error': 'Game has not started yet',
             'code': 'GAME_NOT_STARTED',
             'startTime': game.startTime,
-            'serverTime': now.toIso8601String(),
+            'serverTimeUtc': nowUtc.toIso8601String(),
           },
         );
       }
     }
 
-    // Check if game has ended (optional: prevent completion after end time)
+    // Check if game has ended
     if (game.endTime != null) {
-      final endTime = DateTime.tryParse(game.endTime!)?.toUtc();
-      if (endTime != null && now.isAfter(endTime)) {
+      final endTime = DateTime.tryParse(game.endTime!);
+      if (endTime != null && nowUtc.isAfter(endTime)) {
         return Response.json(
           statusCode: HttpStatus.forbidden,
           body: {
             'error': 'Game has ended',
             'code': 'GAME_ENDED',
             'endTime': game.endTime,
-            'serverTime': now.toIso8601String(),
+            'serverTimeUtc': nowUtc.toIso8601String(),
           },
         );
       }

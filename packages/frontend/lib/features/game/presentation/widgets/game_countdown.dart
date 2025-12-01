@@ -106,7 +106,6 @@ class _GameCountdownState extends State<GameCountdown> {
     if (!_hasStarted && widget.startTime != null) {
       return _InlineCountdown(
         icon: Icons.schedule_rounded,
-        label: 'Starts in',
         value: _formatDuration(_remaining),
         color: theme.colorScheme.error,
         isWarning: true,
@@ -117,8 +116,7 @@ class _GameCountdownState extends State<GameCountdown> {
     if (_hasEnded) {
       return _InlineCountdown(
         icon: Icons.check_circle_outline_rounded,
-        label: 'Ended',
-        value: null,
+        value: 'ended',
         color: theme.colorScheme.onSurfaceVariant,
         isWarning: false,
       );
@@ -128,7 +126,6 @@ class _GameCountdownState extends State<GameCountdown> {
     if (widget.endTime != null) {
       return _InlineCountdown(
         icon: Icons.timer_outlined,
-        label: 'Ends in',
         value: _formatDuration(_remaining),
         color: theme.colorScheme.onSurfaceVariant,
         isWarning: false,
@@ -142,35 +139,33 @@ class _GameCountdownState extends State<GameCountdown> {
 class _InlineCountdown extends StatelessWidget {
   const _InlineCountdown({
     required this.icon,
-    required this.label,
     required this.value,
     required this.color,
     required this.isWarning,
   });
 
   final IconData icon;
-  final String label;
-  final String? value;
+  final String value;
   final Color color;
   final bool isWarning;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: isWarning ? color.withValues(alpha: 0.1) : Colors.transparent,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(4),
         border: isWarning ? Border.all(color: color.withValues(alpha: 0.3)) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
           Text(
-            value != null ? '$label $value' : label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            value,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: color,
               fontWeight: isWarning ? FontWeight.w600 : FontWeight.w500,
             ),

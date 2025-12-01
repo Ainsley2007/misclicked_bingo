@@ -165,12 +165,14 @@ class _BingoBoardSection extends StatelessWidget {
                       ),
                       if (game.startTime != null || game.endTime != null) ...[
                         const SizedBox(width: 12),
-                        GameCountdown(
-                          startTime: game.startTime,
-                          endTime: game.endTime,
-                          onGameStarted: () {
-                            context.read<GameBloc>().add(GameLoadRequested(gameId));
-                          },
+                        Flexible(
+                          child: GameCountdown(
+                            startTime: game.startTime,
+                            endTime: game.endTime,
+                            onGameStarted: () {
+                              context.read<GameBloc>().add(GameLoadRequested(gameId));
+                            },
+                          ),
                         ),
                       ],
                       const Spacer(),

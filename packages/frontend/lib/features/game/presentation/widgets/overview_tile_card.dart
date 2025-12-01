@@ -79,33 +79,37 @@ class _OverviewTileContent extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Scale icon to ~55% of tile size
-        final iconSize = (constraints.maxWidth * 0.55).clamp(16.0, 48.0);
-        final lineMargin = constraints.maxWidth * 0.15;
-        final spacing = constraints.maxHeight * 0.08;
+        final tileSize = constraints.maxWidth;
+        // Match the game board scaling (35% instead of 55%)
+        final iconSize = (tileSize * 0.40).clamp(16.0, 40.0);
+        final lineMargin = tileSize * 0.2;
+        final spacing = tileSize * 0.04;
 
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (tile.bossIconUrl != null) ...[
-                Image.network(
-                  tile.bossIconUrl!,
-                  fit: BoxFit.contain,
-                  width: iconSize,
-                  height: iconSize,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const SizedBox.shrink();
-                  },
+        return Padding(
+          padding: EdgeInsets.all(tileSize * 0.05),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (tile.bossIconUrl != null) ...[
+                  Image.network(
+                    tile.bossIconUrl!,
+                    fit: BoxFit.contain,
+                    width: iconSize,
+                    height: iconSize,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                  SizedBox(height: spacing),
+                ],
+                Container(
+                  height: 1,
+                  margin: EdgeInsets.symmetric(horizontal: lineMargin),
+                  color: bossTypeColor,
                 ),
-                SizedBox(height: spacing),
               ],
-              Container(
-                height: 1.5,
-                margin: EdgeInsets.symmetric(horizontal: lineMargin),
-                color: bossTypeColor,
-              ),
-            ],
+            ),
           ),
         );
       },

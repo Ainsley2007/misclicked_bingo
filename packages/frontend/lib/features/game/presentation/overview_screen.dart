@@ -114,7 +114,8 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                                     team: team,
                                     tiles: tiles,
                                     boardSize: game.boardSize,
-                                    isPointsMode: game.gameMode == GameMode.points,
+                                    isPointsMode:
+                                        game.gameMode == GameMode.points,
                                     totalPoints: loadedState.totalPoints,
                                     onTileTap: (tile, isCompleted) {
                                       if (isCompleted) {

@@ -149,9 +149,10 @@ class _BingoTileContent extends StatelessWidget {
         return Padding(
           padding: EdgeInsets.all(tileSize * 0.05),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               if (tile.bossIconUrl != null) ...[
+                const SizedBox(height: 4),
                 Image.network(
                   tile.bossIconUrl!,
                   fit: BoxFit.contain,
@@ -168,7 +169,6 @@ class _BingoTileContent extends StatelessWidget {
                 margin: EdgeInsets.symmetric(horizontal: lineMargin),
                 color: bossTypeColor,
               ),
-              SizedBox(height: spacing),
               Flexible(
                 child: _buildUniqueItemsSection(
                   context,
@@ -241,9 +241,8 @@ class _BingoTileContent extends StatelessWidget {
           : item.itemName;
     }).toList();
 
-    // Limit to max 3 items to prevent overflow
-    final displayItems = items.take(3).toList();
-    final hasMore = items.length > 3;
+    final hasMore = items.length > 4;
+    final displayItems = items.take(hasMore ? 3 : 4).toList();
 
     final headerText = tile.isOrLogic
         ? (tile.anyNCount != null && tile.anyNCount! > 1

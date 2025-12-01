@@ -155,27 +155,30 @@ class _BingoBoardSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Board',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      if (game.startTime != null || game.endTime != null) ...[
-                        const SizedBox(width: 12),
-                        Flexible(
-                          child: GameCountdown(
-                            startTime: game.startTime,
-                            endTime: game.endTime,
-                            onGameStarted: () {
-                              context.read<GameBloc>().add(GameLoadRequested(gameId));
-                            },
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Board',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.3,
+                            ),
                           ),
-                        ),
-                      ],
-                      const Spacer(),
+                          if (game.startTime != null || game.endTime != null) ...[
+                            const SizedBox(width: 12),
+                            GameCountdown(
+                              startTime: game.startTime,
+                              endTime: game.endTime,
+                              onGameStarted: () {
+                                context.read<GameBloc>().add(GameLoadRequested(gameId));
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
                       Text(
                         isPointsMode
                             ? '$completedPoints / $totalPoints pts'

@@ -35,11 +35,16 @@ Future<Response> _getTiles(RequestContext context, String id) async {
         db.getTeamBoardStates(teamId)
       else
         Future.value(<String, String>{}),
+      if (teamId != null)
+        db.getProofsByTeam(teamId)
+      else
+        Future.value(<TileProof>[]),
     ]);
 
     final allBosses = futures[0] as List<BossesData>;
     final allUniqueItems = futures[1] as List<TileUniqueItem>;
     final completionStates = futures[2] as Map<String, String>;
+    final allProofs = futures[3] as List<TileProof>;
 
     // Create lookup maps for O(1) access
     final bossMap = {
@@ -49,12 +54,18 @@ Future<Response> _getTiles(RequestContext context, String id) async {
     for (final item in allUniqueItems) {
       uniqueItemsMap.putIfAbsent(item.tileId, () => []).add(item);
     }
+    // Create set of tile IDs that have proofs
+    final tilesWithProofs = <String>{};
+    for (final proof in allProofs) {
+      tilesWithProofs.add(proof.tileId);
+    }
 
     // Build response by mapping tiles with pre-fetched data
     final tilesWithData = tiles.map((t) {
       final boss = bossMap[t.bossId];
       final uniqueItems = uniqueItemsMap[t.id] ?? [];
       final isCompleted = completionStates[t.id] == 'completed';
+      final hasProofs = tilesWithProofs.contains(t.id);
 
       return {
         'id': t.id,
@@ -68,7 +79,9 @@ Future<Response> _getTiles(RequestContext context, String id) async {
         'isAnyUnique': t.isAnyUnique,
         'isOrLogic': t.isOrLogic,
         'anyNCount': t.anyNCount,
+        'points': t.points,
         'isCompleted': isCompleted,
+        'hasProofs': hasProofs,
         'uniqueItems': uniqueItems
             .map(
               (item) => {

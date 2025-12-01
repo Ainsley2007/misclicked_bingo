@@ -11,6 +11,8 @@ final class GameCreationState {
     this.gameName = '',
     this.teamSize = 5,
     this.boardSize = 3,
+    this.gameMode = GameMode.blackout,
+    this.endTime,
     this.tiles = const [],
     this.bosses = const [],
     this.isLoadingBosses = false,
@@ -27,6 +29,8 @@ final class GameCreationState {
   final String gameName;
   final int teamSize;
   final int boardSize;
+  final GameMode gameMode;
+  final DateTime? endTime;
   final List<GameTileCreation> tiles;
   final List<Boss> bosses;
   final bool isLoadingBosses;
@@ -40,6 +44,9 @@ final class GameCreationState {
     String? gameName,
     int? teamSize,
     int? boardSize,
+    GameMode? gameMode,
+    DateTime? endTime,
+    bool clearEndTime = false,
     List<GameTileCreation>? tiles,
     List<Boss>? bosses,
     bool? isLoadingBosses,
@@ -53,6 +60,8 @@ final class GameCreationState {
       gameName: gameName ?? this.gameName,
       teamSize: teamSize ?? this.teamSize,
       boardSize: boardSize ?? this.boardSize,
+      gameMode: gameMode ?? this.gameMode,
+      endTime: clearEndTime ? null : (endTime ?? this.endTime),
       tiles: tiles ?? this.tiles,
       bosses: bosses ?? this.bosses,
       isLoadingBosses: isLoadingBosses ?? this.isLoadingBosses,
@@ -69,6 +78,8 @@ final class GameCreationState {
       gameName: gameName,
       teamSize: teamSize,
       boardSize: boardSize,
+      gameMode: gameMode,
+      endTime: endTime,
       tiles: tiles,
       bosses: bosses,
       isLoadingBosses: isLoadingBosses,
@@ -81,12 +92,12 @@ final class GameCreationState {
   bool get isGameNameValid => gameName.trim().isNotEmpty;
   bool get isTeamSizeValid => teamSize >= 1 && teamSize <= 50;
   bool get isBoardSizeValid => [2, 3, 4, 5].contains(boardSize);
+  bool get isPointsMode => gameMode == GameMode.points;
 
   bool get areTilesValid {
     if (tiles.length != boardSize * boardSize) {
       return false;
     }
-    // Check that each tile has a bossId and at least one unique item (or isAnyUnique is true)
     for (final tile in tiles) {
       if (tile.bossId == null || tile.bossId!.trim().isEmpty) {
         return false;
@@ -94,17 +105,21 @@ final class GameCreationState {
       if (!tile.isAnyUnique && tile.uniqueItems.isEmpty) {
         return false;
       }
+      if (isPointsMode && tile.points <= 0) {
+        return false;
+      }
     }
     return true;
   }
 
   bool get canProceedFromStep1 => isGameNameValid;
-  bool get canProceedFromStep2 => isTeamSizeValid;
-  bool get canProceedFromStep3 => isBoardSizeValid;
-  bool get canProceedFromStep4 => areTilesValid;
-  bool get canProceedFromStep5 => true;
+  bool get canProceedFromStep2 => true; // Game mode step - always valid
+  bool get canProceedFromStep3 => isTeamSizeValid;
+  bool get canProceedFromStep4 => isBoardSizeValid;
+  bool get canProceedFromStep5 => areTilesValid;
+  bool get canProceedFromStep6 => true;
 
-  int get totalSteps => 5;
+  int get totalSteps => 6;
 
   String get tileValidationError {
     if (tiles.length != boardSize * boardSize) {
@@ -117,6 +132,9 @@ final class GameCreationState {
       }
       if (!tile.isAnyUnique && tile.uniqueItems.isEmpty) {
         return 'Tile ${i + 1} must have at least one unique item selected or use "Any Unique" option';
+      }
+      if (isPointsMode && tile.points <= 0) {
+        return 'Tile ${i + 1} must have points > 0 for points mode';
       }
     }
     return 'You need exactly ${boardSize * boardSize} tiles';

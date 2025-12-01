@@ -123,6 +123,7 @@ class Step6Tiles extends StatelessWidget {
                       index: index,
                       data: state.tiles[index],
                       bosses: state.bosses,
+                      isPointsMode: state.isPointsMode,
                       onUpdate: (tile) {
                         context.read<GameCreationBloc>().add(
                           TileUpdated(index, tile),

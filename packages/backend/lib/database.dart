@@ -31,6 +31,8 @@ class Games extends Table {
   TextColumn get name => text()();
   IntColumn get teamSize => integer().withDefault(const Constant(5))();
   IntColumn get boardSize => integer().withDefault(const Constant(3))();
+  TextColumn get gameMode => text().withDefault(const Constant('blackout'))();
+  TextColumn get endTime => text().nullable()();
   TextColumn get createdAt => text()();
 
   @override
@@ -84,6 +86,7 @@ class BingoTiles extends Table {
   BoolColumn get isAnyUnique => boolean().withDefault(const Constant(false))();
   BoolColumn get isOrLogic => boolean().withDefault(const Constant(false))();
   IntColumn get anyNCount => integer().nullable()();
+  IntColumn get points => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -187,6 +190,8 @@ class AppDatabase extends _$AppDatabase {
     required String name,
     required int teamSize,
     required int boardSize,
+    String gameMode = 'blackout',
+    DateTime? endTime,
     required DateTime createdAt,
   }) async {
     await into(games).insert(
@@ -196,6 +201,8 @@ class AppDatabase extends _$AppDatabase {
         name: Value(name),
         teamSize: Value(teamSize),
         boardSize: Value(boardSize),
+        gameMode: Value(gameMode),
+        endTime: Value(endTime?.toIso8601String()),
         createdAt: Value(createdAt.toIso8601String()),
       ),
     );
@@ -404,6 +411,7 @@ class AppDatabase extends _$AppDatabase {
     bool isAnyUnique = false,
     bool isOrLogic = false,
     int? anyNCount,
+    int points = 0,
   }) async {
     await into(bingoTiles).insert(
       BingoTilesCompanion(
@@ -415,6 +423,7 @@ class AppDatabase extends _$AppDatabase {
         isAnyUnique: Value(isAnyUnique),
         isOrLogic: Value(isOrLogic),
         anyNCount: Value(anyNCount),
+        points: Value(points),
       ),
     );
   }

@@ -6,12 +6,14 @@ class BingoTileCard extends StatelessWidget {
     required this.tile,
     required this.isCompleted,
     required this.onTap,
+    this.showPoints = false,
     super.key,
   });
 
   final BingoTile tile;
   final bool isCompleted;
   final VoidCallback onTap;
+  final bool showPoints;
 
   @override
   Widget build(BuildContext context) {
@@ -19,25 +21,80 @@ class BingoTileCard extends StatelessWidget {
       onTap: onTap,
       child: Stack(
         children: [
-          Stack(
-            children: [
-              Image.asset(
-                'assets/image/tile.png',
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
+          Image.asset(
+            'assets/image/tile.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          if (isCompleted)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
               ),
-              if (isCompleted) ...[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
+            ),
+          // Proof indicator (amber border for tiles with proofs but not completed)
+          if (tile.hasProofs && !isCompleted)
+            Positioned.fill(
+              child: Container(
+                margin: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: const Color(0xFFFFA000),
+                    width: 3,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          _BingoTileContent(tile: tile),
+          // Points badge
+          if (showPoints && tile.points > 0)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '${tile.points} pts',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
-              _BingoTileContent(tile: tile),
-            ],
-          ),
+              ),
+            ),
+          // Proof indicator icon (small camera icon)
+          if (tile.hasProofs && !isCompleted)
+            Positioned(
+              bottom: 4,
+              left: 4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFA000),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Icon(
+                  Icons.camera_alt_rounded,
+                  size: 12,
+                  color: Colors.white,
+                ),
+              ),
+            ),
         ],
       ),
     );

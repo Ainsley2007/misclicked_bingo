@@ -28,6 +28,8 @@ Future<Response> _getGames(RequestContext context) async {
               'name': g.name,
               'teamSize': g.teamSize,
               'boardSize': g.boardSize,
+              'gameMode': g.gameMode,
+              'endTime': g.endTime,
               'createdAt': g.createdAt,
             },
           )
@@ -47,6 +49,8 @@ Future<Response> _createGame(RequestContext context) async {
     final name = body['name'] as String?;
     final teamSize = body['teamSize'] as int? ?? 5;
     final boardSize = body['boardSize'] as int? ?? 3;
+    final gameMode = body['gameMode'] as String? ?? 'blackout';
+    final endTimeStr = body['endTime'] as String?;
     final tiles = body['tiles'] as List<dynamic>? ?? [];
 
     if (name == null || name.trim().isEmpty) {
@@ -70,6 +74,18 @@ Future<Response> _createGame(RequestContext context) async {
       );
     }
 
+    if (!['blackout', 'points'].contains(gameMode)) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'error': 'Game mode must be "blackout" or "points"'},
+      );
+    }
+
+    DateTime? endTime;
+    if (endTimeStr != null && endTimeStr.isNotEmpty) {
+      endTime = DateTime.tryParse(endTimeStr);
+    }
+
     final requiredTiles = boardSize * boardSize;
 
     // Allow empty games (tiles can be added later via random board generator)
@@ -83,6 +99,22 @@ Future<Response> _createGame(RequestContext context) async {
       );
     }
 
+    // Validate points for points mode
+    if (gameMode == 'points' && tiles.isNotEmpty) {
+      for (var i = 0; i < tiles.length; i++) {
+        final t = tiles[i] as Map<String, dynamic>;
+        final tilePoints = (t['points'] as num?)?.toInt() ?? 0;
+        if (tilePoints <= 0) {
+          return Response.json(
+            statusCode: HttpStatus.badRequest,
+            body: {
+              'error': 'Tile ${i + 1} must have points > 0 for points mode',
+            },
+          );
+        }
+      }
+    }
+
     final db = context.read<AppDatabase>();
     final id = const Uuid().v4();
     final code = _generateGameCode();
@@ -94,6 +126,8 @@ Future<Response> _createGame(RequestContext context) async {
       name: name.trim(),
       teamSize: teamSize,
       boardSize: boardSize,
+      gameMode: gameMode,
+      endTime: endTime,
       createdAt: now,
     );
 
@@ -102,6 +136,7 @@ Future<Response> _createGame(RequestContext context) async {
       final bossId = t['bossId'] as String?;
       final description = t['description'] as String?;
       final uniqueItems = t['uniqueItems'] as List<dynamic>?;
+      final tilePoints = (t['points'] as num?)?.toInt() ?? 0;
 
       if (bossId == null || bossId.trim().isEmpty) {
         return Response.json(
@@ -145,6 +180,7 @@ Future<Response> _createGame(RequestContext context) async {
         isAnyUnique: isAnyUnique,
         isOrLogic: isOrLogic,
         anyNCount: anyNCount,
+        points: tilePoints,
       );
 
       // Create unique items for this tile (only if not "any unique")
@@ -176,6 +212,8 @@ Future<Response> _createGame(RequestContext context) async {
         'name': name.trim(),
         'teamSize': teamSize,
         'boardSize': boardSize,
+        'gameMode': gameMode,
+        'endTime': endTime?.toIso8601String(),
         'createdAt': now.toIso8601String(),
       },
     );

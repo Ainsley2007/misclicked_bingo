@@ -22,6 +22,7 @@ final class OverviewLoaded extends OverviewState {
     required this.game,
     required this.tiles,
     required this.teams,
+    this.totalPoints = 0,
     this.activities = const [],
     this.stats,
   });
@@ -29,6 +30,7 @@ final class OverviewLoaded extends OverviewState {
   final Game game;
   final List<BingoTile> tiles;
   final List<TeamOverview> teams;
+  final int totalPoints;
   final List<TileActivity> activities;
   final ProofStats? stats;
 
@@ -36,6 +38,7 @@ final class OverviewLoaded extends OverviewState {
     Game? game,
     List<BingoTile>? tiles,
     List<TeamOverview>? teams,
+    int? totalPoints,
     List<TileActivity>? activities,
     ProofStats? stats,
   }) {
@@ -43,6 +46,7 @@ final class OverviewLoaded extends OverviewState {
       game: game ?? this.game,
       tiles: tiles ?? this.tiles,
       teams: teams ?? this.teams,
+      totalPoints: totalPoints ?? this.totalPoints,
       activities: activities ?? this.activities,
       stats: stats ?? this.stats,
     );
@@ -62,10 +66,14 @@ class TeamOverview {
     required this.name,
     required this.color,
     required this.boardStates,
+    this.tilesWithProofs = const [],
+    this.teamPoints = 0,
   });
 
   final String id;
   final String name;
   final String color;
   final Map<String, String> boardStates;
+  final List<String> tilesWithProofs;
+  final int teamPoints;
 }

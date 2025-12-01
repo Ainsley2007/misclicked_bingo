@@ -18,6 +18,7 @@ GameTileCreation _$GameTileCreationFromJson(Map<String, dynamic> json) =>
       isAnyUnique: json['isAnyUnique'] as bool? ?? false,
       isOrLogic: json['isOrLogic'] as bool? ?? false,
       anyNCount: (json['anyNCount'] as num?)?.toInt(),
+      points: (json['points'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$GameTileCreationToJson(GameTileCreation instance) =>
@@ -28,4 +29,5 @@ Map<String, dynamic> _$GameTileCreationToJson(GameTileCreation instance) =>
       'isAnyUnique': instance.isAnyUnique,
       'isOrLogic': instance.isOrLogic,
       'anyNCount': instance.anyNCount,
+      'points': instance.points,
     };

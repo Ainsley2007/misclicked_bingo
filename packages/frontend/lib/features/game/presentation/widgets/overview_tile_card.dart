@@ -5,11 +5,13 @@ class OverviewTileCard extends StatelessWidget {
   const OverviewTileCard({
     required this.tile,
     required this.isCompleted,
+    this.hasProofs = false,
     super.key,
   });
 
   final BingoTile tile;
   final bool isCompleted;
+  final bool hasProofs;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,39 @@ class OverviewTileCard extends StatelessWidget {
               color: const Color(0xFF4CAF50).withValues(alpha: 0.20),
             ),
           ),
+        // Proof indicator (amber border for tiles with proofs but not completed)
+        if (hasProofs && !isCompleted)
+          Positioned.fill(
+            child: Container(
+              margin: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: const Color(0xFFFFA000),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
         _OverviewTileContent(tile: tile),
+        // Small camera icon for tiles with proofs
+        if (hasProofs && !isCompleted)
+          Positioned(
+            bottom: 2,
+            left: 2,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFA000),
+                borderRadius: BorderRadius.circular(2),
+              ),
+              child: const Icon(
+                Icons.camera_alt_rounded,
+                size: 8,
+                color: Colors.white,
+              ),
+            ),
+          ),
       ],
     );
   }

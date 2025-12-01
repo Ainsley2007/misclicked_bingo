@@ -12,6 +12,8 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     on<PreviousStepRequested>(_onPreviousStepRequested);
     on<JumpToStepRequested>(_onJumpToStepRequested);
     on<GameNameChanged>(_onGameNameChanged);
+    on<GameModeChanged>(_onGameModeChanged);
+    on<EndTimeChanged>(_onEndTimeChanged);
     on<TeamSizeChanged>(_onTeamSizeChanged);
     on<BoardSizeSelected>(_onBoardSizeSelected);
     on<TileAdded>(_onTileAdded);
@@ -80,6 +82,24 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     emit(state.copyWith(boardSize: event.size, tiles: []));
   }
 
+  void _onGameModeChanged(
+    GameModeChanged event,
+    Emitter<GameCreationState> emit,
+  ) {
+    emit(state.copyWith(gameMode: event.mode));
+  }
+
+  void _onEndTimeChanged(
+    EndTimeChanged event,
+    Emitter<GameCreationState> emit,
+  ) {
+    if (event.endTime == null) {
+      emit(state.copyWith(clearEndTime: true));
+    } else {
+      emit(state.copyWith(endTime: event.endTime));
+    }
+  }
+
   void _onTileAdded(TileAdded event, Emitter<GameCreationState> emit) {
     final newTiles = List<GameTileCreation>.from(state.tiles)
       ..add(const GameTileCreation());
@@ -120,6 +140,8 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
         name: state.gameName,
         teamSize: state.teamSize,
         boardSize: state.boardSize,
+        gameMode: state.gameMode,
+        endTime: state.endTime,
         tiles: state.tiles,
       );
 
@@ -140,6 +162,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
       3 => state.canProceedFromStep3,
       4 => state.canProceedFromStep4,
       5 => state.canProceedFromStep5,
+      6 => state.canProceedFromStep6,
       _ => false,
     };
   }
@@ -147,9 +170,10 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
   String _getValidationError(GameCreationState state) {
     return switch (state.currentStep) {
       1 => 'Please enter a game name',
-      2 => 'Team size must be between 1 and 50',
-      3 => 'Please select a board size',
-      4 => state.tileValidationError,
+      2 => 'Please select a game mode',
+      3 => 'Team size must be between 1 and 50',
+      4 => 'Please select a board size',
+      5 => state.tileValidationError,
       _ => 'Please complete this step',
     };
   }

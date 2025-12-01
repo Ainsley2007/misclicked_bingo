@@ -10,6 +10,8 @@ class GameCreationRepository {
     required String name,
     required int teamSize,
     required int boardSize,
+    required GameMode gameMode,
+    DateTime? endTime,
     required List<GameTileCreation> tiles,
   }) async {
     final response = await _dio.post(
@@ -18,6 +20,8 @@ class GameCreationRepository {
         'name': name,
         'teamSize': teamSize,
         'boardSize': boardSize,
+        'gameMode': gameMode.value,
+        if (endTime != null) 'endTime': endTime.toIso8601String(),
         'tiles': tiles.map((tile) => tile.toJson()).toList(),
       },
     );

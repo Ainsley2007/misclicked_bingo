@@ -114,6 +114,8 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                                     team: team,
                                     tiles: tiles,
                                     boardSize: game.boardSize,
+                                    isPointsMode: game.gameMode == GameMode.points,
+                                    totalPoints: loadedState.totalPoints,
                                     onTileTap: (tile, isCompleted) {
                                       if (isCompleted) {
                                         setState(() {
@@ -279,7 +281,7 @@ class _ActivitySidebarCard extends StatefulWidget {
   final List<TileActivity> activities;
   final ProofStats? stats;
 
-  const _ActivitySidebarCard({super.key, required this.activities, this.stats});
+  const _ActivitySidebarCard({required this.activities, this.stats});
 
   @override
   State<_ActivitySidebarCard> createState() => _ActivitySidebarCardState();
@@ -387,12 +389,16 @@ class _TeamBoardSection extends StatelessWidget {
     required this.tiles,
     required this.boardSize,
     required this.onTileTap,
+    this.isPointsMode = false,
+    this.totalPoints = 0,
   });
 
   final TeamOverview team;
   final List<BingoTile> tiles;
   final int boardSize;
   final void Function(BingoTile tile, bool isCompleted) onTileTap;
+  final bool isPointsMode;
+  final int totalPoints;
 
   Color _parseColor(String hex) {
     final hexCode = hex.replaceAll('#', '');
@@ -406,6 +412,9 @@ class _TeamBoardSection extends StatelessWidget {
         .length;
     final totalTiles = tiles.length;
     final teamColor = _parseColor(team.color);
+    final scoreText = isPointsMode
+        ? '${team.teamPoints} / $totalPoints pts'
+        : '$completedTiles / $totalTiles';
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -456,7 +465,7 @@ class _TeamBoardSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '$completedTiles / $totalTiles',
+                    scoreText,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
@@ -482,6 +491,7 @@ class _TeamBoardSection extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final tile = tiles[index];
                   final isCompleted = team.boardStates[tile.id] == 'completed';
+                  final hasProofs = team.tilesWithProofs.contains(tile.id);
 
                   return GestureDetector(
                     onTap: isCompleted
@@ -490,6 +500,7 @@ class _TeamBoardSection extends StatelessWidget {
                     child: OverviewTileCard(
                       tile: tile,
                       isCompleted: isCompleted,
+                      hasProofs: hasProofs,
                     ),
                   );
                 },

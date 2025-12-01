@@ -3,6 +3,20 @@ import 'package:equatable/equatable.dart';
 
 part 'game_team.g.dart';
 
+enum GameMode {
+  blackout,
+  points;
+
+  String get value => name;
+
+  static GameMode fromString(String value) {
+    return GameMode.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => GameMode.blackout,
+    );
+  }
+}
+
 @JsonSerializable()
 class Game extends Equatable {
   final String id;
@@ -10,6 +24,9 @@ class Game extends Equatable {
   final String name;
   final int teamSize;
   final int boardSize;
+  @JsonKey(fromJson: _gameModeFromJson, toJson: _gameModeToJson)
+  final GameMode gameMode;
+  final DateTime? endTime;
   final DateTime createdAt;
 
   const Game({
@@ -18,14 +35,20 @@ class Game extends Equatable {
     required this.name,
     required this.teamSize,
     required this.boardSize,
+    this.gameMode = GameMode.blackout,
+    this.endTime,
     required this.createdAt,
   });
+
+  static GameMode _gameModeFromJson(String? json) =>
+      json != null ? GameMode.fromString(json) : GameMode.blackout;
+  static String _gameModeToJson(GameMode mode) => mode.value;
 
   factory Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);
   Map<String, dynamic> toJson() => _$GameToJson(this);
 
   @override
-  List<Object?> get props => [id, code, name, teamSize, boardSize];
+  List<Object?> get props => [id, code, name, teamSize, boardSize, gameMode, endTime];
 }
 
 @JsonSerializable()

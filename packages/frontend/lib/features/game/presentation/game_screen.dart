@@ -72,6 +72,7 @@ class _GameScreenContentState extends State<_GameScreenContent> {
                         boardSize: game.boardSize,
                         availableHeight: availableHeight,
                         gameId: game.id,
+                        isPointsMode: game.gameMode == GameMode.points,
                       ),
                     ),
                   ),
@@ -91,17 +92,22 @@ class _BingoBoardSection extends StatelessWidget {
     required this.boardSize,
     required this.availableHeight,
     required this.gameId,
+    this.isPointsMode = false,
   });
 
   final List<BingoTile> tiles;
   final int boardSize;
   final double availableHeight;
   final String gameId;
+  final bool isPointsMode;
 
   @override
   Widget build(BuildContext context) {
     final completedTiles = tiles.where((tile) => tile.isCompleted).length;
     final totalTiles = tiles.length;
+    final completedPoints =
+        tiles.where((t) => t.isCompleted).fold<int>(0, (sum, t) => sum + t.points);
+    final totalPoints = tiles.fold<int>(0, (sum, t) => sum + t.points);
 
     return Center(
       child: LayoutBuilder(
@@ -145,7 +151,9 @@ class _BingoBoardSection extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '$completedTiles / $totalTiles',
+                        isPointsMode
+                            ? '$completedPoints / $totalPoints pts'
+                            : '$completedTiles / $totalTiles',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
@@ -178,6 +186,7 @@ class _BingoBoardSection extends StatelessWidget {
                           return BingoTileCard(
                             tile: tile,
                             isCompleted: tile.isCompleted,
+                            showPoints: isPointsMode,
                             onTap: () {
                               final bloc = context.read<GameBloc>();
                               showDialog(

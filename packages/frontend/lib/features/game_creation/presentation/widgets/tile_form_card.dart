@@ -10,6 +10,7 @@ class TileFormCard extends StatefulWidget {
     required this.bosses,
     required this.onUpdate,
     required this.onRemove,
+    this.isPointsMode = false,
     super.key,
   });
 
@@ -18,6 +19,7 @@ class TileFormCard extends StatefulWidget {
   final List<Boss> bosses;
   final Function(GameTileCreation) onUpdate;
   final VoidCallback onRemove;
+  final bool isPointsMode;
 
   @override
   State<TileFormCard> createState() => _TileFormCardState();
@@ -25,6 +27,7 @@ class TileFormCard extends StatefulWidget {
 
 class _TileFormCardState extends State<TileFormCard> {
   late final TextEditingController _descriptionController;
+  late final TextEditingController _pointsController;
   final _debouncer = Debouncer(milliseconds: 500);
   Boss? _selectedBoss;
   final Map<String, int> _selectedItems = {}; // itemName -> requiredCount
@@ -37,6 +40,9 @@ class _TileFormCardState extends State<TileFormCard> {
     super.initState();
     _descriptionController = TextEditingController(
       text: widget.data.description ?? '',
+    );
+    _pointsController = TextEditingController(
+      text: widget.data.points > 0 ? widget.data.points.toString() : '',
     );
     _isAnyUnique = widget.data.isAnyUnique;
     _isOrLogic = widget.data.isOrLogic;
@@ -88,6 +94,7 @@ class _TileFormCardState extends State<TileFormCard> {
   @override
   void dispose() {
     _descriptionController.dispose();
+    _pointsController.dispose();
     _debouncer.dispose();
     super.dispose();
   }
@@ -97,6 +104,8 @@ class _TileFormCardState extends State<TileFormCard> {
       if (_selectedBoss == null) {
         return;
       }
+
+      final points = int.tryParse(_pointsController.text) ?? 0;
 
       widget.onUpdate(
         GameTileCreation(
@@ -117,6 +126,7 @@ class _TileFormCardState extends State<TileFormCard> {
           isAnyUnique: _isAnyUnique,
           isOrLogic: _isOrLogic,
           anyNCount: _anyNCount,
+          points: points,
         ),
       );
     });
@@ -325,6 +335,27 @@ class _TileFormCardState extends State<TileFormCard> {
               maxLines: 2,
               onChanged: (_) => _notifyUpdate(),
             ),
+            if (widget.isPointsMode) ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _pointsController,
+                decoration: InputDecoration(
+                  labelText: 'Points *',
+                  hintText: 'Enter points for this tile',
+                  prefixIcon: const Icon(Icons.emoji_events_rounded),
+                  border: const OutlineInputBorder(),
+                  errorText: widget.isPointsMode &&
+                          (int.tryParse(_pointsController.text) ?? 0) <= 0
+                      ? 'Points must be greater than 0'
+                      : null,
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (_) {
+                  setState(() {});
+                  _notifyUpdate();
+                },
+              ),
+            ],
           ],
         ),
       ),

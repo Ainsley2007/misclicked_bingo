@@ -6,6 +6,7 @@ import 'package:frontend/features/game_creation/logic/game_creation_bloc.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_state.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/wizard_step_indicator.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_1_game_name.dart';
+import 'package:frontend/features/game_creation/presentation/widgets/step_2_game_mode.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_2_team_size.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_4_board_size.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/step_6_tiles.dart';
@@ -78,9 +79,10 @@ class _GameCreationContent extends StatelessWidget {
   Widget _buildCurrentStep(GameCreationState state) {
     return switch (state.currentStep) {
       1 => const Step1GameName(),
-      2 => const Step2TeamSize(),
-      3 => const Step4BoardSize(),
-      4 => const Step6Tiles(),
+      2 => const Step2GameMode(),
+      3 => const Step2TeamSize(),
+      4 => const Step4BoardSize(),
+      5 => const Step6Tiles(),
       _ => const Step7Summary(),
     };
   }

@@ -27,7 +27,12 @@ Future<Response> _getOverview(RequestContext context, String id) async {
     if (tiles.isEmpty) {
       return Response.json(
         body: {
-          'game': game.toJson(),
+          'game': {
+            ...game.toJson(),
+            'gameMode': game.gameMode,
+            'endTime': game.endTime,
+          },
+          'tiles': <Map<String, dynamic>>[],
           'teams': <Map<String, dynamic>>[],
         },
       );
@@ -35,19 +40,24 @@ Future<Response> _getOverview(RequestContext context, String id) async {
 
     final tileIds = tiles.map((t) => t.id).toList();
 
-    // Fetch all bosses, unique items, and all teams' board states in parallel
+    // Fetch all bosses, unique items, all teams' board states, and proofs
     final allTeamBoardStatesFutures = <Future<Map<String, String>>>[
       for (final team in teams) db.getTeamBoardStates(team.id),
+    ];
+    final allTeamProofsFutures = <Future<List<TileProof>>>[
+      for (final team in teams) db.getProofsByTeam(team.id),
     ];
     final futures = await Future.wait([
       db.getAllBosses(),
       db.getUniqueItemsByTileIds(tileIds),
       Future.wait<Map<String, String>>(allTeamBoardStatesFutures),
+      Future.wait<List<TileProof>>(allTeamProofsFutures),
     ]);
 
     final allBosses = futures[0] as List<BossesData>;
     final allUniqueItems = futures[1] as List<TileUniqueItem>;
     final allTeamBoardStates = futures[2] as List<Map<String, String>>;
+    final allTeamProofs = futures[3] as List<List<TileProof>>;
 
     // Create lookup maps
     final bossMap = {
@@ -57,6 +67,10 @@ Future<Response> _getOverview(RequestContext context, String id) async {
     for (final item in allUniqueItems) {
       uniqueItemsMap.putIfAbsent(item.tileId, () => []).add(item);
     }
+
+    // Create tile points map for calculating team points
+    final tilePointsMap = {for (final t in tiles) t.id: t.points};
+    final totalPoints = tiles.fold<int>(0, (sum, t) => sum + t.points);
 
     // Build tiles data
     final tilesData = tiles.map((t) {
@@ -75,6 +89,7 @@ Future<Response> _getOverview(RequestContext context, String id) async {
         'isAnyUnique': t.isAnyUnique,
         'isOrLogic': t.isOrLogic,
         'anyNCount': t.anyNCount,
+        'points': t.points,
         'uniqueItems': uniqueItems
             .map(
               (item) => {
@@ -86,10 +101,25 @@ Future<Response> _getOverview(RequestContext context, String id) async {
       };
     }).toList();
 
-    // Build teams data with their completion states
+    // Build teams data with their completion states, proof status, and points
     final teamsData = teams.asMap().entries.map((entry) {
       final team = entry.value;
       final teamBoardStates = allTeamBoardStates[entry.key];
+      final teamProofs = allTeamProofs[entry.key];
+
+      // Build set of tiles with proofs for this team
+      final tilesWithProofs = <String>{};
+      for (final proof in teamProofs) {
+        tilesWithProofs.add(proof.tileId);
+      }
+
+      // Calculate team points (sum of completed tile points)
+      var teamPoints = 0;
+      for (final entry in teamBoardStates.entries) {
+        if (entry.value == 'completed') {
+          teamPoints += tilePointsMap[entry.key] ?? 0;
+        }
+      }
 
       return {
         'id': team.id,
@@ -98,14 +128,21 @@ Future<Response> _getOverview(RequestContext context, String id) async {
         'gameId': team.gameId,
         'captainUserId': team.captainUserId,
         'boardStates': teamBoardStates,
+        'tilesWithProofs': tilesWithProofs.toList(),
+        'teamPoints': teamPoints,
       };
     }).toList();
 
     return Response.json(
       body: {
-        'game': game.toJson(),
+        'game': {
+          ...game.toJson(),
+          'gameMode': game.gameMode,
+          'endTime': game.endTime,
+        },
         'tiles': tilesData,
         'teams': teamsData,
+        'totalPoints': totalPoints,
       },
     );
   } catch (e) {

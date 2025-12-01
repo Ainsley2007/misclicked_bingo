@@ -12,6 +12,12 @@ Game _$GameFromJson(Map<String, dynamic> json) => Game(
   name: json['name'] as String,
   teamSize: (json['teamSize'] as num).toInt(),
   boardSize: (json['boardSize'] as num).toInt(),
+  gameMode: json['gameMode'] == null
+      ? GameMode.blackout
+      : Game._gameModeFromJson(json['gameMode'] as String?),
+  endTime: json['endTime'] == null
+      ? null
+      : DateTime.parse(json['endTime'] as String),
   createdAt: DateTime.parse(json['createdAt'] as String),
 );
 
@@ -21,6 +27,8 @@ Map<String, dynamic> _$GameToJson(Game instance) => <String, dynamic>{
   'name': instance.name,
   'teamSize': instance.teamSize,
   'boardSize': instance.boardSize,
+  'gameMode': Game._gameModeToJson(instance.gameMode),
+  'endTime': instance.endTime?.toIso8601String(),
   'createdAt': instance.createdAt.toIso8601String(),
 };
 

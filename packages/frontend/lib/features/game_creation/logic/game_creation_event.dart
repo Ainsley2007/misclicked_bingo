@@ -36,6 +36,18 @@ final class BoardSizeSelected extends GameCreationEvent {
   final int size;
 }
 
+final class GameModeChanged extends GameCreationEvent {
+  const GameModeChanged(this.mode);
+
+  final GameMode mode;
+}
+
+final class EndTimeChanged extends GameCreationEvent {
+  const EndTimeChanged(this.endTime);
+
+  final DateTime? endTime;
+}
+
 final class TileAdded extends GameCreationEvent {
   const TileAdded();
 }

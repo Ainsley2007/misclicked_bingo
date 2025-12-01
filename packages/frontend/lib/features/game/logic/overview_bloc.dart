@@ -47,6 +47,7 @@ class OverviewBloc extends Bloc<OverviewEvent, OverviewState> {
 
       final teams = teamsJson.map((json) {
         final teamData = json as Map<String, dynamic>;
+        final tilesWithProofsJson = teamData['tilesWithProofs'] as List<dynamic>?;
         return TeamOverview(
           id: teamData['id'] as String,
           name: teamData['name'] as String,
@@ -54,13 +55,18 @@ class OverviewBloc extends Bloc<OverviewEvent, OverviewState> {
           boardStates: Map<String, String>.from(
             teamData['boardStates'] as Map<String, dynamic>,
           ),
+          tilesWithProofs: tilesWithProofsJson?.cast<String>() ?? [],
+          teamPoints: (teamData['teamPoints'] as num?)?.toInt() ?? 0,
         );
       }).toList();
+
+      final totalPoints = (data['totalPoints'] as num?)?.toInt() ?? 0;
 
       var loadedState = OverviewLoaded(
         game: game,
         tiles: enrichedTiles,
         teams: teams,
+        totalPoints: totalPoints,
       );
       emit(loadedState);
       developer.log('Loaded overview for game ${game.id}', name: 'overview');

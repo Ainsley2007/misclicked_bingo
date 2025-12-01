@@ -132,87 +132,93 @@ class _GuestOverviewContentState extends State<_GuestOverviewContent> {
           final tiles = loadedState.tiles;
           final teams = loadedState.teams;
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1400),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final crossAxisCount = constraints.maxWidth > 1200
-                              ? 3
-                              : constraints.maxWidth > 800
-                                  ? 2
-                                  : 1;
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              final showSidebar = screenWidth > 900;
+              const sidebarWidth = 360.0;
 
-                          return GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 0.85,
-                            ),
-                            itemCount: teams.length,
-                            itemBuilder: (context, index) {
-                              final team = teams[index];
-                              return _GuestTeamBoardSection(
-                                team: team,
-                                tiles: tiles,
-                                boardSize: game.boardSize,
-                                onTileTap: (tile, isCompleted) {
-                                  if (isCompleted) {
-                                    setState(() {
-                                      _selectedTile = tile;
-                                      _selectedTeamId = team.id;
-                                      _selectedTeamName = team.name;
-                                      _selectedTeamColor = team.color;
-                                    });
-                                  }
-                                },
-                              );
-                            },
-                          );
-                        },
+              // Calculate board area width
+              final boardAreaWidth = showSidebar
+                  ? screenWidth - sidebarWidth - 72
+                  : screenWidth - 48;
+
+              const targetBoardWidth = 300.0;
+              final crossAxisCount = (boardAreaWidth / targetBoardWidth)
+                  .floor()
+                  .clamp(1, 4);
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.85,
+                          ),
+                          itemCount: teams.length,
+                          itemBuilder: (context, index) {
+                            final team = teams[index];
+                            return _GuestTeamBoardSection(
+                              team: team,
+                              tiles: tiles,
+                              boardSize: game.boardSize,
+                              onTileTap: (tile, isCompleted) {
+                                if (isCompleted) {
+                                  setState(() {
+                                    _selectedTile = tile;
+                                    _selectedTeamId = team.id;
+                                    _selectedTeamName = team.name;
+                                    _selectedTeamColor = team.color;
+                                  });
+                                }
+                              },
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: SizedBox(
-                  width: 360,
-                  child: _selectedTile != null
-                      ? _GuestProofsSidebarCard(
-                          key: ValueKey(
-                            '${_selectedTile!.id}_$_selectedTeamId',
-                          ),
-                          tile: _selectedTile!,
-                          gameId: widget.gameId,
-                          teamId: _selectedTeamId,
-                          teamName: _selectedTeamName,
-                          teamColor: _selectedTeamColor,
-                          onClose: () => setState(() {
-                            _selectedTile = null;
-                            _selectedTeamId = null;
-                            _selectedTeamName = null;
-                            _selectedTeamColor = null;
-                          }),
-                        )
-                      : _ActivitySidebarCard(
-                          activities: loadedState.activities,
-                          stats: loadedState.stats,
-                        ),
-                ),
-              ),
-            ],
+                  if (showSidebar)
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: SizedBox(
+                        width: sidebarWidth,
+                        child: _selectedTile != null
+                            ? _GuestProofsSidebarCard(
+                                key: ValueKey(
+                                  '${_selectedTile!.id}_$_selectedTeamId',
+                                ),
+                                tile: _selectedTile!,
+                                gameId: widget.gameId,
+                                teamId: _selectedTeamId,
+                                teamName: _selectedTeamName,
+                                teamColor: _selectedTeamColor,
+                                onClose: () => setState(() {
+                                  _selectedTile = null;
+                                  _selectedTeamId = null;
+                                  _selectedTeamName = null;
+                                  _selectedTeamColor = null;
+                                }),
+                              )
+                            : _ActivitySidebarCard(
+                                activities: loadedState.activities,
+                                stats: loadedState.stats,
+                              ),
+                      ),
+                    ),
+                ],
+              );
+            },
           );
         },
       ),

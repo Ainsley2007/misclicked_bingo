@@ -101,29 +101,29 @@ class _OverviewTileContent extends StatelessWidget {
         return Padding(
           padding: EdgeInsets.all(padding),
           child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (tile.bossIconUrl != null) ...[
-                Image.network(
-                  tile.bossIconUrl!,
-                  fit: BoxFit.contain,
-                  width: iconSize,
-                  height: iconSize,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const SizedBox.shrink();
-                  },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (tile.bossIconUrl != null) ...[
+                  Image.network(
+                    tile.bossIconUrl!,
+                    fit: BoxFit.contain,
+                    width: iconSize,
+                    height: iconSize,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                  SizedBox(height: spacing),
+                ],
+                Container(
+                  height: 1,
+                  margin: EdgeInsets.symmetric(horizontal: lineMargin),
+                  color: bossTypeColor,
                 ),
-                SizedBox(height: spacing),
               ],
-              Container(
-                height: 1,
-                margin: EdgeInsets.symmetric(horizontal: lineMargin),
-                color: bossTypeColor,
-              ),
-            ],
+            ),
           ),
-        ),
         );
       },
     );

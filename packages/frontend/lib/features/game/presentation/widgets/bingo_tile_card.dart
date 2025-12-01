@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 
-// Original tile image is 296x296 with 10px border
-// Using 12/296 for a bit of extra padding to avoid overlap
-const double _tileBorderRatio = 12 / 296;
+const double _tileBorderRatio = 11.5 / 296.0;
 
 class BingoTileCard extends StatelessWidget {
   const BingoTileCard({

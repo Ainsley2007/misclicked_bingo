@@ -151,23 +151,32 @@ class _InlineCountdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = isWarning 
+        ? color.withValues(alpha: 0.15)
+        : Theme.of(context).colorScheme.surfaceContainerHighest;
+    final textColor = isWarning 
+        ? color 
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: isWarning ? color.withValues(alpha: 0.1) : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-        border: isWarning ? Border.all(color: color.withValues(alpha: 0.3)) : null,
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isWarning ? color.withValues(alpha: 0.4) : Colors.transparent,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 6),
           Text(
             value,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: isWarning ? FontWeight.w600 : FontWeight.w500,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

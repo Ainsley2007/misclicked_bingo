@@ -49,8 +49,7 @@ class _Step2TeamSizeState extends State<Step2TeamSize> {
                 child: TextField(
                   controller: _controller,
                   decoration: InputDecoration(
-                    labelText: 'Maximum Team Size',
-                    hintText: '5',
+                    hintText: 'Maximum team size (e.g., 5)',
                     prefixIcon: const Icon(Icons.people_rounded),
                     helperText: 'Between 1 and 50 players',
                     errorText: state.validationError,

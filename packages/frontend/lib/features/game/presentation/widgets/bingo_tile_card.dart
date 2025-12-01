@@ -29,7 +29,7 @@ class BingoTileCard extends StatelessWidget {
           ),
           if (isCompleted)
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(7.0),
               child: Container(
                 color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
               ),
@@ -40,10 +40,7 @@ class BingoTileCard extends StatelessWidget {
               child: Container(
                 margin: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color(0xFFFFA000),
-                    width: 3,
-                  ),
+                  border: Border.all(color: const Color(0xFFFFA000), width: 3),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -55,24 +52,28 @@ class BingoTileCard extends StatelessWidget {
               top: 4,
               right: 4,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFD54F), Color(0xFFFFA000)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 2,
+                      color: const Color(0xFFFFA000).withValues(alpha: 0.4),
+                      blurRadius: 3,
                       offset: const Offset(0, 1),
                     ),
                   ],
                 ),
                 child: Text(
-                  '${tile.points} pts',
+                  '${tile.points}',
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF5D4037),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -143,7 +144,11 @@ class _BingoTileContent extends StatelessWidget {
               ),
               SizedBox(height: spacing),
               Flexible(
-                child: _buildUniqueItemsSection(context, fontSize, smallFontSize),
+                child: _buildUniqueItemsSection(
+                  context,
+                  fontSize,
+                  smallFontSize,
+                ),
               ),
             ],
           ),
@@ -162,7 +167,11 @@ class _BingoTileContent extends StatelessWidget {
     };
   }
 
-  Widget _buildUniqueItemsSection(BuildContext context, double fontSize, double smallFontSize) {
+  Widget _buildUniqueItemsSection(
+    BuildContext context,
+    double fontSize,
+    double smallFontSize,
+  ) {
     if (tile.isAnyUnique) {
       return Center(
         child: Text(
@@ -212,8 +221,8 @@ class _BingoTileContent extends StatelessWidget {
 
     final headerText = tile.isOrLogic
         ? (tile.anyNCount != null && tile.anyNCount! > 1
-            ? 'Any ${tile.anyNCount} of:'
-            : 'Any of:')
+              ? 'Any ${tile.anyNCount} of:'
+              : 'Any of:')
         : 'All of:';
 
     return Center(

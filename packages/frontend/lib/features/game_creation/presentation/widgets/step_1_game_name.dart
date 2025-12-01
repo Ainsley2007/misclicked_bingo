@@ -48,7 +48,6 @@ class _Step1GameNameState extends State<Step1GameName> {
                 child: TextField(
                   controller: _controller,
                   decoration: InputDecoration(
-                    labelText: 'Game Name',
                     hintText: 'e.g., Summer Bingo 2025',
                     prefixIcon: const Icon(Icons.label_rounded),
                     errorText: state.validationError,

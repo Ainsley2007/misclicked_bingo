@@ -194,8 +194,7 @@ class _UniqueItemsSelectionDialogState
                               child: TextField(
                                 controller: _anyNCountController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Count',
-                                  hintText: '1',
+                                  hintText: 'Count',
                                   isDense: true,
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: 8,

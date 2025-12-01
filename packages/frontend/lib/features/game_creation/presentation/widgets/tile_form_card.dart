@@ -327,8 +327,7 @@ class _TileFormCardState extends State<TileFormCard> {
             TextField(
               controller: _descriptionController,
               decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                hintText: 'Add a custom description for this tile',
+                hintText: 'Description (optional)',
                 prefixIcon: Icon(Icons.description_rounded),
                 border: OutlineInputBorder(),
               ),
@@ -340,8 +339,7 @@ class _TileFormCardState extends State<TileFormCard> {
               TextField(
                 controller: _pointsController,
                 decoration: InputDecoration(
-                  labelText: 'Points *',
-                  hintText: 'Enter points for this tile',
+                  hintText: 'Points',
                   prefixIcon: const Icon(Icons.emoji_events_rounded),
                   border: const OutlineInputBorder(),
                   errorText: widget.isPointsMode &&

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 
+// Original tile image is 296x296 with 10px border
+// Border ratio: 10/296 ≈ 0.0338 (3.38%)
+const double _tileBorderRatio = 10 / 296;
+
 class OverviewTileCard extends StatelessWidget {
   const OverviewTileCard({
     required this.tile,
@@ -15,55 +19,63 @@ class OverviewTileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Image.asset(
-          'assets/image/tile.png',
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-        ),
-        if (isCompleted)
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Container(
-              color: const Color(0xFF4CAF50).withValues(alpha: 0.20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tileSize = constraints.maxWidth;
+        // Calculate border padding based on tile size
+        final borderPadding = tileSize * _tileBorderRatio;
+
+        return Stack(
+          children: [
+            Image.asset(
+              'assets/image/tile.png',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
             ),
-          ),
-        // Proof indicator (amber border for tiles with proofs but not completed)
-        if (hasProofs && !isCompleted)
-          Positioned.fill(
-            child: Container(
-              margin: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFFFFA000),
-                  width: 2,
+            if (isCompleted)
+              Padding(
+                padding: EdgeInsets.all(borderPadding),
+                child: Container(
+                  color: const Color(0xFF4CAF50).withValues(alpha: 0.20),
                 ),
-                borderRadius: BorderRadius.circular(2),
               ),
-            ),
-          ),
-        _OverviewTileContent(tile: tile),
-        // Small camera icon for tiles with proofs
-        if (hasProofs && !isCompleted)
-          Positioned(
-            bottom: 2,
-            left: 2,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFA000),
-                borderRadius: BorderRadius.circular(2),
+            // Proof indicator (amber border for tiles with proofs but not completed)
+            if (hasProofs && !isCompleted)
+              Positioned.fill(
+                child: Container(
+                  margin: EdgeInsets.all(borderPadding * 0.5),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: const Color(0xFFFFA000),
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              child: const Icon(
-                Icons.camera_alt_rounded,
-                size: 8,
-                color: Colors.white,
+            _OverviewTileContent(tile: tile),
+            // Small camera icon for tiles with proofs
+            if (hasProofs && !isCompleted)
+              Positioned(
+                bottom: borderPadding * 0.5,
+                left: borderPadding * 0.5,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFA000),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    size: 8,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-            ),
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

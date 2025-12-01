@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 
+// Original tile image is 296x296 with 10px border
+// Border ratio: 10/296 ≈ 0.0338 (3.38%)
+const double _tileBorderRatio = 10 / 296;
+
 class BingoTileCard extends StatelessWidget {
   const BingoTileCard({
     required this.tile,
@@ -19,84 +23,104 @@ class BingoTileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Stack(
-        children: [
-          Image.asset(
-            'assets/image/tile.png',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          if (isCompleted)
-            Padding(
-              padding: const EdgeInsets.all(7.0),
-              child: Container(
-                color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final tileSize = constraints.maxWidth;
+          // Calculate border padding based on tile size
+          final borderPadding = tileSize * _tileBorderRatio;
+
+          return Stack(
+            children: [
+              Image.asset(
+                'assets/image/tile.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
               ),
-            ),
-          // Proof indicator (amber border for tiles with proofs but not completed)
-          if (tile.hasProofs && !isCompleted)
-            Positioned.fill(
-              child: Container(
-                margin: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFFFA000), width: 3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-          _BingoTileContent(tile: tile),
-          // Points badge
-          if (showPoints && tile.points > 0)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD54F), Color(0xFFFFA000)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFA000).withValues(alpha: 0.4),
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
+              if (isCompleted)
+                TileCompletionOverlay(borderPadding: borderPadding),
+              // Proof indicator (amber border for tiles with proofs but not completed)
+              if (tile.hasProofs && !isCompleted)
+                Positioned.fill(
+                  child: Container(
+                    margin: EdgeInsets.all(borderPadding * 0.5),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFFFA000), width: 3),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                  ],
-                ),
-                child: Text(
-                  '${tile.points}',
-                  style: const TextStyle(
-                    color: Color(0xFF5D4037),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
-            ),
-          // Proof indicator icon (small camera icon)
-          if (tile.hasProofs && !isCompleted)
-            Positioned(
-              bottom: 4,
-              left: 4,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFA000),
-                  borderRadius: BorderRadius.circular(4),
+              _BingoTileContent(tile: tile),
+              // Points badge
+              if (showPoints && tile.points > 0)
+                Positioned(
+                  top: borderPadding * 0.5,
+                  right: borderPadding * 0.5,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFD54F), Color(0xFFFFA000)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFA000).withValues(alpha: 0.4),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '${tile.points}',
+                      style: const TextStyle(
+                        color: Color(0xFF5D4037),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.camera_alt_rounded,
-                  size: 12,
-                  color: Colors.white,
+              // Proof indicator icon (small camera icon)
+              if (tile.hasProofs && !isCompleted)
+                Positioned(
+                  bottom: borderPadding * 0.5,
+                  left: borderPadding * 0.5,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFA000),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      size: 12,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Green overlay shown on completed tiles, scaled to fit inside tile border
+class TileCompletionOverlay extends StatelessWidget {
+  const TileCompletionOverlay({required this.borderPadding, super.key});
+
+  final double borderPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(borderPadding),
+      child: Container(
+        color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
       ),
     );
   }

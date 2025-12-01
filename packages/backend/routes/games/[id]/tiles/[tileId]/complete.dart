@@ -42,15 +42,19 @@ Future<Response> _toggleTileCompletion(
       );
     }
 
+    final now = DateTime.now().toUtc();
+    
     if (game.startTime != null) {
-      final startTime = DateTime.tryParse(game.startTime!);
-      if (startTime != null && DateTime.now().isBefore(startTime)) {
+      final startTime = DateTime.tryParse(game.startTime!)?.toUtc();
+      if (startTime != null && now.isBefore(startTime)) {
+        print('[COMPLETE] Game not started: now=$now, startTime=$startTime');
         return Response.json(
           statusCode: HttpStatus.forbidden,
           body: {
             'error': 'Game has not started yet',
             'code': 'GAME_NOT_STARTED',
             'startTime': game.startTime,
+            'serverTime': now.toIso8601String(),
           },
         );
       }
@@ -58,14 +62,15 @@ Future<Response> _toggleTileCompletion(
 
     // Check if game has ended (optional: prevent completion after end time)
     if (game.endTime != null) {
-      final endTime = DateTime.tryParse(game.endTime!);
-      if (endTime != null && DateTime.now().isAfter(endTime)) {
+      final endTime = DateTime.tryParse(game.endTime!)?.toUtc();
+      if (endTime != null && now.isAfter(endTime)) {
         return Response.json(
           statusCode: HttpStatus.forbidden,
           body: {
             'error': 'Game has ended',
             'code': 'GAME_ENDED',
             'endTime': game.endTime,
+            'serverTime': now.toIso8601String(),
           },
         );
       }

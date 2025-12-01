@@ -7,6 +7,7 @@ import 'package:frontend/features/guest/logic/guest_bloc.dart';
 import 'package:frontend/features/guest/logic/guest_event.dart';
 import 'package:frontend/features/guest/logic/guest_state.dart';
 import 'package:frontend/features/game/presentation/widgets/activity_feed.dart';
+import 'package:frontend/features/game/presentation/widgets/game_countdown.dart';
 import 'package:frontend/features/game/presentation/widgets/leaderboard_widget.dart';
 import 'package:frontend/features/game/presentation/widgets/overview_tile_card.dart';
 import 'package:shared_models/shared_models.dart';
@@ -50,7 +51,20 @@ class _GuestOverviewContentState extends State<_GuestOverviewContent> {
         title: BlocBuilder<GuestBloc, GuestState>(
           builder: (context, state) {
             if (state is GuestGameOverviewLoaded) {
-              return Text(state.game.name);
+              final game = state.game;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(game.name),
+                  if (game.startTime != null || game.endTime != null) ...[
+                    const SizedBox(width: 12),
+                    GameCountdown(
+                      startTime: game.startTime,
+                      endTime: game.endTime,
+                    ),
+                  ],
+                ],
+              );
             }
             return const Text('Game Overview');
           },

@@ -7,6 +7,7 @@ import 'package:frontend/features/game/logic/overview_bloc.dart';
 import 'package:frontend/features/game/logic/overview_event.dart';
 import 'package:frontend/features/game/logic/overview_state.dart';
 import 'package:frontend/features/game/presentation/widgets/activity_feed.dart';
+import 'package:frontend/features/game/presentation/widgets/game_countdown.dart';
 import 'package:frontend/features/game/presentation/widgets/leaderboard_widget.dart';
 import 'package:frontend/features/game/presentation/widgets/overview_tile_card.dart';
 import 'package:frontend/features/game/presentation/widgets/tile_proofs_panel.dart';
@@ -92,9 +93,20 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            game.name,
-                            style: Theme.of(context).textTheme.titleLarge,
+                          Row(
+                            children: [
+                              Text(
+                                game.name,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              if (game.startTime != null || game.endTime != null) ...[
+                                const SizedBox(width: 12),
+                                GameCountdown(
+                                  startTime: game.startTime,
+                                  endTime: game.endTime,
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 16),
                           Expanded(

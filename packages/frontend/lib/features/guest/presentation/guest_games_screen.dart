@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend/core/di.dart';
+import 'package:frontend/features/game/presentation/widgets/game_countdown.dart';
 import 'package:frontend/features/guest/logic/guest_bloc.dart';
 import 'package:frontend/features/guest/logic/guest_event.dart';
 import 'package:frontend/features/guest/logic/guest_state.dart';
@@ -178,11 +179,22 @@ class _GameCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'Created ${DateFormat('MMM d, yyyy').format(game.createdAt)}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Created ${DateFormat('MMM d, yyyy').format(game.createdAt)}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        if (game.startTime != null || game.endTime != null) ...[
+                          const SizedBox(width: 12),
+                          GameCountdown(
+                            startTime: game.startTime,
+                            endTime: game.endTime,
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),

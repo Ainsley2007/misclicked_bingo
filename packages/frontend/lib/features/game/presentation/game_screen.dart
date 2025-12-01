@@ -163,6 +163,16 @@ class _BingoBoardSection extends StatelessWidget {
                           letterSpacing: -0.3,
                         ),
                       ),
+                      if (game.startTime != null || game.endTime != null) ...[
+                        const SizedBox(width: 12),
+                        GameCountdown(
+                          startTime: game.startTime,
+                          endTime: game.endTime,
+                          onGameStarted: () {
+                            context.read<GameBloc>().add(GameLoadRequested(gameId));
+                          },
+                        ),
+                      ],
                       const Spacer(),
                       Text(
                         isPointsMode
@@ -173,16 +183,6 @@ class _BingoBoardSection extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (game.startTime != null || game.endTime != null) ...[
-                    const SizedBox(height: 12),
-                    GameCountdown(
-                      startTime: game.startTime,
-                      endTime: game.endTime,
-                      onGameStarted: () {
-                        context.read<GameBloc>().add(GameLoadRequested(gameId));
-                      },
-                    ),
-                  ],
                   const SizedBox(height: 16),
                   Builder(
                     builder: (context) {

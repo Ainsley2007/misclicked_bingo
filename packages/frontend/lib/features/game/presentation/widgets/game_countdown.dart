@@ -21,12 +21,13 @@ class _GameCountdownState extends State<GameCountdown> {
   Timer? _timer;
   bool _hasStarted = true;
   bool _hasEnded = false;
+  Duration _remaining = Duration.zero;
 
   @override
   void initState() {
     super.initState();
     _updateStatus();
-    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       _updateStatus();
     });
   }
@@ -46,103 +47,18 @@ class _GameCountdownState extends State<GameCountdown> {
       widget.onGameStarted?.call();
     }
 
+    Duration remaining = Duration.zero;
+    if (!newHasStarted && widget.startTime != null) {
+      remaining = widget.startTime!.difference(now);
+    } else if (!newHasEnded && widget.endTime != null) {
+      remaining = widget.endTime!.difference(now);
+    }
+
     if (mounted) {
       setState(() {
         _hasStarted = newHasStarted;
         _hasEnded = newHasEnded;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.startTime == null && widget.endTime == null) {
-      return const SizedBox.shrink();
-    }
-
-    final now = DateTime.now();
-
-    if (!_hasStarted && widget.startTime != null) {
-      return _CountdownCard(
-        targetTime: widget.startTime!,
-        label: 'Game starts in',
-        icon: Icons.play_circle_outline_rounded,
-        color: Theme.of(context).colorScheme.primary,
-      );
-    }
-
-    if (_hasEnded) {
-      return _StatusCard(
-        label: 'Game has ended',
-        icon: Icons.stop_circle_outlined,
-        color: Theme.of(context).colorScheme.error,
-      );
-    }
-
-    if (widget.endTime != null && now.isBefore(widget.endTime!)) {
-      return _CountdownCard(
-        targetTime: widget.endTime!,
-        label: 'Game ends in',
-        icon: Icons.timer_outlined,
-        color: Theme.of(context).colorScheme.tertiary,
-      );
-    }
-
-    return const SizedBox.shrink();
-  }
-}
-
-class _CountdownCard extends StatefulWidget {
-  const _CountdownCard({
-    required this.targetTime,
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-
-  final DateTime targetTime;
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  @override
-  State<_CountdownCard> createState() => _CountdownCardState();
-}
-
-class _CountdownCardState extends State<_CountdownCard> {
-  Timer? _timer;
-  Duration _remaining = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    _updateRemaining();
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
-      _updateRemaining();
-    });
-  }
-
-  @override
-  void didUpdateWidget(_CountdownCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.targetTime != widget.targetTime) {
-      _updateRemaining();
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _updateRemaining() {
-    if (mounted) {
-      setState(() {
-        _remaining = widget.targetTime.difference(DateTime.now());
-        if (_remaining.isNegative) {
-          _remaining = Duration.zero;
-        }
+        _remaining = remaining.isNegative ? Duration.zero : remaining;
       });
     }
   }
@@ -157,22 +73,22 @@ class _CountdownCardState extends State<_CountdownCard> {
     if (days > 7) {
       final weeks = days ~/ 7;
       final remainingDays = days % 7;
-      parts.add('$weeks week${weeks > 1 ? 's' : ''}');
+      parts.add('${weeks}w');
       if (remainingDays > 0) {
-        parts.add('$remainingDays day${remainingDays > 1 ? 's' : ''}');
+        parts.add('${remainingDays}d');
       }
     } else if (days > 0) {
-      parts.add('$days day${days > 1 ? 's' : ''}');
+      parts.add('${days}d');
       if (hours > 0) {
-        parts.add('$hours hr${hours > 1 ? 's' : ''}');
+        parts.add('${hours}h');
       }
     } else if (hours > 0) {
-      parts.add('$hours hr${hours > 1 ? 's' : ''}');
+      parts.add('${hours}h');
       if (minutes > 0) {
-        parts.add('$minutes min');
+        parts.add('${minutes}m');
       }
     } else {
-      parts.add('$minutes min');
+      parts.add('${minutes}m');
     }
 
     return parts.join(' ');
@@ -180,74 +96,83 @@ class _CountdownCardState extends State<_CountdownCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: widget.color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: widget.color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(widget.icon, size: 20, color: widget.color),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: widget.color,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                _formatDuration(_remaining),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: widget.color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    if (widget.startTime == null && widget.endTime == null) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+
+    // Game hasn't started yet - show warning style
+    if (!_hasStarted && widget.startTime != null) {
+      return _InlineCountdown(
+        icon: Icons.schedule_rounded,
+        label: 'Starts in',
+        value: _formatDuration(_remaining),
+        color: theme.colorScheme.error,
+        isWarning: true,
+      );
+    }
+
+    // Game has ended
+    if (_hasEnded) {
+      return _InlineCountdown(
+        icon: Icons.check_circle_outline_rounded,
+        label: 'Ended',
+        value: null,
+        color: theme.colorScheme.onSurfaceVariant,
+        isWarning: false,
+      );
+    }
+
+    // Game is in progress with end time
+    if (widget.endTime != null) {
+      return _InlineCountdown(
+        icon: Icons.timer_outlined,
+        label: 'Ends in',
+        value: _formatDuration(_remaining),
+        color: theme.colorScheme.onSurfaceVariant,
+        isWarning: false,
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }
 
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({
-    required this.label,
+class _InlineCountdown extends StatelessWidget {
+  const _InlineCountdown({
     required this.icon,
+    required this.label,
+    required this.value,
     required this.color,
+    required this.isWarning,
   });
 
-  final String label;
   final IconData icon;
+  final String label;
+  final String? value;
   final Color color;
+  final bool isWarning;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: isWarning ? color.withValues(alpha: 0.1) : Colors.transparent,
+        borderRadius: BorderRadius.circular(6),
+        border: isWarning ? Border.all(color: color.withValues(alpha: 0.3)) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 10),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
           Text(
-            label,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            value != null ? '$label $value' : label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: color,
-              fontWeight: FontWeight.w600,
+              fontWeight: isWarning ? FontWeight.w600 : FontWeight.w500,
             ),
           ),
         ],
@@ -255,5 +180,3 @@ class _StatusCard extends StatelessWidget {
     );
   }
 }
-
-

@@ -33,6 +33,7 @@ Future<Response> _getPublicGameOverview(
           'game': {
             ...game.toJson(),
             'gameMode': game.gameMode,
+            'startTime': game.startTime,
             'endTime': game.endTime,
           },
           'tiles': <Map<String, dynamic>>[],
@@ -138,6 +139,7 @@ Future<Response> _getPublicGameOverview(
         'game': {
           ...game.toJson(),
           'gameMode': game.gameMode,
+          'startTime': game.startTime,
           'endTime': game.endTime,
         },
         'tiles': tilesData,

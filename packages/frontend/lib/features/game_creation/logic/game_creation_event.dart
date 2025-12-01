@@ -42,6 +42,12 @@ final class GameModeChanged extends GameCreationEvent {
   final GameMode mode;
 }
 
+final class StartTimeChanged extends GameCreationEvent {
+  const StartTimeChanged(this.startTime);
+
+  final DateTime? startTime;
+}
+
 final class EndTimeChanged extends GameCreationEvent {
   const EndTimeChanged(this.endTime);
 

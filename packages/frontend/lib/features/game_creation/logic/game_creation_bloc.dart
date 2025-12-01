@@ -13,6 +13,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     on<JumpToStepRequested>(_onJumpToStepRequested);
     on<GameNameChanged>(_onGameNameChanged);
     on<GameModeChanged>(_onGameModeChanged);
+    on<StartTimeChanged>(_onStartTimeChanged);
     on<EndTimeChanged>(_onEndTimeChanged);
     on<TeamSizeChanged>(_onTeamSizeChanged);
     on<BoardSizeSelected>(_onBoardSizeSelected);
@@ -89,6 +90,17 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     emit(state.copyWith(gameMode: event.mode));
   }
 
+  void _onStartTimeChanged(
+    StartTimeChanged event,
+    Emitter<GameCreationState> emit,
+  ) {
+    if (event.startTime == null) {
+      emit(state.copyWith(clearStartTime: true));
+    } else {
+      emit(state.copyWith(startTime: event.startTime));
+    }
+  }
+
   void _onEndTimeChanged(
     EndTimeChanged event,
     Emitter<GameCreationState> emit,
@@ -141,6 +153,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
         teamSize: state.teamSize,
         boardSize: state.boardSize,
         gameMode: state.gameMode,
+        startTime: state.startTime,
         endTime: state.endTime,
         tiles: state.tiles,
       );

@@ -11,6 +11,7 @@ class GameCreationRepository {
     required int teamSize,
     required int boardSize,
     required GameMode gameMode,
+    DateTime? startTime,
     DateTime? endTime,
     required List<GameTileCreation> tiles,
   }) async {
@@ -21,6 +22,7 @@ class GameCreationRepository {
         'teamSize': teamSize,
         'boardSize': boardSize,
         'gameMode': gameMode.value,
+        if (startTime != null) 'startTime': startTime.toIso8601String(),
         if (endTime != null) 'endTime': endTime.toIso8601String(),
         'tiles': tiles.map((tile) => tile.toJson()).toList(),
       },

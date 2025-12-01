@@ -61,12 +61,13 @@ class Step2GameMode extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (state.gameMode == GameMode.points) ...[
-                  const SizedBox(height: 32),
-                  const Divider(),
-                  const SizedBox(height: 24),
-                  _EndTimeSection(endTime: state.endTime),
-                ],
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 24),
+                _TimeScheduleSection(
+                  startTime: state.startTime,
+                  endTime: state.endTime,
+                ),
                 const SizedBox(height: 32),
                 _NavigationButtons(state: state),
               ],
@@ -147,9 +148,10 @@ class _GameModeCard extends StatelessWidget {
   }
 }
 
-class _EndTimeSection extends StatelessWidget {
-  const _EndTimeSection({this.endTime});
+class _TimeScheduleSection extends StatelessWidget {
+  const _TimeScheduleSection({this.startTime, this.endTime});
 
+  final DateTime? startTime;
   final DateTime? endTime;
 
   @override
@@ -158,53 +160,74 @@ class _EndTimeSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'End Time (Optional)',
+          'Schedule (Optional)',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          'Set when the game ends. Leave empty to end manually.',
+          'Set when the game starts and/or ends. Leave empty to start immediately and end manually.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _selectDateTime(context),
-                icon: const Icon(Icons.calendar_today_rounded),
-                label: Text(
-                  endTime != null ? _formatDateTime(endTime!) : 'Select date & time',
-                ),
-              ),
-            ),
-            if (endTime != null) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () => context
-                    .read<GameCreationBloc>()
-                    .add(const EndTimeChanged(null)),
-                icon: const Icon(Icons.clear_rounded),
-                tooltip: 'Clear end time',
-              ),
-            ],
-          ],
+        const SizedBox(height: 20),
+        // Start Time
+        _TimePickerRow(
+          label: 'Start Time',
+          icon: Icons.play_circle_outline_rounded,
+          time: startTime,
+          onSelect: () => _selectDateTime(context, isStart: true),
+          onClear: () => context
+              .read<GameCreationBloc>()
+              .add(const StartTimeChanged(null)),
+          hint: 'Game starts immediately',
         ),
+        const SizedBox(height: 16),
+        // End Time
+        _TimePickerRow(
+          label: 'End Time',
+          icon: Icons.stop_circle_outlined,
+          time: endTime,
+          onSelect: () => _selectDateTime(context, isStart: false),
+          onClear: () => context
+              .read<GameCreationBloc>()
+              .add(const EndTimeChanged(null)),
+          hint: 'No end time (manual)',
+        ),
+        if (startTime != null && endTime != null && endTime!.isBefore(startTime!))
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_rounded,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'End time must be after start time',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
 
-  Future<void> _selectDateTime(BuildContext context) async {
+  Future<void> _selectDateTime(BuildContext context, {required bool isStart}) async {
     final now = DateTime.now();
-    final initialDate = endTime ?? now.add(const Duration(days: 7));
+    final currentTime = isStart ? startTime : endTime;
+    final initialDate = currentTime ?? now.add(Duration(days: isStart ? 0 : 7));
 
     final date = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: initialDate.isBefore(now) ? now : initialDate,
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
     );
@@ -226,8 +249,30 @@ class _EndTimeSection extends StatelessWidget {
       time.minute,
     );
 
-    context.read<GameCreationBloc>().add(EndTimeChanged(selectedDateTime));
+    if (isStart) {
+      context.read<GameCreationBloc>().add(StartTimeChanged(selectedDateTime));
+    } else {
+      context.read<GameCreationBloc>().add(EndTimeChanged(selectedDateTime));
+    }
   }
+}
+
+class _TimePickerRow extends StatelessWidget {
+  const _TimePickerRow({
+    required this.label,
+    required this.icon,
+    required this.time,
+    required this.onSelect,
+    required this.onClear,
+    required this.hint,
+  });
+
+  final String label;
+  final IconData icon;
+  final DateTime? time;
+  final VoidCallback onSelect;
+  final VoidCallback onClear;
+  final String hint;
 
   String _formatDateTime(DateTime dt) {
     final months = [
@@ -237,6 +282,64 @@ class _EndTimeSection extends StatelessWidget {
     final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
     final amPm = dt.hour < 12 ? 'AM' : 'PM';
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year} at $hour:${dt.minute.toString().padLeft(2, '0')} $amPm';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 20, color: colorScheme.primary),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                time != null ? _formatDateTime(time!) : hint,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: time != null
+                      ? colorScheme.onSurface
+                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontWeight: time != null ? FontWeight.w500 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+        OutlinedButton(
+          onPressed: onSelect,
+          child: Text(time != null ? 'Change' : 'Set'),
+        ),
+        if (time != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: onClear,
+            icon: const Icon(Icons.clear_rounded),
+            tooltip: 'Clear',
+            style: IconButton.styleFrom(
+              foregroundColor: colorScheme.error,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 

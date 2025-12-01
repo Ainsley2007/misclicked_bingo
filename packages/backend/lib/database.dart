@@ -32,6 +32,7 @@ class Games extends Table {
   IntColumn get teamSize => integer().withDefault(const Constant(5))();
   IntColumn get boardSize => integer().withDefault(const Constant(3))();
   TextColumn get gameMode => text().withDefault(const Constant('blackout'))();
+  TextColumn get startTime => text().nullable()();
   TextColumn get endTime => text().nullable()();
   TextColumn get createdAt => text()();
 
@@ -191,6 +192,7 @@ class AppDatabase extends _$AppDatabase {
     required int teamSize,
     required int boardSize,
     String gameMode = 'blackout',
+    DateTime? startTime,
     DateTime? endTime,
     required DateTime createdAt,
   }) async {
@@ -202,6 +204,7 @@ class AppDatabase extends _$AppDatabase {
         teamSize: Value(teamSize),
         boardSize: Value(boardSize),
         gameMode: Value(gameMode),
+        startTime: Value(startTime?.toIso8601String()),
         endTime: Value(endTime?.toIso8601String()),
         createdAt: Value(createdAt.toIso8601String()),
       ),

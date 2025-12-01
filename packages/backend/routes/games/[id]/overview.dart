@@ -30,6 +30,7 @@ Future<Response> _getOverview(RequestContext context, String id) async {
           'game': {
             ...game.toJson(),
             'gameMode': game.gameMode,
+            'startTime': game.startTime,
             'endTime': game.endTime,
           },
           'tiles': <Map<String, dynamic>>[],
@@ -138,6 +139,7 @@ Future<Response> _getOverview(RequestContext context, String id) async {
         'game': {
           ...game.toJson(),
           'gameMode': game.gameMode,
+          'startTime': game.startTime,
           'endTime': game.endTime,
         },
         'tiles': tilesData,

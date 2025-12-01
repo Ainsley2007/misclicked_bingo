@@ -29,6 +29,7 @@ Future<Response> _getGames(RequestContext context) async {
               'teamSize': g.teamSize,
               'boardSize': g.boardSize,
               'gameMode': g.gameMode,
+              'startTime': g.startTime,
               'endTime': g.endTime,
               'createdAt': g.createdAt,
             },
@@ -50,6 +51,7 @@ Future<Response> _createGame(RequestContext context) async {
     final teamSize = body['teamSize'] as int? ?? 5;
     final boardSize = body['boardSize'] as int? ?? 3;
     final gameMode = body['gameMode'] as String? ?? 'blackout';
+    final startTimeStr = body['startTime'] as String?;
     final endTimeStr = body['endTime'] as String?;
     final tiles = body['tiles'] as List<dynamic>? ?? [];
 
@@ -81,9 +83,22 @@ Future<Response> _createGame(RequestContext context) async {
       );
     }
 
+    DateTime? startTime;
+    if (startTimeStr != null && startTimeStr.isNotEmpty) {
+      startTime = DateTime.tryParse(startTimeStr);
+    }
+
     DateTime? endTime;
     if (endTimeStr != null && endTimeStr.isNotEmpty) {
       endTime = DateTime.tryParse(endTimeStr);
+    }
+
+    // Validate that end time is after start time if both are set
+    if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'error': 'End time must be after start time'},
+      );
     }
 
     final requiredTiles = boardSize * boardSize;
@@ -127,6 +142,7 @@ Future<Response> _createGame(RequestContext context) async {
       teamSize: teamSize,
       boardSize: boardSize,
       gameMode: gameMode,
+      startTime: startTime,
       endTime: endTime,
       createdAt: now,
     );
@@ -213,6 +229,7 @@ Future<Response> _createGame(RequestContext context) async {
         'teamSize': teamSize,
         'boardSize': boardSize,
         'gameMode': gameMode,
+        'startTime': startTime?.toIso8601String(),
         'endTime': endTime?.toIso8601String(),
         'createdAt': now.toIso8601String(),
       },

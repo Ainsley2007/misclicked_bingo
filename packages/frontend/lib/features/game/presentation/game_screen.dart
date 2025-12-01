@@ -8,6 +8,7 @@ import 'package:frontend/features/game/logic/game_bloc.dart';
 import 'package:frontend/features/game/logic/game_event.dart';
 import 'package:frontend/features/game/logic/game_state.dart';
 import 'package:frontend/features/game/presentation/widgets/bingo_tile_card.dart';
+import 'package:frontend/features/game/presentation/widgets/game_countdown.dart';
 import 'package:frontend/features/game/presentation/widgets/tile_details_dialog.dart';
 
 class GameScreen extends StatelessWidget {
@@ -68,6 +69,7 @@ class _GameScreenContentState extends State<_GameScreenContent> {
                     constraints: const BoxConstraints(maxWidth: 1600),
                     child: Center(
                       child: _BingoBoardSection(
+                        game: game,
                         tiles: tiles,
                         boardSize: game.boardSize,
                         availableHeight: availableHeight,
@@ -88,6 +90,7 @@ class _GameScreenContentState extends State<_GameScreenContent> {
 
 class _BingoBoardSection extends StatelessWidget {
   const _BingoBoardSection({
+    required this.game,
     required this.tiles,
     required this.boardSize,
     required this.availableHeight,
@@ -95,6 +98,7 @@ class _BingoBoardSection extends StatelessWidget {
     this.isPointsMode = false,
   });
 
+  final Game game;
   final List<BingoTile> tiles;
   final int boardSize;
   final double availableHeight;
@@ -114,7 +118,7 @@ class _BingoBoardSection extends StatelessWidget {
         builder: (context, outerConstraints) {
           const minTileSize = 80.0;
           const maxTileSize = 160.0;
-          const headerAndPadding = 100.0;
+          const headerAndPadding = 140.0;
           const spacing = 10.0;
           final maxBoardHeight = availableHeight - headerAndPadding;
 
@@ -159,6 +163,16 @@ class _BingoBoardSection extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (game.startTime != null || game.endTime != null) ...[
+                    const SizedBox(height: 12),
+                    GameCountdown(
+                      startTime: game.startTime,
+                      endTime: game.endTime,
+                      onGameStarted: () {
+                        context.read<GameBloc>().add(GameLoadRequested(gameId));
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   Builder(
                     builder: (context) {
@@ -196,6 +210,8 @@ class _BingoBoardSection extends StatelessWidget {
                                   child: TileDetailsDialog(
                                     tile: tile,
                                     gameId: gameId,
+                                    gameStartTime: game.startTime,
+                                    gameEndTime: game.endTime,
                                     onToggleCompletion: (_) {
                                       bloc.add(
                                         TileCompletionToggled(

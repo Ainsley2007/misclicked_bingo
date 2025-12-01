@@ -22,6 +22,7 @@ Future<Response> _getPublicGames(RequestContext context) async {
       'teamSize': game.teamSize,
       'boardSize': game.boardSize,
       'gameMode': game.gameMode,
+      'startTime': game.startTime,
       'endTime': game.endTime,
       'createdAt': game.createdAt,
     }).toList();

@@ -12,6 +12,7 @@ final class GameCreationState {
     this.teamSize = 5,
     this.boardSize = 3,
     this.gameMode = GameMode.blackout,
+    this.startTime,
     this.endTime,
     this.tiles = const [],
     this.bosses = const [],
@@ -30,6 +31,7 @@ final class GameCreationState {
   final int teamSize;
   final int boardSize;
   final GameMode gameMode;
+  final DateTime? startTime;
   final DateTime? endTime;
   final List<GameTileCreation> tiles;
   final List<Boss> bosses;
@@ -45,6 +47,8 @@ final class GameCreationState {
     int? teamSize,
     int? boardSize,
     GameMode? gameMode,
+    DateTime? startTime,
+    bool clearStartTime = false,
     DateTime? endTime,
     bool clearEndTime = false,
     List<GameTileCreation>? tiles,
@@ -61,6 +65,7 @@ final class GameCreationState {
       teamSize: teamSize ?? this.teamSize,
       boardSize: boardSize ?? this.boardSize,
       gameMode: gameMode ?? this.gameMode,
+      startTime: clearStartTime ? null : (startTime ?? this.startTime),
       endTime: clearEndTime ? null : (endTime ?? this.endTime),
       tiles: tiles ?? this.tiles,
       bosses: bosses ?? this.bosses,
@@ -79,6 +84,7 @@ final class GameCreationState {
       teamSize: teamSize,
       boardSize: boardSize,
       gameMode: gameMode,
+      startTime: startTime,
       endTime: endTime,
       tiles: tiles,
       bosses: bosses,

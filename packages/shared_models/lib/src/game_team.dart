@@ -26,6 +26,7 @@ class Game extends Equatable {
   final int boardSize;
   @JsonKey(fromJson: _gameModeFromJson, toJson: _gameModeToJson)
   final GameMode gameMode;
+  final DateTime? startTime;
   final DateTime? endTime;
   final DateTime createdAt;
 
@@ -36,6 +37,7 @@ class Game extends Equatable {
     required this.teamSize,
     required this.boardSize,
     this.gameMode = GameMode.blackout,
+    this.startTime,
     this.endTime,
     required this.createdAt,
   });
@@ -47,8 +49,12 @@ class Game extends Equatable {
   factory Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);
   Map<String, dynamic> toJson() => _$GameToJson(this);
 
+  bool get hasStarted => startTime == null || DateTime.now().isAfter(startTime!);
+  bool get hasEnded => endTime != null && DateTime.now().isAfter(endTime!);
+  bool get isActive => hasStarted && !hasEnded;
+
   @override
-  List<Object?> get props => [id, code, name, teamSize, boardSize, gameMode, endTime];
+  List<Object?> get props => [id, code, name, teamSize, boardSize, gameMode, startTime, endTime];
 }
 
 @JsonSerializable()

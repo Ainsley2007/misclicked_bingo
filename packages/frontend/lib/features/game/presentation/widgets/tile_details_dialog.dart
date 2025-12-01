@@ -13,12 +13,16 @@ class TileDetailsDialog extends StatelessWidget {
     required this.tile,
     required this.gameId,
     required this.onToggleCompletion,
+    this.gameStartTime,
+    this.gameEndTime,
     super.key,
   });
 
   final BingoTile tile;
   final String gameId;
   final void Function(bool canComplete) onToggleCompletion;
+  final DateTime? gameStartTime;
+  final DateTime? gameEndTime;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,8 @@ class TileDetailsDialog extends StatelessWidget {
         gameId: gameId,
         onToggleCompletion: onToggleCompletion,
         isAdmin: isAdmin,
+        gameStartTime: gameStartTime,
+        gameEndTime: gameEndTime,
       ),
     );
   }
@@ -43,12 +49,20 @@ class _TileDetailsDialogContent extends StatelessWidget {
     required this.gameId,
     required this.onToggleCompletion,
     required this.isAdmin,
+    this.gameStartTime,
+    this.gameEndTime,
   });
 
   final BingoTile tile;
   final String gameId;
   final void Function(bool canComplete) onToggleCompletion;
   final bool isAdmin;
+  final DateTime? gameStartTime;
+  final DateTime? gameEndTime;
+
+  bool get _hasGameStarted => gameStartTime == null || DateTime.now().isAfter(gameStartTime!);
+  bool get _hasGameEnded => gameEndTime != null && DateTime.now().isAfter(gameEndTime!);
+  bool get _canModifyTile => _hasGameStarted && !_hasGameEnded;
 
   @override
   Widget build(BuildContext context) {
@@ -136,49 +150,89 @@ class _TileDetailsDialogContent extends StatelessWidget {
   Widget _buildFooter(BuildContext context) {
     return BlocBuilder<ProofsBloc, ProofsState>(
       builder: (context, state) {
-        final canComplete = state.canComplete;
+        final canComplete = state.canComplete && _canModifyTile;
         final isLoading = state.status == ProofsStatus.loading || state.status == ProofsStatus.uploading;
 
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainer,
-            border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            spacing: 12,
-            children: [
-              _buildButton(
-                context: context,
-                label: 'Close',
-                onPressed: () => Navigator.of(context).pop(),
-                isPrimary: false,
+        String? disabledReason;
+        if (!_hasGameStarted) {
+          disabledReason = 'Game has not started yet';
+        } else if (_hasGameEnded) {
+          disabledReason = 'Game has ended';
+        } else if (!state.canComplete) {
+          disabledReason = 'Add Proof First';
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!_canModifyTile)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.5),
+                child: Row(
+                  children: [
+                    Icon(
+                      !_hasGameStarted ? Icons.schedule_rounded : Icons.timer_off_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        !_hasGameStarted
+                            ? 'Game has not started yet. You cannot complete tiles until it starts.'
+                            : 'Game has ended. Tiles can no longer be completed.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              if (tile.isCompleted && isAdmin)
-                _buildButton(
-                  context: context,
-                  label: 'Undo Completion',
-                  onPressed: () {
-                    onToggleCompletion(true);
-                    Navigator.of(context).pop();
-                  },
-                  isPrimary: false,
-                ),
-              if (!tile.isCompleted)
-                _buildButton(
-                  context: context,
-                  label: canComplete ? 'Mark Complete' : 'Add Proof First',
-                  onPressed: canComplete && !isLoading
-                      ? () {
-                          onToggleCompletion(true);
-                          Navigator.of(context).pop();
-                        }
-                      : null,
-                  isPrimary: true,
-                ),
-            ],
-          ),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                spacing: 12,
+                children: [
+                  _buildButton(
+                    context: context,
+                    label: 'Close',
+                    onPressed: () => Navigator.of(context).pop(),
+                    isPrimary: false,
+                  ),
+                  if (tile.isCompleted && isAdmin && _canModifyTile)
+                    _buildButton(
+                      context: context,
+                      label: 'Undo Completion',
+                      onPressed: () {
+                        onToggleCompletion(true);
+                        Navigator.of(context).pop();
+                      },
+                      isPrimary: false,
+                    ),
+                  if (!tile.isCompleted)
+                    _buildButton(
+                      context: context,
+                      label: disabledReason ?? 'Mark Complete',
+                      onPressed: canComplete && !isLoading
+                          ? () {
+                              onToggleCompletion(true);
+                              Navigator.of(context).pop();
+                            }
+                          : null,
+                      isPrimary: true,
+                    ),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );

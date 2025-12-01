@@ -10,13 +10,14 @@ Future<Response> onRequest(
   String tileId,
 ) async {
   return switch (context.request.method) {
-    HttpMethod.put => _toggleTileCompletion(context, tileId),
+    HttpMethod.put => _toggleTileCompletion(context, gameId, tileId),
     _ => Response(statusCode: HttpStatus.methodNotAllowed),
   };
 }
 
 Future<Response> _toggleTileCompletion(
   RequestContext context,
+  String gameId,
   String tileId,
 ) async {
   try {
@@ -30,6 +31,44 @@ Future<Response> _toggleTileCompletion(
         statusCode: HttpStatus.forbidden,
         body: {'error': 'User must be part of a team'},
       );
+    }
+
+    // Check if game has started
+    final game = await db.getGameById(gameId);
+    if (game == null) {
+      return Response.json(
+        statusCode: HttpStatus.notFound,
+        body: {'error': 'Game not found'},
+      );
+    }
+
+    if (game.startTime != null) {
+      final startTime = DateTime.tryParse(game.startTime!);
+      if (startTime != null && DateTime.now().isBefore(startTime)) {
+        return Response.json(
+          statusCode: HttpStatus.forbidden,
+          body: {
+            'error': 'Game has not started yet',
+            'code': 'GAME_NOT_STARTED',
+            'startTime': game.startTime,
+          },
+        );
+      }
+    }
+
+    // Check if game has ended (optional: prevent completion after end time)
+    if (game.endTime != null) {
+      final endTime = DateTime.tryParse(game.endTime!);
+      if (endTime != null && DateTime.now().isAfter(endTime)) {
+        return Response.json(
+          statusCode: HttpStatus.forbidden,
+          body: {
+            'error': 'Game has ended',
+            'code': 'GAME_ENDED',
+            'endTime': game.endTime,
+          },
+        );
+      }
     }
 
     final result = await tilesService.toggleTileCompletion(

@@ -80,10 +80,10 @@ class _OverviewTileContent extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final tileSize = constraints.maxWidth;
-        // Larger icons for overview (50% of tile, no max clamp for bigger tiles)
-        final iconSize = (tileSize * 0.50).clamp(20.0, 64.0);
-        final lineMargin = tileSize * 0.15;
-        final spacing = tileSize * 0.03;
+        // Scale icon relative to tile size
+        final iconSize = (tileSize * 0.45).clamp(16.0, 48.0);
+        final lineMargin = tileSize * 0.18;
+        final spacing = tileSize * 0.04;
 
         return Center(
           child: Column(

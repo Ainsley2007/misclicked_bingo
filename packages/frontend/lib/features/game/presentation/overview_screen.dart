@@ -80,10 +80,10 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
                         72 // 72 = padding
                   : screenWidth - 48;
 
-              const targetBoardWidth = 380.0;
+              const targetBoardWidth = 300.0;
               final crossAxisCount = (boardAreaWidth / targetBoardWidth)
                   .floor()
-                  .clamp(1, 4);
+                  .clamp(1, 5);
 
               return Row(
                 children: [

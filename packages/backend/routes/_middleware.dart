@@ -1,4 +1,5 @@
 import 'package:backend/database.dart';
+import 'package:backend/helpers/cors_helper.dart';
 import 'package:backend/services/activity_service.dart';
 import 'package:backend/services/auth_service.dart';
 import 'package:backend/services/boss_service.dart';
@@ -10,7 +11,7 @@ import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Handler middleware(Handler handler) {
-  return handler.use(servicesProvider());
+  return handler.use(corsHeaders()).use(servicesProvider());
 }
 
 Middleware servicesProvider() {

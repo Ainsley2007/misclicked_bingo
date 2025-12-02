@@ -1,14 +1,11 @@
-import 'dart:developer' as developer;
-
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/bloc/base_bloc.dart';
 import 'package:frontend/repositories/bosses_repository.dart';
 import 'package:frontend/repositories/games_repository.dart';
-import 'package:frontend/core/error/api_exception.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_event.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_state.dart';
 import 'package:shared_models/shared_models.dart';
 
-class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
+class GameCreationBloc extends BaseBloc<GameCreationEvent, GameCreationState> {
   GameCreationBloc(this._repository, this._bossRepository) : super(const GameCreationState.initial()) {
     on<NextStepRequested>(_onNextStepRequested);
     on<PreviousStepRequested>(_onPreviousStepRequested);
@@ -22,7 +19,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     on<TileAdded>(_onTileAdded);
     on<TileUpdated>(_onTileUpdated);
     on<TileRemoved>(_onTileRemoved);
-    on<GameSubmitted>(_onGameSubmitted);
+    onDroppable<GameSubmitted>(_onGameSubmitted);
     on<BossesLoadRequested>(_onBossesLoadRequested);
   }
 
@@ -116,8 +113,8 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
 
     emit(state.copyWith(status: GameCreationStatus.submitting));
 
-    try {
-      final game = await _repository.createGame(
+    await executeWithResult(
+      action: () => _repository.createGame(
         name: state.gameName,
         teamSize: state.teamSize,
         boardSize: state.boardSize,
@@ -125,17 +122,13 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
         startTime: state.startTime,
         endTime: state.endTime,
         tiles: state.tiles,
-      );
-
-      emit(state.copyWith(status: GameCreationStatus.success, createdGame: game));
-      developer.log('Created game: ${game.name} (${game.code})', name: 'game_creation');
-    } on ApiException catch (e) {
-      developer.log('Failed to create game: ${e.code}', name: 'game_creation', level: 1000);
-      emit(state.copyWith(status: GameCreationStatus.error, error: e.message));
-    } catch (e, stackTrace) {
-      developer.log('Failed to create game', name: 'game_creation', level: 1000, error: e, stackTrace: stackTrace);
-      emit(state.copyWith(status: GameCreationStatus.error, error: 'Failed to create game: $e'));
-    }
+      ),
+      onSuccess: (game) => emit(state.copyWith(status: GameCreationStatus.success, createdGame: game)),
+      onError: (message) => emit(state.copyWith(status: GameCreationStatus.error, error: message)),
+      context: 'game_creation',
+      errorMessages: BlocErrorHandlerMixin.validationErrors,
+      defaultMessage: 'Failed to create game',
+    );
   }
 
   bool _canProceedFromCurrentStep(GameCreationState state) {
@@ -170,15 +163,12 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
 
     emit(state.copyWith(isLoadingBosses: true));
 
-    try {
-      final bosses = await _bossRepository.getBosses();
-      emit(state.copyWith(bosses: bosses, isLoadingBosses: false));
-      developer.log('Loaded ${bosses.length} bosses', name: 'game_creation');
-    } on ApiException catch (e) {
-      developer.log('Failed to load bosses: ${e.code}', name: 'game_creation', level: 1000);
-      emit(state.copyWith(isLoadingBosses: false, error: e.message));
-    } catch (e) {
-      emit(state.copyWith(isLoadingBosses: false, error: 'Failed to load bosses: $e'));
-    }
+    await executeWithResult(
+      action: () => _bossRepository.getBosses(),
+      onSuccess: (bosses) => emit(state.copyWith(bosses: bosses, isLoadingBosses: false)),
+      onError: (message) => emit(state.copyWith(isLoadingBosses: false, error: message)),
+      context: 'game_creation',
+      defaultMessage: 'Failed to load bosses',
+    );
   }
 }

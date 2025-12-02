@@ -1,18 +1,17 @@
 import 'dart:typed_data';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/bloc/base_bloc.dart';
 import 'package:frontend/repositories/proofs_repository.dart';
-import 'package:frontend/core/error/api_exception.dart';
 import 'package:frontend/features/game/logic/proofs_event.dart';
 import 'package:frontend/features/game/logic/proofs_state.dart';
 import 'package:shared_models/shared_models.dart';
 
-class ProofsBloc extends Bloc<ProofsEvent, ProofsState> {
+class ProofsBloc extends BaseBloc<ProofsEvent, ProofsState> {
   ProofsBloc(this._repository) : super(const ProofsState.initial()) {
     on<ProofsLoadRequested>(_onLoadRequested);
-    on<ProofUploadRequested>(_onUploadRequested);
-    on<ProofsBatchUploadRequested>(_onBatchUploadRequested);
-    on<ProofDeleteRequested>(_onDeleteRequested);
+    onDroppable<ProofUploadRequested>(_onUploadRequested);
+    onDroppable<ProofsBatchUploadRequested>(_onBatchUploadRequested);
+    onDroppable<ProofDeleteRequested>(_onDeleteRequested);
     on<ProofsCleared>(_onCleared);
   }
 
@@ -20,14 +19,13 @@ class ProofsBloc extends Bloc<ProofsEvent, ProofsState> {
 
   Future<void> _onLoadRequested(ProofsLoadRequested event, Emitter<ProofsState> emit) async {
     emit(const ProofsState.loading());
-    try {
-      final proofs = await _repository.getProofs(gameId: event.gameId, tileId: event.tileId, teamId: event.teamId);
-      emit(ProofsState.loaded(proofs));
-    } on ApiException catch (e) {
-      emit(ProofsState.error(e.message, state.proofs));
-    } catch (e) {
-      emit(ProofsState.error('Failed to load proofs: $e', state.proofs));
-    }
+    await executeWithResult(
+      action: () => _repository.getProofs(gameId: event.gameId, tileId: event.tileId, teamId: event.teamId),
+      onSuccess: (proofs) => emit(ProofsState.loaded(proofs)),
+      onError: (message) => emit(ProofsState.error(message, state.proofs)),
+      context: 'proofs',
+      defaultMessage: 'Failed to load proofs',
+    );
   }
 
   Future<void> _onUploadRequested(ProofUploadRequested event, Emitter<ProofsState> emit) async {
@@ -47,15 +45,16 @@ class ProofsBloc extends Bloc<ProofsEvent, ProofsState> {
     }
 
     emit(ProofsState.uploading(state.proofs));
-    try {
-      final contentType = _repository.getContentType(event.fileName);
-      final proof = await _repository.uploadProof(gameId: event.gameId, tileId: event.tileId, fileName: event.fileName, fileBytes: event.fileBytes, contentType: contentType);
-      emit(ProofsState.loaded([...state.proofs, proof]));
-    } on ApiException catch (e) {
-      emit(ProofsState.error('Upload failed: ${e.message}', state.proofs));
-    } catch (e) {
-      emit(ProofsState.error('Upload failed: $e', state.proofs));
-    }
+    await executeWithResult(
+      action: () {
+        final contentType = _repository.getContentType(event.fileName);
+        return _repository.uploadProof(gameId: event.gameId, tileId: event.tileId, fileName: event.fileName, fileBytes: event.fileBytes, contentType: contentType);
+      },
+      onSuccess: (proof) => emit(ProofsState.loaded([...state.proofs, proof])),
+      onError: (message) => emit(ProofsState.error('Upload failed: $message', state.proofs)),
+      context: 'proofs',
+      defaultMessage: 'Failed to upload proof',
+    );
   }
 
   Future<void> _onBatchUploadRequested(ProofsBatchUploadRequested event, Emitter<ProofsState> emit) async {
@@ -81,22 +80,22 @@ class ProofsBloc extends Bloc<ProofsEvent, ProofsState> {
       final file = validFiles[i];
       emit(ProofsState.uploading([...originalProofs, ...uploadedProofs], total: validFiles.length, current: i + 1));
 
-      try {
-        final proof = await _repository.uploadProof(
+      final proof = await executeWithResult<TileProof>(
+        action: () => _repository.uploadProof(
           gameId: event.gameId,
           tileId: event.tileId,
           fileName: file.fileName,
           fileBytes: Uint8List.fromList(file.fileBytes),
           contentType: file.contentType,
-        );
-        uploadedProofs.add(proof);
-      } on ApiException catch (e) {
-        emit(ProofsState.error('Failed to upload ${file.fileName}: ${e.message}', [...originalProofs, ...uploadedProofs]));
-        return;
-      } catch (e) {
-        emit(ProofsState.error('Failed to upload ${file.fileName}: $e', [...originalProofs, ...uploadedProofs]));
-        return;
-      }
+        ),
+        onSuccess: (_) {},
+        onError: (message) => emit(ProofsState.error('Failed to upload ${file.fileName}: $message', [...originalProofs, ...uploadedProofs])),
+        context: 'proofs',
+        defaultMessage: 'Failed to upload file',
+      );
+
+      if (proof == null) return;
+      uploadedProofs.add(proof);
     }
 
     emit(ProofsState.loaded([...originalProofs, ...uploadedProofs]));
@@ -104,15 +103,16 @@ class ProofsBloc extends Bloc<ProofsEvent, ProofsState> {
 
   Future<void> _onDeleteRequested(ProofDeleteRequested event, Emitter<ProofsState> emit) async {
     emit(ProofsState.deleting(state.proofs));
-    try {
-      await _repository.deleteProof(gameId: event.gameId, tileId: event.tileId, proofId: event.proofId);
-      final updatedProofs = state.proofs.where((p) => p.id != event.proofId).toList();
-      emit(ProofsState.loaded(updatedProofs));
-    } on ApiException catch (e) {
-      emit(ProofsState.error('Delete failed: ${e.message}', state.proofs));
-    } catch (e) {
-      emit(ProofsState.error('Delete failed: $e', state.proofs));
-    }
+    await execute(
+      action: () async {
+        await _repository.deleteProof(gameId: event.gameId, tileId: event.tileId, proofId: event.proofId);
+        final updatedProofs = state.proofs.where((p) => p.id != event.proofId).toList();
+        emit(ProofsState.loaded(updatedProofs));
+      },
+      onError: (message) => emit(ProofsState.error('Delete failed: $message', state.proofs)),
+      context: 'proofs',
+      defaultMessage: 'Failed to delete proof',
+    );
   }
 
   void _onCleared(ProofsCleared event, Emitter<ProofsState> emit) {

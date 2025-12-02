@@ -1,19 +1,16 @@
-import 'dart:developer' as developer;
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_models/shared_models.dart';
+import 'package:frontend/core/bloc/base_bloc.dart';
 import 'package:frontend/repositories/games_repository.dart';
-import 'package:frontend/core/error/api_exception.dart';
+import 'package:shared_models/shared_models.dart';
 
 part 'games_event.dart';
 part 'games_state.dart';
 
-class GamesBloc extends Bloc<GamesEvent, GamesState> {
+class GamesBloc extends BaseBloc<GamesEvent, GamesState> {
   GamesBloc(this._repository) : super(const GamesInitial()) {
     on<GamesLoadRequested>(_onLoadRequested);
-    on<GamesCreateRequested>(_onCreateRequested);
-    on<GamesDeleteRequested>(_onDeleteRequested);
+    onDroppable<GamesCreateRequested>(_onCreateRequested);
+    onDroppable<GamesDeleteRequested>(_onDeleteRequested);
   }
 
   final GamesRepository _repository;
@@ -21,48 +18,41 @@ class GamesBloc extends Bloc<GamesEvent, GamesState> {
   Future<void> _onLoadRequested(GamesLoadRequested event, Emitter<GamesState> emit) async {
     emit(const GamesLoading());
 
-    try {
-      final games = await _repository.getGames();
-      emit(GamesLoaded(games));
-      developer.log('Loaded ${games.length} games', name: 'games');
-    } on ApiException catch (e) {
-      developer.log('Failed to load games: ${e.code}', name: 'games', level: 1000);
-      emit(GamesError(e.message));
-    } catch (e, stackTrace) {
-      developer.log('Failed to load games', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
-      emit(GamesError('Failed to load games: $e'));
-    }
+    await executeWithResult(
+      action: () => _repository.getGames(),
+      onSuccess: (games) => emit(GamesLoaded(games)),
+      onError: (message) => emit(GamesError(message)),
+      context: 'games',
+      defaultMessage: 'Failed to load games',
+    );
   }
 
   Future<void> _onCreateRequested(GamesCreateRequested event, Emitter<GamesState> emit) async {
     emit(GamesCreating(state.games));
 
-    try {
-      final game = await _repository.createGame(name: event.name, teamSize: event.teamSize, boardSize: 3, gameMode: GameMode.blackout, tiles: []);
-      final updatedGames = [game, ...state.games];
-      emit(GamesCreated(updatedGames, game));
-      developer.log('Created game: ${game.name} (${game.code})', name: 'games');
-    } on ApiException catch (e) {
-      developer.log('Failed to create game: ${e.code}', name: 'games', level: 1000);
-      emit(GamesError(e.message));
-    } catch (e, stackTrace) {
-      developer.log('Failed to create game', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
-      emit(GamesError('Failed to create game: $e'));
-    }
+    await execute(
+      action: () async {
+        final game = await _repository.createGame(name: event.name, teamSize: event.teamSize, boardSize: 3, gameMode: GameMode.blackout, tiles: []);
+        final updatedGames = [game, ...state.games];
+        emit(GamesCreated(updatedGames, game));
+      },
+      onError: (message) => emit(GamesError(message)),
+      context: 'games',
+      errorMessages: BlocErrorHandlerMixin.validationErrors,
+      defaultMessage: 'Failed to create game',
+    );
   }
 
   Future<void> _onDeleteRequested(GamesDeleteRequested event, Emitter<GamesState> emit) async {
-    try {
-      await _repository.deleteGame(event.gameId);
-      final updatedGames = state.games.where((g) => g.id != event.gameId).toList();
-      emit(GamesLoaded(updatedGames));
-      developer.log('Deleted game: ${event.gameId}', name: 'games');
-    } on ApiException catch (e) {
-      developer.log('Failed to delete game: ${e.code}', name: 'games', level: 1000);
-      emit(GamesError(e.message));
-    } catch (e, stackTrace) {
-      developer.log('Failed to delete game', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
-      emit(GamesError('Failed to delete game: $e'));
-    }
+    await execute(
+      action: () async {
+        await _repository.deleteGame(event.gameId);
+        final updatedGames = state.games.where((g) => g.id != event.gameId).toList();
+        emit(GamesLoaded(updatedGames));
+      },
+      onError: (message) => emit(GamesError(message)),
+      context: 'games',
+      defaultMessage: 'Failed to delete game',
+    );
   }
 }

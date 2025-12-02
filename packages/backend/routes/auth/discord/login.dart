@@ -1,4 +1,5 @@
 import 'package:backend/config.dart';
+import 'package:backend/helpers/response_helper.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Response onRequest(RequestContext context) {
@@ -6,9 +7,8 @@ Response onRequest(RequestContext context) {
   final redirectUri = Config.discordRedirectUri;
 
   if (clientId.isEmpty || redirectUri.isEmpty) {
-    return Response.json(
-      statusCode: 500,
-      body: {'error': 'Discord OAuth not configured'},
+    return ResponseHelper.internalError(
+      message: 'Discord OAuth not configured',
     );
   }
 

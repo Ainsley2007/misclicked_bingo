@@ -1,13 +1,12 @@
-import 'dart:io';
-
 import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/proofs_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
     HttpMethod.post => _getUploadUrl(context),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
@@ -19,9 +18,8 @@ Future<Response> _getUploadUrl(RequestContext context) async {
 
     final user = await db.getUserById(userId);
     if (user == null || user.teamId == null) {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'User must be part of a team'},
+      return ResponseHelper.forbidden(
+        message: 'User must be part of a team',
       );
     }
 
@@ -30,9 +28,8 @@ Future<Response> _getUploadUrl(RequestContext context) async {
     final fileName = body['fileName'] as String?;
 
     if (gameId == null || fileName == null) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Missing required fields: gameId, fileName'},
+      return ResponseHelper.validationError(
+        message: 'Missing required fields: gameId, fileName',
       );
     }
 
@@ -42,12 +39,8 @@ Future<Response> _getUploadUrl(RequestContext context) async {
       fileName: fileName,
     );
 
-    return Response.json(body: result);
+    return ResponseHelper.success(data: result);
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to generate upload URL: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
-

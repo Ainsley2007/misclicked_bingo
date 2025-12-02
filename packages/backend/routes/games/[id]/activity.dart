@@ -1,12 +1,11 @@
-import 'dart:io';
-
+import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/activity_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
     HttpMethod.get => _getActivity(context, id),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
@@ -22,12 +21,10 @@ Future<Response> _getActivity(RequestContext context, String gameId) async {
       limit: limit,
     );
 
-    return Response.json(body: activities.map((a) => a.toJson()).toList());
-  } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch activity: $e'},
+    return ResponseHelper.success(
+      data: activities.map((a) => a.toJson()).toList(),
     );
+  } catch (e) {
+    return ResponseHelper.internalError();
   }
 }
-

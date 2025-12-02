@@ -1,40 +1,36 @@
-import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:backend/config.dart';
-import 'package:backend/database.dart';
-import 'package:backend/db.dart';
 import 'package:backend/helpers/cookies.dart';
-import 'package:backend/helpers/jwt.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/auth_service.dart';
+import 'package:backend/validators/auth_validator.dart';
 import 'package:dart_frog/dart_frog.dart';
-import 'package:drift/drift.dart';
-import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   final code = context.request.uri.queryParameters['code'];
 
-  if (code == null) {
-    return Response.json(
+  final validation = AuthValidator.validateAuthCode(code: code);
+  if (!validation.isValid) {
+    return ResponseHelper.error(
+      message: validation.errorMessage!,
+      code: validation.errorCode!,
       statusCode: 400,
-      body: {'error': 'Missing authorization code'},
     );
   }
 
   try {
-    final accessToken = await _exchangeCodeForToken(code);
-    final discordUser = await _fetchDiscordUser(accessToken);
+    final authService = AuthService();
+    final accessToken = await authService.exchangeCodeForToken(code!);
+    final discordUser = await authService.fetchDiscordUser(accessToken);
+    final userId = await authService.upsertUser(discordUser);
 
-    final userId = await _upsertUser(discordUser);
-
-    final jwtToken = JwtHelper.sign({
-      'sub': userId,
-      'discordId': discordUser['id'],
-      'role': 'user',
-    });
+    final jwtToken = authService.generateJwtToken(
+      userId: userId,
+      discordId: discordUser['id'] as String,
+    );
 
     final frontendOrigin = Config.frontendOrigin;
-
     final response = Response(
       statusCode: 302,
       headers: {'Location': frontendOrigin},
@@ -49,137 +45,8 @@ Future<Response> onRequest(RequestContext context) async {
       error: e,
       stackTrace: stackTrace,
     );
-    return Response.json(
-      statusCode: 500,
-      body: {'error': 'Authentication failed: $e'},
+    return ResponseHelper.internalError(
+      message: 'Authentication failed',
     );
   }
-}
-
-Future<String> _exchangeCodeForToken(String code) async {
-  final clientId = Config.discordClientId;
-  final clientSecret = Config.discordClientSecret;
-  final redirectUri = Config.discordRedirectUri;
-
-  if (clientId.isEmpty || clientSecret.isEmpty || redirectUri.isEmpty) {
-    developer.log(
-      'Missing Discord OAuth environment variables',
-      name: 'auth.discord',
-      level: 1000,
-      error:
-          'clientId: ${clientId.isNotEmpty}, clientSecret: ${clientSecret.isNotEmpty}, redirectUri: ${redirectUri.isNotEmpty}',
-    );
-    throw Exception('Discord OAuth not properly configured');
-  }
-
-  final response = await http.post(
-    Uri.https('discord.com', '/api/oauth2/token'),
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: {
-      'client_id': clientId,
-      'client_secret': clientSecret,
-      'grant_type': 'authorization_code',
-      'code': code,
-      'redirect_uri': redirectUri,
-    },
-  );
-
-  if (response.statusCode != 200) {
-    throw Exception('Token exchange failed: ${response.body}');
-  }
-
-  final data = jsonDecode(response.body) as Map<String, dynamic>;
-  return data['access_token'] as String;
-}
-
-Future<Map<String, dynamic>> _fetchDiscordUser(String accessToken) async {
-  final response = await http.get(
-    Uri.https('discord.com', '/api/users/@me'),
-    headers: {'Authorization': 'Bearer $accessToken'},
-  );
-
-  if (response.statusCode != 200) {
-    throw Exception('Failed to fetch user: ${response.body}');
-  }
-
-  return jsonDecode(response.body) as Map<String, dynamic>;
-}
-
-Future<String> _upsertUser(Map<String, dynamic> discordUser) async {
-  final db = Db.instance;
-  final discordId = discordUser['id'] as String;
-
-  final existingUser = await (db.select(
-    db.users,
-  )..where((u) => u.discordId.equals(discordId))).getSingleOrNull();
-
-  if (existingUser != null) {
-    try {
-      await (db.update(
-        db.users,
-      )..where((u) => u.id.equals(existingUser.id))).write(
-        UsersCompanion(
-          globalName: Value(discordUser['global_name'] as String?),
-          username: Value(discordUser['username'] as String?),
-          email: Value(discordUser['email'] as String?),
-          avatar: Value(discordUser['avatar'] as String?),
-        ),
-      );
-    } catch (e) {
-      // Fallback if avatar column doesn't exist yet
-      developer.log(
-        'Failed to update user with avatar, trying without avatar',
-        name: 'auth.discord',
-        error: e,
-      );
-      await (db.update(
-        db.users,
-      )..where((u) => u.id.equals(existingUser.id))).write(
-        UsersCompanion(
-          globalName: Value(discordUser['global_name'] as String?),
-          username: Value(discordUser['username'] as String?),
-          email: Value(discordUser['email'] as String?),
-        ),
-      );
-    }
-    return existingUser.id;
-  }
-
-  final userId = const Uuid().v4();
-  try {
-    await db
-        .into(db.users)
-        .insert(
-          UsersCompanion.insert(
-            id: userId,
-            discordId: discordId,
-            globalName: Value(discordUser['global_name'] as String?),
-            username: Value(discordUser['username'] as String?),
-            email: Value(discordUser['email'] as String?),
-            avatar: Value(discordUser['avatar'] as String?),
-            role: const Value('user'),
-          ),
-        );
-  } catch (e) {
-    // Fallback if avatar column doesn't exist yet
-    developer.log(
-      'Failed to insert user with avatar, trying without avatar',
-      name: 'auth.discord',
-      error: e,
-    );
-    await db
-        .into(db.users)
-        .insert(
-          UsersCompanion.insert(
-            id: userId,
-            discordId: discordId,
-            globalName: Value(discordUser['global_name'] as String?),
-            username: Value(discordUser['username'] as String?),
-            email: Value(discordUser['email'] as String?),
-            role: const Value('user'),
-          ),
-        );
-  }
-
-  return userId;
 }

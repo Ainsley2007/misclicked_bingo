@@ -1,46 +1,29 @@
-import 'dart:io';
-import 'dart:math';
 import 'dart:developer' as developer;
 
 import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/game_service.dart';
+import 'package:backend/validators/game_validator.dart';
+import 'package:backend/validators/tile_validator.dart';
 import 'package:dart_frog/dart_frog.dart';
-import 'package:uuid/uuid.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
     HttpMethod.get => _getGames(context),
     HttpMethod.post => _createGame(context),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
 Future<Response> _getGames(RequestContext context) async {
   try {
     final db = context.read<AppDatabase>();
-    final games = await db.getAllGames();
+    final gameService = GameService(db);
+    final games = await gameService.getAllGames();
 
-    return Response.json(
-      body: games
-          .map(
-            (g) => {
-              'id': g.id,
-              'code': g.code,
-              'name': g.name,
-              'teamSize': g.teamSize,
-              'boardSize': g.boardSize,
-              'gameMode': g.gameMode,
-              'startTime': g.startTime,
-              'endTime': g.endTime,
-              'createdAt': g.createdAt,
-            },
-          )
-          .toList(),
-    );
+    return ResponseHelper.success(data: games);
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch games'},
-    );
+    return ResponseHelper.internalError();
   }
 }
 
@@ -55,34 +38,6 @@ Future<Response> _createGame(RequestContext context) async {
     final endTimeStr = body['endTime'] as String?;
     final tiles = body['tiles'] as List<dynamic>? ?? [];
 
-    if (name == null || name.trim().isEmpty) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Game name is required'},
-      );
-    }
-
-    if (teamSize < 1 || teamSize > 50) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Team size must be between 1 and 50'},
-      );
-    }
-
-    if (![2, 3, 4, 5].contains(boardSize)) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Board size must be 2, 3, 4, or 5'},
-      );
-    }
-
-    if (!['blackout', 'points'].contains(gameMode)) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Game mode must be "blackout" or "points"'},
-      );
-    }
-
     DateTime? startTime;
     if (startTimeStr != null && startTimeStr.isNotEmpty) {
       startTime = DateTime.tryParse(startTimeStr);
@@ -93,147 +48,69 @@ Future<Response> _createGame(RequestContext context) async {
       endTime = DateTime.tryParse(endTimeStr);
     }
 
-    // Validate that end time is after start time if both are set
-    if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'End time must be after start time'},
+    final validation = GameValidator.validateCreateGame(
+      name: name,
+      teamSize: teamSize,
+      boardSize: boardSize,
+      gameMode: gameMode,
+      startTime: startTime,
+      endTime: endTime,
+      tiles: tiles,
+    );
+
+    if (!validation.isValid) {
+      return ResponseHelper.error(
+        message: validation.errorMessage!,
+        code: validation.errorCode!,
+        details: validation.details,
       );
     }
 
-    final requiredTiles = boardSize * boardSize;
+    if (tiles.isNotEmpty) {
+      for (final tile in tiles) {
+        final t = tile as Map<String, dynamic>;
+        final bossId = t['bossId'] as String?;
+        final isAnyUnique = t['isAnyUnique'] as bool? ?? false;
+        final uniqueItems = t['uniqueItems'] as List<dynamic>?;
 
-    // Allow empty games (tiles can be added later via random board generator)
-    if (tiles.isNotEmpty && tiles.length != requiredTiles) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {
-          'error':
-              'Must have exactly $requiredTiles tiles for ${boardSize}x$boardSize board',
-        },
-      );
-    }
+        final tileValidation = TileValidator.validateTile(
+          bossId: bossId,
+          isAnyUnique: isAnyUnique,
+          uniqueItems: uniqueItems,
+        );
 
-    // Validate points for points mode
-    if (gameMode == 'points' && tiles.isNotEmpty) {
-      for (var i = 0; i < tiles.length; i++) {
-        final t = tiles[i] as Map<String, dynamic>;
-        final tilePoints = (t['points'] as num?)?.toInt() ?? 0;
-        if (tilePoints <= 0) {
-          return Response.json(
-            statusCode: HttpStatus.badRequest,
-            body: {
-              'error': 'Tile ${i + 1} must have points > 0 for points mode',
-            },
+        if (!tileValidation.isValid) {
+          return ResponseHelper.error(
+            message: tileValidation.errorMessage!,
+            code: tileValidation.errorCode!,
+            details: tileValidation.details,
+          );
+        }
+
+        final db = context.read<AppDatabase>();
+        final gameService = GameService(db);
+        final bossExists = await gameService.verifyBossExists(bossId!);
+        if (!bossExists) {
+          return ResponseHelper.notFound(
+            message: 'Boss not found: $bossId',
           );
         }
       }
     }
 
     final db = context.read<AppDatabase>();
-    final id = const Uuid().v4();
-    final code = _generateGameCode();
-    final now = DateTime.now();
-
-    await db.createGame(
-      id: id,
-      code: code,
-      name: name.trim(),
+    final gameService = GameService(db);
+    final game = await gameService.createGame(
+      name: name!,
       teamSize: teamSize,
       boardSize: boardSize,
       gameMode: gameMode,
       startTime: startTime,
       endTime: endTime,
-      createdAt: now,
+      tiles: tiles,
     );
 
-    for (var i = 0; i < tiles.length; i++) {
-      final t = tiles[i] as Map<String, dynamic>;
-      final bossId = t['bossId'] as String?;
-      final description = t['description'] as String?;
-      final uniqueItems = t['uniqueItems'] as List<dynamic>?;
-      final tilePoints = (t['points'] as num?)?.toInt() ?? 0;
-
-      if (bossId == null || bossId.trim().isEmpty) {
-        return Response.json(
-          statusCode: HttpStatus.badRequest,
-          body: {'error': 'Boss ID is required for all tiles'},
-        );
-      }
-
-      // Verify boss exists
-      final boss = await db.getBossById(bossId);
-      if (boss == null) {
-        return Response.json(
-          statusCode: HttpStatus.badRequest,
-          body: {'error': 'Boss not found: $bossId'},
-        );
-      }
-
-      final isAnyUnique = t['isAnyUnique'] as bool? ?? false;
-      final isOrLogic = t['isOrLogic'] as bool? ?? false;
-      final anyNCount = (t['anyNCount'] as num?)?.toInt();
-
-      if (!isAnyUnique && (uniqueItems == null || uniqueItems.isEmpty)) {
-        return Response.json(
-          statusCode: HttpStatus.badRequest,
-          body: {
-            'error':
-                'At least one unique item is required for each tile (or use "Any Unique" option)',
-          },
-        );
-      }
-
-      final tileId = const Uuid().v4();
-      await db.createBingoTile(
-        id: tileId,
-        gameId: id,
-        bossId: bossId,
-        description: description?.trim().isEmpty == true
-            ? null
-            : description?.trim(),
-        position: i,
-        isAnyUnique: isAnyUnique,
-        isOrLogic: isOrLogic,
-        anyNCount: anyNCount,
-        points: tilePoints,
-      );
-
-      // Create unique items for this tile (only if not "any unique")
-      if (!isAnyUnique && uniqueItems != null) {
-        for (final item in uniqueItems) {
-          final itemData = item as Map<String, dynamic>;
-          final itemName = itemData['itemName'] as String?;
-          final requiredCount =
-              (itemData['requiredCount'] as num?)?.toInt() ?? 1;
-
-          if (itemName == null || itemName.trim().isEmpty) {
-            continue;
-          }
-
-          await db.createTileUniqueItem(
-            tileId: tileId,
-            itemName: itemName.trim(),
-            requiredCount: requiredCount,
-          );
-        }
-      }
-    }
-
-    return Response.json(
-      statusCode: HttpStatus.created,
-      body: {
-        'id': id,
-        'code': code,
-        'name': name.trim(),
-        'teamSize': teamSize,
-        'boardSize': boardSize,
-        'gameMode': gameMode,
-        'startTime': startTime?.toIso8601String(),
-        'endTime': endTime?.toIso8601String(),
-        'createdAt': now.toIso8601String(),
-      },
-    );
+    return ResponseHelper.created(data: game);
   } catch (e, stackTrace) {
     developer.log(
       'Failed to create game',
@@ -241,15 +118,6 @@ Future<Response> _createGame(RequestContext context) async {
       error: e,
       stackTrace: stackTrace,
     );
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to create game: $e'},
-    );
+    return ResponseHelper.internalError();
   }
-}
-
-String _generateGameCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  final random = Random.secure();
-  return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
 }

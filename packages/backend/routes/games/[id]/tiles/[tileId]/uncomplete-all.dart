@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:backend/database.dart';
-import 'package:backend/services/game_edit_service.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/game_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(
@@ -12,7 +12,7 @@ Future<Response> onRequest(
 ) async {
   return switch (context.request.method) {
     HttpMethod.post => _uncompleteTileForAllTeams(context, gameId, tileId),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
@@ -27,29 +27,22 @@ Future<Response> _uncompleteTileForAllTeams(
 
     final user = await db.getUserById(userId);
     if (user == null || user.role != 'admin') {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'Admin access required'},
-      );
+      return ResponseHelper.forbidden(message: 'Admin access required');
     }
 
     final body = await context.request.body();
     final data = jsonDecode(body) as Map<String, dynamic>;
     final deleteProofs = data['deleteProofs'] as bool? ?? false;
 
-    final gameEditService = GameEditService(db);
-    await gameEditService.uncompleteTileForAllTeams(
+    final gameService = GameService(db);
+    await gameService.uncompleteTileForAllTeams(
       gameId: gameId,
       tileId: tileId,
       deleteProofs: deleteProofs,
     );
 
-    return Response.json(body: {'success': true});
+    return ResponseHelper.success(data: {'success': true});
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to uncomplete tile: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
-

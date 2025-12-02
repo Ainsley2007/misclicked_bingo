@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:backend/database.dart';
-import 'package:backend/services/game_edit_service.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/game_service.dart';
+import 'package:backend/validators/game_validator.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
@@ -10,84 +11,64 @@ Future<Response> onRequest(RequestContext context, String id) async {
     HttpMethod.get => _getGame(context, id),
     HttpMethod.put => _updateGame(context, id),
     HttpMethod.delete => _deleteGame(context, id),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
 Future<Response> _getGame(RequestContext context, String id) async {
   try {
     final db = context.read<AppDatabase>();
-    final game = await db.getGameById(id);
+    final gameService = GameService(db);
+    final game = await gameService.getGameById(id);
 
     if (game == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'Game not found'},
-      );
+      return ResponseHelper.notFound(message: 'Game not found');
     }
 
-    return Response.json(
-      body: {
-        'id': game.id,
-        'code': game.code,
-        'name': game.name,
-        'teamSize': game.teamSize,
-        'boardSize': game.boardSize,
-        'gameMode': game.gameMode,
-        'startTime': game.startTime,
-        'endTime': game.endTime,
-        'createdAt': game.createdAt,
-      },
-    );
+    return ResponseHelper.success(data: game);
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch game'},
-    );
+    return ResponseHelper.internalError();
   }
 }
 
 Future<Response> _updateGame(RequestContext context, String id) async {
   try {
     final db = context.read<AppDatabase>();
+    final gameService = GameService(db);
 
-    final game = await db.getGameById(id);
+    final game = await gameService.getGameById(id);
     if (game == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'Game not found'},
-      );
+      return ResponseHelper.notFound(message: 'Game not found');
     }
 
     final body = await context.request.body();
     final data = jsonDecode(body) as Map<String, dynamic>;
+    final name = data['name'] as String?;
 
-    final gameEditService = GameEditService(db);
-    await gameEditService.updateGame(
-      gameId: id,
-      name: data['name'] as String?,
-    );
+    final validation = GameValidator.validateUpdateGame(name: name);
+    if (!validation.isValid) {
+      return ResponseHelper.error(
+        message: validation.errorMessage!,
+        code: validation.errorCode!,
+        details: validation.details,
+      );
+    }
 
-    final updatedGame = await db.getGameById(id);
-    return Response.json(body: updatedGame?.toJson());
+    final updatedGame = await gameService.updateGame(gameId: id, name: name);
+    return ResponseHelper.success(data: updatedGame);
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to update game: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
 
 Future<Response> _deleteGame(RequestContext context, String id) async {
   try {
     final db = context.read<AppDatabase>();
-    await db.deleteGame(id);
+    final gameService = GameService(db);
+    await gameService.deleteGame(id);
 
-    return Response(statusCode: HttpStatus.noContent);
+    return ResponseHelper.noContent();
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to delete game'},
-    );
+    return ResponseHelper.internalError();
   }
 }

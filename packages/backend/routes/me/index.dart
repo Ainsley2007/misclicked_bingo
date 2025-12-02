@@ -1,4 +1,5 @@
 import 'package:backend/db.dart';
+import 'package:backend/helpers/response_helper.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -7,26 +8,20 @@ Future<Response> onRequest(RequestContext context) async {
     final userId = payload['sub'] as String?;
 
     if (userId == null) {
-      return Response.json(
-        statusCode: 401,
-        body: {'error': 'Unauthorized'},
-      );
+      return ResponseHelper.unauthorized();
     }
 
     final db = Db.instance;
-    final user = await (db.select(
-      db.users,
-    )..where((u) => u.id.equals(userId))).getSingleOrNull();
+    final user = await (db.select(db.users)
+          ..where((u) => u.id.equals(userId)))
+        .getSingleOrNull();
 
     if (user == null) {
-      return Response.json(
-        statusCode: 404,
-        body: {'error': 'User not found'},
-      );
+      return ResponseHelper.notFound(message: 'User not found');
     }
 
-    return Response.json(
-      body: {
+    return ResponseHelper.success(
+      data: {
         'id': user.id,
         'discordId': user.discordId,
         'globalName': user.globalName,
@@ -39,9 +34,6 @@ Future<Response> onRequest(RequestContext context) async {
       },
     );
   } catch (e) {
-    return Response.json(
-      statusCode: 401,
-      body: {'error': 'Unauthorized'},
-    );
+    return ResponseHelper.unauthorized();
   }
 }

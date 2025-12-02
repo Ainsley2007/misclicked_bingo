@@ -47,6 +47,6 @@ Future<Response> onRequest(RequestContext context) async {
     );
     return ResponseHelper.internalError(
       message: 'Authentication failed',
-    );
+      );
   }
 }

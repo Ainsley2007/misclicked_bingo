@@ -1,13 +1,15 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/bosses/data/boss_repository.dart';
-import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
+import 'package:frontend/repositories/bosses_repository.dart';
+import 'package:frontend/repositories/games_repository.dart';
+import 'package:frontend/core/error/api_exception.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_event.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_state.dart';
 import 'package:shared_models/shared_models.dart';
 
 class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
-  GameCreationBloc(this._repository, this._bossRepository)
-    : super(const GameCreationState.initial()) {
+  GameCreationBloc(this._repository, this._bossRepository) : super(const GameCreationState.initial()) {
     on<NextStepRequested>(_onNextStepRequested);
     on<PreviousStepRequested>(_onPreviousStepRequested);
     on<JumpToStepRequested>(_onJumpToStepRequested);
@@ -24,13 +26,10 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     on<BossesLoadRequested>(_onBossesLoadRequested);
   }
 
-  final GameCreationRepository _repository;
-  final BossRepository _bossRepository;
+  final GamesRepository _repository;
+  final BossesRepository _bossRepository;
 
-  Future<void> _onNextStepRequested(
-    NextStepRequested event,
-    Emitter<GameCreationState> emit,
-  ) async {
+  Future<void> _onNextStepRequested(NextStepRequested event, Emitter<GameCreationState> emit) async {
     final canProceed = _canProceedFromCurrentStep(state);
     if (!canProceed) {
       emit(state.copyWith(validationError: _getValidationError(state)));
@@ -43,57 +42,36 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     }
   }
 
-  void _onPreviousStepRequested(
-    PreviousStepRequested event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onPreviousStepRequested(PreviousStepRequested event, Emitter<GameCreationState> emit) {
     final previousStep = state.currentStep - 1;
     if (previousStep >= 1) {
       emit(state.clearError().copyWith(currentStep: previousStep));
     }
   }
 
-  void _onJumpToStepRequested(
-    JumpToStepRequested event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onJumpToStepRequested(JumpToStepRequested event, Emitter<GameCreationState> emit) {
     if (event.step >= 1 && event.step <= state.totalSteps) {
       emit(state.clearError().copyWith(currentStep: event.step));
     }
   }
 
-  void _onGameNameChanged(
-    GameNameChanged event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onGameNameChanged(GameNameChanged event, Emitter<GameCreationState> emit) {
     emit(state.copyWith(gameName: event.name));
   }
 
-  void _onTeamSizeChanged(
-    TeamSizeChanged event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onTeamSizeChanged(TeamSizeChanged event, Emitter<GameCreationState> emit) {
     emit(state.copyWith(teamSize: event.size));
   }
 
-  void _onBoardSizeSelected(
-    BoardSizeSelected event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onBoardSizeSelected(BoardSizeSelected event, Emitter<GameCreationState> emit) {
     emit(state.copyWith(boardSize: event.size, tiles: []));
   }
 
-  void _onGameModeChanged(
-    GameModeChanged event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onGameModeChanged(GameModeChanged event, Emitter<GameCreationState> emit) {
     emit(state.copyWith(gameMode: event.mode));
   }
 
-  void _onStartTimeChanged(
-    StartTimeChanged event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onStartTimeChanged(StartTimeChanged event, Emitter<GameCreationState> emit) {
     if (event.startTime == null) {
       emit(state.copyWith(clearStartTime: true));
     } else {
@@ -101,10 +79,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     }
   }
 
-  void _onEndTimeChanged(
-    EndTimeChanged event,
-    Emitter<GameCreationState> emit,
-  ) {
+  void _onEndTimeChanged(EndTimeChanged event, Emitter<GameCreationState> emit) {
     if (event.endTime == null) {
       emit(state.copyWith(clearEndTime: true));
     } else {
@@ -113,8 +88,7 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
   }
 
   void _onTileAdded(TileAdded event, Emitter<GameCreationState> emit) {
-    final newTiles = List<GameTileCreation>.from(state.tiles)
-      ..add(const GameTileCreation());
+    final newTiles = List<GameTileCreation>.from(state.tiles)..add(const GameTileCreation());
     emit(state.copyWith(tiles: newTiles));
   }
 
@@ -134,14 +108,9 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
     }
   }
 
-  Future<void> _onGameSubmitted(
-    GameSubmitted event,
-    Emitter<GameCreationState> emit,
-  ) async {
+  Future<void> _onGameSubmitted(GameSubmitted event, Emitter<GameCreationState> emit) async {
     if (!_canSubmit(state)) {
-      emit(
-        state.copyWith(validationError: 'Please complete all required fields'),
-      );
+      emit(state.copyWith(validationError: 'Please complete all required fields'));
       return;
     }
 
@@ -158,13 +127,14 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
         tiles: state.tiles,
       );
 
-      emit(
-        state.copyWith(status: GameCreationStatus.success, createdGame: game),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(status: GameCreationStatus.error, error: e.toString()),
-      );
+      emit(state.copyWith(status: GameCreationStatus.success, createdGame: game));
+      developer.log('Created game: ${game.name} (${game.code})', name: 'game_creation');
+    } on ApiException catch (e) {
+      developer.log('Failed to create game: ${e.code}', name: 'game_creation', level: 1000);
+      emit(state.copyWith(status: GameCreationStatus.error, error: e.message));
+    } catch (e, stackTrace) {
+      developer.log('Failed to create game', name: 'game_creation', level: 1000, error: e, stackTrace: stackTrace);
+      emit(state.copyWith(status: GameCreationStatus.error, error: 'Failed to create game: $e'));
     }
   }
 
@@ -192,27 +162,23 @@ class GameCreationBloc extends Bloc<GameCreationEvent, GameCreationState> {
   }
 
   bool _canSubmit(GameCreationState state) {
-    return state.isGameNameValid &&
-        state.isTeamSizeValid &&
-        state.isBoardSizeValid &&
-        state.areTilesValid;
+    return state.isGameNameValid && state.isTeamSizeValid && state.isBoardSizeValid && state.areTilesValid;
   }
 
-  Future<void> _onBossesLoadRequested(
-    BossesLoadRequested event,
-    Emitter<GameCreationState> emit,
-  ) async {
-    if (state.bosses.isNotEmpty) {
-      return;
-    }
+  Future<void> _onBossesLoadRequested(BossesLoadRequested event, Emitter<GameCreationState> emit) async {
+    if (state.bosses.isNotEmpty) return;
 
     emit(state.copyWith(isLoadingBosses: true));
 
     try {
-      final bosses = await _bossRepository.getAllBosses();
+      final bosses = await _bossRepository.getBosses();
       emit(state.copyWith(bosses: bosses, isLoadingBosses: false));
+      developer.log('Loaded ${bosses.length} bosses', name: 'game_creation');
+    } on ApiException catch (e) {
+      developer.log('Failed to load bosses: ${e.code}', name: 'game_creation', level: 1000);
+      emit(state.copyWith(isLoadingBosses: false, error: e.message));
     } catch (e) {
-      emit(state.copyWith(isLoadingBosses: false, error: e.toString()));
+      emit(state.copyWith(isLoadingBosses: false, error: 'Failed to load bosses: $e'));
     }
   }
 }

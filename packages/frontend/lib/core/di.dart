@@ -1,93 +1,60 @@
-import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:frontend/core/api/api_client.dart';
 import 'package:frontend/core/services/auth_service.dart';
-import 'package:frontend/core/api/proofs_api.dart';
+import 'package:frontend/api/games_api.dart';
+import 'package:frontend/api/teams_api.dart';
+import 'package:frontend/api/users_api.dart';
+import 'package:frontend/api/auth_api.dart';
+import 'package:frontend/api/bosses_api.dart';
+import 'package:frontend/api/proofs_api.dart';
+import 'package:frontend/repositories/games_repository.dart';
+import 'package:frontend/repositories/teams_repository.dart';
+import 'package:frontend/repositories/users_repository.dart';
+import 'package:frontend/repositories/auth_repository.dart';
+import 'package:frontend/repositories/bosses_repository.dart';
+import 'package:frontend/repositories/proofs_repository.dart';
 import 'package:frontend/features/admin/logic/games_bloc.dart';
-import 'package:frontend/features/admin/data/games_repository.dart';
 import 'package:frontend/features/admin/logic/users_bloc.dart';
-import 'package:frontend/features/admin/data/users_repository.dart';
-import 'package:frontend/features/lobby/data/lobby_repository.dart';
 import 'package:frontend/features/lobby/logic/join_game_bloc.dart';
-import 'package:frontend/features/game/data/game_repository.dart';
-import 'package:frontend/features/game/data/proofs_repository.dart';
 import 'package:frontend/features/game/logic/game_bloc.dart';
 import 'package:frontend/features/game/logic/overview_bloc.dart';
 import 'package:frontend/features/game/logic/proofs_bloc.dart';
-import 'package:frontend/features/manage_team/data/teams_repository.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_bloc.dart';
-import 'package:frontend/features/game_creation/data/game_creation_repository.dart';
 import 'package:frontend/features/game_creation/logic/game_creation_bloc.dart';
-import 'package:frontend/features/bosses/data/boss_repository.dart';
-import 'package:frontend/features/guest/data/guest_repository.dart';
 import 'package:frontend/features/guest/logic/guest_bloc.dart';
 
 final sl = GetIt.instance;
 
 void setupDi() {
-  const apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'https://osrs-bingo.globeapp.dev',
-  );
+  const apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://osrs-bingo.globeapp.dev');
 
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: apiBaseUrl,
-      validateStatus: (code) => code != null && code < 500,
-      headers: {'Content-Type': 'application/json'},
-    ),
-  );
+  final apiClient = ApiClient(baseUrl: apiBaseUrl);
 
-  dio.interceptors.add(
-    InterceptorsWrapper(
-      onRequest: (options, handler) {
-        options.extra['withCredentials'] = true;
-        return handler.next(options);
-      },
-    ),
-  );
+  sl.registerSingleton<ApiClient>(apiClient);
 
-  sl.registerSingleton<Dio>(dio);
+  sl.registerLazySingleton<GamesApi>(() => GamesApi(sl<ApiClient>().dio));
+  sl.registerLazySingleton<TeamsApi>(() => TeamsApi(sl<ApiClient>().dio));
+  sl.registerLazySingleton<UsersApi>(() => UsersApi(sl<ApiClient>().dio));
+  sl.registerLazySingleton<AuthApi>(() => AuthApi(sl<ApiClient>().dio));
+  sl.registerLazySingleton<BossesApi>(() => BossesApi(sl<ApiClient>().dio));
+  sl.registerLazySingleton<ProofsApi>(() => ProofsApi(sl<ApiClient>().dio));
 
-  // Services
-  sl.registerSingleton<AuthService>(AuthService(sl<Dio>()));
+  sl.registerLazySingleton<GamesRepository>(() => GamesRepository(sl<GamesApi>()));
+  sl.registerLazySingleton<TeamsRepository>(() => TeamsRepository(sl<TeamsApi>()));
+  sl.registerLazySingleton<UsersRepository>(() => UsersRepository(sl<UsersApi>()));
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepository(sl<AuthApi>(), apiBaseUrl));
+  sl.registerLazySingleton<BossesRepository>(() => BossesRepository(sl<BossesApi>()));
+  sl.registerLazySingleton<ProofsRepository>(() => ProofsRepository(sl<ProofsApi>()));
 
-  // APIs
-  sl.registerLazySingleton<ProofsApi>(() => ProofsApi(sl<Dio>()));
+  sl.registerSingleton<AuthService>(AuthService(sl<UsersRepository>(), apiBaseUrl));
 
-  // Repositories
-  sl.registerLazySingleton<GamesRepository>(() => GamesRepository(sl<Dio>()));
-  sl.registerLazySingleton<UsersRepository>(() => UsersRepository(sl<Dio>()));
-  sl.registerLazySingleton<LobbyRepository>(() => LobbyRepository(sl<Dio>()));
-  sl.registerLazySingleton<GameRepository>(() => GameRepository(sl<Dio>()));
-  sl.registerLazySingleton<TeamsRepository>(() => TeamsRepository(sl<Dio>()));
-  sl.registerLazySingleton<GameCreationRepository>(
-    () => GameCreationRepository(sl<Dio>()),
-  );
-  sl.registerLazySingleton<BossRepository>(() => BossRepository(sl<Dio>()));
-  sl.registerLazySingleton<ProofsRepository>(
-    () => ProofsRepository(sl<ProofsApi>()),
-  );
-  sl.registerLazySingleton<GuestRepository>(() => GuestRepository(sl<Dio>()));
-
-  // BLoCs
   sl.registerFactory<GamesBloc>(() => GamesBloc(sl<GamesRepository>()));
   sl.registerFactory<UsersBloc>(() => UsersBloc(sl<UsersRepository>()));
-  sl.registerFactory<JoinGameBloc>(() => JoinGameBloc(sl<LobbyRepository>()));
-  sl.registerFactory<GameBloc>(
-    () => GameBloc(sl<GameRepository>(), sl<BossRepository>()),
-  );
-  sl.registerFactory<OverviewBloc>(
-    () => OverviewBloc(sl<GameRepository>(), sl<BossRepository>(), sl<ProofsRepository>()),
-  );
-  sl.registerFactory<ManageTeamsBloc>(
-    () => ManageTeamsBloc(
-      teamsRepository: sl<TeamsRepository>(),
-      gameRepository: sl<GameRepository>(),
-    ),
-  );
-  sl.registerFactory<GameCreationBloc>(
-    () => GameCreationBloc(sl<GameCreationRepository>(), sl<BossRepository>()),
-  );
+  sl.registerFactory<JoinGameBloc>(() => JoinGameBloc(sl<GamesRepository>()));
+  sl.registerFactory<GameBloc>(() => GameBloc(sl<GamesRepository>(), sl<BossesRepository>()));
+  sl.registerFactory<OverviewBloc>(() => OverviewBloc(sl<GamesRepository>(), sl<BossesRepository>(), sl<ProofsRepository>()));
+  sl.registerFactory<ManageTeamsBloc>(() => ManageTeamsBloc(teamsRepository: sl<TeamsRepository>(), gamesRepository: sl<GamesRepository>()));
+  sl.registerFactory<GameCreationBloc>(() => GameCreationBloc(sl<GamesRepository>(), sl<BossesRepository>()));
   sl.registerFactory<ProofsBloc>(() => ProofsBloc(sl<ProofsRepository>()));
-  sl.registerFactory<GuestBloc>(() => GuestBloc(sl<GuestRepository>()));
+  sl.registerFactory<GuestBloc>(() => GuestBloc(sl<GamesRepository>()));
 }

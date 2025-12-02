@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di.dart';
-import 'package:frontend/features/guest/data/guest_repository.dart';
-import 'package:frontend/features/guest/logic/guest_bloc.dart';
-import 'package:frontend/features/guest/logic/guest_event.dart';
-import 'package:frontend/features/guest/logic/guest_state.dart';
 import 'package:frontend/features/game/presentation/widgets/activity_feed.dart';
 import 'package:frontend/features/game/presentation/widgets/game_countdown.dart';
 import 'package:frontend/features/game/presentation/widgets/leaderboard_widget.dart';
 import 'package:frontend/features/game/presentation/widgets/overview_tile_card.dart';
+import 'package:frontend/features/guest/logic/guest_bloc.dart';
+import 'package:frontend/features/guest/logic/guest_event.dart';
+import 'package:frontend/features/guest/logic/guest_state.dart';
+import 'package:frontend/repositories/proofs_repository.dart';
 import 'package:shared_models/shared_models.dart';
 
 class GuestOverviewScreen extends StatelessWidget {
@@ -342,7 +342,7 @@ class _GuestProofsSidebarCardState extends State<_GuestProofsSidebarCard> {
     });
 
     try {
-      final repository = sl<GuestRepository>();
+      final repository = sl<ProofsRepository>();
       final proofs = await repository.getPublicProofs(
         gameId: widget.gameId,
         tileId: widget.tile.id,

@@ -28,6 +28,7 @@ dependencies:
     path: ../shared_models
   super_clipboard: ^0.9.1
   flutter_colorpicker: ^1.1.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

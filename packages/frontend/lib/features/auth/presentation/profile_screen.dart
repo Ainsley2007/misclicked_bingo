@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/core/services/auth_service.dart';
-import 'package:frontend/features/manage_team/data/teams_repository.dart';
 import 'package:frontend/core/di.dart';
+import 'package:frontend/core/services/auth_service.dart';
+import 'package:frontend/repositories/teams_repository.dart';
 import 'package:frontend/theme/app_theme.dart';
 import 'package:shared_models/shared_models.dart';
 

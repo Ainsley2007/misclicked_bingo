@@ -1,5 +1,8 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/admin/data/users_repository.dart';
+import 'package:frontend/repositories/users_repository.dart';
+import 'package:frontend/core/error/api_exception.dart';
 import 'package:frontend/features/admin/logic/users_event.dart';
 import 'package:frontend/features/admin/logic/users_state.dart';
 
@@ -16,8 +19,13 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
     try {
       final users = await _repository.getUsers();
       emit(UsersLoaded(users));
-    } catch (e) {
-      emit(UsersError(e.toString()));
+      developer.log('Loaded ${users.length} users', name: 'users');
+    } on ApiException catch (e) {
+      developer.log('Failed to load users: ${e.code}', name: 'users', level: 1000);
+      emit(UsersError(e.message));
+    } catch (e, stackTrace) {
+      developer.log('Failed to load users', name: 'users', level: 1000, error: e, stackTrace: stackTrace);
+      emit(UsersError('Failed to load users: $e'));
     }
   }
 
@@ -26,8 +34,13 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       await _repository.deleteUser(event.userId);
       final users = state.users.where((u) => u.id != event.userId).toList();
       emit(UsersLoaded(users));
-    } catch (e) {
-      emit(UsersError(e.toString()));
+      developer.log('Deleted user: ${event.userId}', name: 'users');
+    } on ApiException catch (e) {
+      developer.log('Failed to delete user: ${e.code}', name: 'users', level: 1000);
+      emit(UsersError(e.message));
+    } catch (e, stackTrace) {
+      developer.log('Failed to delete user', name: 'users', level: 1000, error: e, stackTrace: stackTrace);
+      emit(UsersError('Failed to delete user: $e'));
     }
   }
 }

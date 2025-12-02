@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
-import 'package:dio/dio.dart';
+import 'package:frontend/repositories/users_repository.dart';
+import 'package:frontend/core/error/api_exception.dart';
 import 'package:shared_models/shared_models.dart';
 
 enum AuthStatus { unknown, unauthenticated, authenticated }
@@ -18,11 +19,12 @@ class AuthState {
 }
 
 class AuthService {
-  AuthService(this._dio) {
+  AuthService(this._usersRepository, this._baseUrl) {
     _currentState = const AuthState.unknown();
   }
 
-  final Dio _dio;
+  final UsersRepository _usersRepository;
+  final String _baseUrl;
   final _authController = StreamController<AuthState>.broadcast();
   late AuthState _currentState;
 
@@ -37,34 +39,23 @@ class AuthService {
 
   Future<void> checkAuth() async {
     try {
-      final response = await _dio.get('/me');
-      if (response.statusCode == 200) {
-        final user = AppUser.fromJson(response.data as Map<String, dynamic>);
-        _updateState(AuthState.authenticated(user));
-        developer.log('User authenticated', name: 'auth');
-      } else {
-        _updateState(const AuthState.unauthenticated());
-        developer.log('Auth check failed: ${response.statusCode}', name: 'auth', level: 900);
-      }
+      final user = await _usersRepository.getCurrentUser();
+      _updateState(AuthState.authenticated(user));
+      developer.log('User authenticated', name: 'auth');
+    } on ApiException catch (e) {
+      _updateState(const AuthState.unauthenticated());
+      developer.log('Auth check failed: ${e.code}', name: 'auth', level: 900);
     } catch (e, stackTrace) {
       _updateState(const AuthState.unauthenticated());
       developer.log('Auth check error', name: 'auth', level: 1000, error: e, stackTrace: stackTrace);
     }
   }
 
-  String getLoginUrl() {
-    final baseUrl = _dio.options.baseUrl;
-    return '$baseUrl/auth/discord/login';
-  }
+  String getLoginUrl() => '$_baseUrl/auth/discord/login';
 
   Future<void> logout() async {
-    try {
-      await _dio.post('/auth/logout');
-      developer.log('User logged out', name: 'auth');
-    } catch (e, stackTrace) {
-      developer.log('Logout request failed', name: 'auth', level: 900, error: e, stackTrace: stackTrace);
-    }
     _updateState(const AuthState.unauthenticated());
+    developer.log('User logged out', name: 'auth');
   }
 
   void dispose() {

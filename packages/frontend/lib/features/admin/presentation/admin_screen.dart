@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:frontend/core/di.dart';
-import 'package:frontend/features/admin/data/games_repository.dart';
+import 'package:frontend/core/widgets/widgets.dart';
 import 'package:frontend/features/admin/logic/games_bloc.dart';
 import 'package:frontend/features/admin/logic/users_bloc.dart';
 import 'package:frontend/features/admin/logic/users_event.dart';
 import 'package:frontend/features/admin/logic/users_state.dart';
+import 'package:frontend/repositories/games_repository.dart';
 import 'package:frontend/theme/app_theme.dart';
-import 'package:frontend/core/widgets/widgets.dart';
 import 'package:shared_models/shared_models.dart';
-import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -533,7 +533,7 @@ class _GameEditDialog extends StatefulWidget {
 
 class _GameEditDialogState extends State<_GameEditDialog> {
   late TextEditingController _nameController;
-  List<Map<String, dynamic>>? _tiles;
+  List<BingoTile>? _tiles;
   bool _isLoading = true;
   String? _selectedTileId;
   bool _deleteProofs = false;
@@ -554,13 +554,11 @@ class _GameEditDialogState extends State<_GameEditDialog> {
   Future<void> _loadGameData() async {
     try {
       final repository = sl<GamesRepository>();
-      final data = await repository.getGameOverview(widget.game.id);
+      final overview = await repository.getOverview(widget.game.id);
 
       if (mounted) {
         setState(() {
-          _tiles = (data['tiles'] as List<dynamic>?)
-              ?.map((t) => t as Map<String, dynamic>)
-              .toList();
+          _tiles = overview.tiles;
           _isLoading = false;
         });
       }
@@ -665,12 +663,11 @@ class _GameEditDialogState extends State<_GameEditDialog> {
                         ),
                         value: _selectedTileId,
                         items: _tiles!.map((tile) {
-                          final name =
-                              tile['bossName'] as String? ??
-                              tile['description'] as String? ??
-                              'Tile ${tile['position']}';
+                          final name = tile.bossName ?? 
+                              tile.description ?? 
+                              'Tile ${tile.position}';
                           return DropdownMenuItem(
-                            value: tile['id'] as String,
+                            value: tile.id,
                             child: Text(name, overflow: TextOverflow.ellipsis),
                           );
                         }).toList(),

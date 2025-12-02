@@ -3,7 +3,8 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_models/shared_models.dart';
-import 'package:frontend/features/admin/data/games_repository.dart';
+import 'package:frontend/repositories/games_repository.dart';
+import 'package:frontend/core/error/api_exception.dart';
 
 part 'games_event.dart';
 part 'games_state.dart';
@@ -24,6 +25,9 @@ class GamesBloc extends Bloc<GamesEvent, GamesState> {
       final games = await _repository.getGames();
       emit(GamesLoaded(games));
       developer.log('Loaded ${games.length} games', name: 'games');
+    } on ApiException catch (e) {
+      developer.log('Failed to load games: ${e.code}', name: 'games', level: 1000);
+      emit(GamesError(e.message));
     } catch (e, stackTrace) {
       developer.log('Failed to load games', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
       emit(GamesError('Failed to load games: $e'));
@@ -34,10 +38,13 @@ class GamesBloc extends Bloc<GamesEvent, GamesState> {
     emit(GamesCreating(state.games));
 
     try {
-      final game = await _repository.createGame(event.name, event.teamSize);
+      final game = await _repository.createGame(name: event.name, teamSize: event.teamSize, boardSize: 3, gameMode: GameMode.blackout, tiles: []);
       final updatedGames = [game, ...state.games];
       emit(GamesCreated(updatedGames, game));
       developer.log('Created game: ${game.name} (${game.code})', name: 'games');
+    } on ApiException catch (e) {
+      developer.log('Failed to create game: ${e.code}', name: 'games', level: 1000);
+      emit(GamesError(e.message));
     } catch (e, stackTrace) {
       developer.log('Failed to create game', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
       emit(GamesError('Failed to create game: $e'));
@@ -50,6 +57,9 @@ class GamesBloc extends Bloc<GamesEvent, GamesState> {
       final updatedGames = state.games.where((g) => g.id != event.gameId).toList();
       emit(GamesLoaded(updatedGames));
       developer.log('Deleted game: ${event.gameId}', name: 'games');
+    } on ApiException catch (e) {
+      developer.log('Failed to delete game: ${e.code}', name: 'games', level: 1000);
+      emit(GamesError(e.message));
     } catch (e, stackTrace) {
       developer.log('Failed to delete game', name: 'games', level: 1000, error: e, stackTrace: stackTrace);
       emit(GamesError('Failed to delete game: $e'));

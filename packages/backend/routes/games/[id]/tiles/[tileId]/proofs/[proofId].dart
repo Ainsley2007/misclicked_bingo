@@ -1,7 +1,7 @@
-import 'dart:io';
-
-import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/proofs_service.dart';
+import 'package:backend/services/tiles_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(
@@ -12,7 +12,7 @@ Future<Response> onRequest(
 ) async {
   return switch (context.request.method) {
     HttpMethod.delete => _deleteProof(context, id, tileId, proofId),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
@@ -24,36 +24,30 @@ Future<Response> _deleteProof(
 ) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
     final proofsService = context.read<ProofsService>();
+    final userService = context.read<UserService>();
+    final tilesService = context.read<TilesService>();
 
-    final user = await db.getUserById(userId);
+    final user = await userService.getUserById(userId);
     if (user == null || user.teamId == null) {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'User must be part of a team'},
-      );
+      return ResponseHelper.forbidden(message: 'User must be part of a team');
     }
 
-    final tileStatus = await db.getTeamBoardState(
+    final tileStatus = await tilesService.getTeamBoardState(
       teamId: user.teamId!,
       tileId: tileId,
     );
     if (tileStatus == 'completed') {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'Cannot delete proof from completed tile'},
+      return ResponseHelper.forbidden(
+        message: 'Cannot delete proof from completed tile',
       );
     }
 
     await proofsService.deleteProof(proofId);
 
-    return Response.json(body: {'success': true});
+    return ResponseHelper.noContent();
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to delete proof: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
 

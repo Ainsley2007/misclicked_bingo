@@ -1,6 +1,6 @@
-import 'dart:io';
-
-import 'package:backend/database.dart' hide TileProof;
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/tiles_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:shared_models/shared_models.dart';
 
@@ -11,7 +11,7 @@ Future<Response> onRequest(
 ) async {
   return switch (context.request.method) {
     HttpMethod.get => _getPublicProofs(context, id, tileId),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
@@ -21,25 +21,25 @@ Future<Response> _getPublicProofs(
   String tileId,
 ) async {
   try {
-    final db = context.read<AppDatabase>();
+    final tilesService = context.read<TilesService>();
+    final userService = context.read<UserService>();
 
     final teamIdParam = context.request.uri.queryParameters['teamId'];
     if (teamIdParam == null) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'teamId query parameter is required'},
+      return ResponseHelper.validationError(
+        message: 'teamId query parameter is required',
       );
     }
 
-    final proofs = await db.getProofsByTileAndTeam(
+    final proofs = await tilesService.getProofsByTileAndTeam(
       tileId: tileId,
       teamId: teamIdParam,
     );
 
     final userIds = proofs.map((p) => p.uploadedByUserId).toSet();
-    final users = <String, User>{};
+    final users = <String, AppUser>{};
     for (final userId in userIds) {
-      final user = await db.getUserById(userId);
+      final user = await userService.getUserById(userId);
       if (user != null) users[userId] = user;
     }
 
@@ -56,11 +56,8 @@ Future<Response> _getPublicProofs(
       ).toJson();
     }).toList();
 
-    return Response.json(body: result);
+    return ResponseHelper.success(data: result);
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch proofs: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }

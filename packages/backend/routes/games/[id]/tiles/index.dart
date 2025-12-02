@@ -1,45 +1,40 @@
-import 'dart:io';
-
-import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/tiles_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
     HttpMethod.get => _getTiles(context, id),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
 Future<Response> _getTiles(RequestContext context, String id) async {
   try {
-    final db = context.read<AppDatabase>();
-    final tiles = await db.getTilesByGameId(id);
+    final tilesService = context.read<TilesService>();
+    final userService = context.read<UserService>();
+    
+    final tiles = await tilesService.getTilesByGameId(id);
 
     if (tiles.isEmpty) {
-      return Response.json(body: []);
+      return ResponseHelper.success(data: <Map<String, dynamic>>[]);
     }
 
-    // Collect all tile IDs for bulk query
     final tileIds = tiles.map((t) => t.id).toList();
 
-    // Get current user's team for completion states
     final userId = context.read<String>();
-    final user = await db.getUserById(userId);
-    final teamId = user?.teamId;
-    
-    // Debug logging
-    print('[TILES] User: $userId, TeamId: $teamId');
+    final teamId = await userService.getUserTeamId(userId);
 
-    // Fetch all bosses, unique items, and completion states in parallel
     final futures = await Future.wait([
-      db.getAllBosses(),
-      db.getUniqueItemsByTileIds(tileIds),
+      tilesService.getAllBosses(),
+      tilesService.getUniqueItemsByTileIds(tileIds),
       if (teamId != null)
-        db.getTeamBoardStates(teamId)
+        tilesService.getTeamBoardStates(teamId)
       else
         Future.value(<String, String>{}),
       if (teamId != null)
-        db.getProofsByTeam(teamId)
+        tilesService.getProofsByTeam(teamId)
       else
         Future.value(<TileProof>[]),
     ]);
@@ -48,11 +43,7 @@ Future<Response> _getTiles(RequestContext context, String id) async {
     final allUniqueItems = futures[1] as List<TileUniqueItem>;
     final completionStates = futures[2] as Map<String, String>;
     final allProofs = futures[3] as List<TileProof>;
-    
-    // Debug logging
-    print('[TILES] Completion states for team: $completionStates');
 
-    // Create lookup maps for O(1) access
     final bossMap = {
       for (final boss in allBosses) boss.id: boss,
     };
@@ -60,13 +51,11 @@ Future<Response> _getTiles(RequestContext context, String id) async {
     for (final item in allUniqueItems) {
       uniqueItemsMap.putIfAbsent(item.tileId, () => []).add(item);
     }
-    // Create set of tile IDs that have proofs
     final tilesWithProofs = <String>{};
     for (final proof in allProofs) {
       tilesWithProofs.add(proof.tileId);
     }
 
-    // Build response by mapping tiles with pre-fetched data
     final tilesWithData = tiles.map((t) {
       final boss = bossMap[t.bossId];
       final uniqueItems = uniqueItemsMap[t.id] ?? [];
@@ -99,11 +88,8 @@ Future<Response> _getTiles(RequestContext context, String id) async {
       };
     }).toList();
 
-    return Response.json(body: tilesWithData);
+    return ResponseHelper.success(data: tilesWithData);
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch tiles'},
-    );
+    return ResponseHelper.internalError();
   }
 }

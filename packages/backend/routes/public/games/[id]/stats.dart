@@ -1,36 +1,30 @@
-import 'dart:io';
-
-import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/activity_service.dart';
+import 'package:backend/services/game_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
     HttpMethod.get => _getPublicStats(context, id),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
 Future<Response> _getPublicStats(RequestContext context, String id) async {
   try {
-    final db = context.read<AppDatabase>();
-    final game = await db.getGameById(id);
+    final gameService = context.read<GameService>();
+    
+    final game = await gameService.getGameById(id);
     if (game == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'Game not found'},
-      );
+      return ResponseHelper.notFound(message: 'Game not found');
     }
 
-    final activityService = ActivityService(db);
+    final activityService = context.read<ActivityService>();
     final stats = await activityService.getStats(gameId: id);
 
-    return Response.json(body: stats.toJson());
+    return ResponseHelper.success(data: stats.toJson());
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch stats: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
 

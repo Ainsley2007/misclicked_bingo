@@ -20,7 +20,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   try {
-    final authService = AuthService();
+    final authService = context.read<AuthService>();
     final accessToken = await authService.exchangeCodeForToken(code!);
     final discordUser = await authService.fetchDiscordUser(accessToken);
     final userId = await authService.upsertUser(discordUser);

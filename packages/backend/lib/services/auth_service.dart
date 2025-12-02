@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:backend/config.dart';
 import 'package:backend/database.dart';
-import 'package:backend/db.dart';
 import 'package:backend/helpers/jwt.dart';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 class AuthService {
+  AuthService(this._db);
+  final AppDatabase _db;
   Future<String> exchangeCodeForToken(String code) async {
     final clientId = Config.discordClientId;
     final clientSecret = Config.discordClientSecret;
@@ -59,16 +60,15 @@ class AuthService {
   }
 
   Future<String> upsertUser(Map<String, dynamic> discordUser) async {
-    final db = Db.instance;
     final discordId = discordUser['id'] as String;
 
-    final existingUser = await (db.select(
-      db.users,
+    final existingUser = await (_db.select(
+      _db.users,
     )..where((u) => u.discordId.equals(discordId))).getSingleOrNull();
 
     if (existingUser != null) {
-      await (db.update(
-        db.users,
+      await (_db.update(
+        _db.users,
       )..where((u) => u.id.equals(existingUser.id))).write(
         UsersCompanion(
           globalName: Value(discordUser['global_name'] as String?),
@@ -81,8 +81,8 @@ class AuthService {
     }
 
     final userId = const Uuid().v4();
-    await db
-        .into(db.users)
+    await _db
+        .into(_db.users)
         .insert(
           UsersCompanion.insert(
             id: userId,

@@ -1,49 +1,28 @@
 import 'dart:math';
-import 'package:backend/database.dart';
+import 'package:backend/database.dart' hide Game;
+import 'package:shared_models/shared_models.dart';
 import 'package:uuid/uuid.dart';
 
+// Import Game from database as DbGame
+import 'package:backend/database.dart' as db;
+
 class GameService {
-  final AppDatabase _db;
 
   GameService(this._db);
+  final AppDatabase _db;
 
-  Future<List<dynamic>> getAllGames() async {
+  Future<List<Game>> getAllGames() async {
     final games = await _db.getAllGames();
-    return games
-        .map(
-          (g) => {
-            'id': g.id,
-            'code': g.code,
-            'name': g.name,
-            'teamSize': g.teamSize,
-            'boardSize': g.boardSize,
-            'gameMode': g.gameMode,
-            'startTime': g.startTime,
-            'endTime': g.endTime,
-            'createdAt': g.createdAt,
-          },
-        )
-        .toList();
+    return games.map<Game>(_convertToGame).toList();
   }
 
-  Future<Map<String, dynamic>?> getGameById(String id) async {
+  Future<Game?> getGameById(String id) async {
     final game = await _db.getGameById(id);
     if (game == null) return null;
-
-    return {
-      'id': game.id,
-      'code': game.code,
-      'name': game.name,
-      'teamSize': game.teamSize,
-      'boardSize': game.boardSize,
-      'gameMode': game.gameMode,
-      'startTime': game.startTime,
-      'endTime': game.endTime,
-      'createdAt': game.createdAt,
-    };
+    return _convertToGame(game);
   }
 
-  Future<Map<String, dynamic>> createGame({
+  Future<Game> createGame({
     required String name,
     required int teamSize,
     required int boardSize,
@@ -76,17 +55,9 @@ class GameService {
       );
     }
 
-    return {
-      'id': id,
-      'code': code,
-      'name': name.trim(),
-      'teamSize': teamSize,
-      'boardSize': boardSize,
-      'gameMode': gameMode,
-      'startTime': startTime?.toIso8601String(),
-      'endTime': endTime?.toIso8601String(),
-      'createdAt': now.toIso8601String(),
-    };
+    final game = await _db.getGameById(id);
+    if (game == null) throw Exception('Failed to create game');
+    return _convertToGame(game);
   }
 
   Future<void> _createTilesForGame({
@@ -109,7 +80,7 @@ class GameService {
         id: tileId,
         gameId: gameId,
         bossId: bossId,
-        description: description?.trim().isEmpty == true
+        description: description?.trim().isEmpty ?? false
             ? null
             : description?.trim(),
         position: i,
@@ -140,7 +111,7 @@ class GameService {
     }
   }
 
-  Future<Map<String, dynamic>?> updateGame({
+  Future<Game?> updateGame({
     required String gameId,
     String? name,
   }) async {
@@ -158,6 +129,26 @@ class GameService {
   Future<bool> verifyBossExists(String bossId) async {
     final boss = await _db.getBossById(bossId);
     return boss != null;
+  }
+
+  Future<Game?> getGameByCode(String code) async {
+    final game = await _db.getGameByCode(code);
+    if (game == null) return null;
+    return _convertToGame(game);
+  }
+
+  Game _convertToGame(db.Game gameData) {
+    return Game(
+      id: gameData.id,
+      code: gameData.code,
+      name: gameData.name,
+      teamSize: gameData.teamSize,
+      boardSize: gameData.boardSize,
+      gameMode: GameMode.fromString(gameData.gameMode),
+      startTime: gameData.startTime != null ? DateTime.parse(gameData.startTime!) : null,
+      endTime: gameData.endTime != null ? DateTime.parse(gameData.endTime!) : null,
+      createdAt: DateTime.parse(gameData.createdAt),
+    );
   }
 
   Future<void> updateTile({
@@ -202,8 +193,6 @@ class GameService {
         teamId: team.id,
         tileId: tileId,
         status: 'incomplete',
-        completedByUserId: null,
-        completedAt: null,
       );
 
       if (deleteProofs) {
@@ -220,8 +209,8 @@ class GameService {
 }
 
 class TileUniqueItemData {
-  final String itemName;
-  final int requiredCount;
 
   TileUniqueItemData({required this.itemName, required this.requiredCount});
+  final String itemName;
+  final int requiredCount;
 }

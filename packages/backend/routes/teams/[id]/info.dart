@@ -1,36 +1,26 @@
-import 'dart:io';
-
-import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/teams_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
     HttpMethod.get => _getTeam(context, id),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
 Future<Response> _getTeam(RequestContext context, String id) async {
   try {
-    final db = context.read<AppDatabase>();
-    final team = await db.getTeamById(id);
+    final teamsService = context.read<TeamsService>();
+    final team = await teamsService.getTeamById(id);
 
     if (team == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'Team not found'},
-      );
+      return ResponseHelper.notFound(message: 'Team not found');
     }
 
-    return Response.json(
-      statusCode: HttpStatus.ok,
-      body: team.toJson(),
-    );
+    return ResponseHelper.success(data: team.toJson());
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to get team: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
 

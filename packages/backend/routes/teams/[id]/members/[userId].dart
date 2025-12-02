@@ -1,6 +1,5 @@
-import 'dart:io';
-
-import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/teams_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(
@@ -10,7 +9,7 @@ Future<Response> onRequest(
 ) async {
   return switch (context.request.method) {
     HttpMethod.delete => _removeTeamMember(context, id, userId),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
@@ -21,40 +20,33 @@ Future<Response> _removeTeamMember(
 ) async {
   try {
     final currentUserId = context.read<String>();
-    final db = context.read<AppDatabase>();
+    final teamsService = context.read<TeamsService>();
 
-    final team = await db.getTeamById(id);
+    final team = await teamsService.getTeamById(id);
     if (team == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'Team not found'},
-      );
+      return ResponseHelper.notFound(message: 'Team not found');
     }
 
-    if (team.captainUserId != currentUserId) {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'Only team captain can remove members'},
+    final isCaptain = await teamsService.isTeamCaptain(
+      teamId: id,
+      userId: currentUserId,
+    );
+    if (!isCaptain) {
+      return ResponseHelper.forbidden(
+        message: 'Only team captain can remove members',
       );
     }
 
     if (userId == currentUserId) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Captain cannot remove themselves'},
+      return ResponseHelper.validationError(
+        message: 'Captain cannot remove themselves',
       );
     }
 
-    await db.removeUserFromTeam(userId);
+    await teamsService.removeMemberFromTeam(userId: userId);
 
-    return Response.json(
-      statusCode: HttpStatus.ok,
-      body: {'message': 'Member removed successfully'},
-    );
+    return ResponseHelper.noContent();
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to remove team member: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }

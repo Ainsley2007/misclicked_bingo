@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/teams_service.dart';
 import 'package:backend/validators/team_validator.dart';
@@ -17,8 +16,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
 Future<Response> _updateTeam(RequestContext context, String id) async {
   try {
     final currentUserId = context.read<String>();
-    final db = context.read<AppDatabase>();
-    final teamsService = TeamsService(db);
+    final teamsService = context.read<TeamsService>();
 
     final team = await teamsService.getTeamById(id);
     if (team == null) {
@@ -53,7 +51,7 @@ Future<Response> _updateTeam(RequestContext context, String id) async {
     }
 
     final updatedTeam = await teamsService.getTeamById(id);
-    return ResponseHelper.success(data: updatedTeam);
+    return ResponseHelper.success(data: updatedTeam!.toJson());
   } catch (e) {
     return ResponseHelper.internalError();
   }
@@ -62,8 +60,7 @@ Future<Response> _updateTeam(RequestContext context, String id) async {
 Future<Response> _disbandTeam(RequestContext context, String id) async {
   try {
     final currentUserId = context.read<String>();
-    final db = context.read<AppDatabase>();
-    final teamsService = TeamsService(db);
+    final teamsService = context.read<TeamsService>();
 
     final team = await teamsService.getTeamById(id);
     if (team == null) {

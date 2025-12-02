@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/game_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:backend/validators/tile_validator.dart';
 import 'package:dart_frog/dart_frog.dart';
 
@@ -24,10 +24,10 @@ Future<Response> _updateTile(
 ) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
+    final userService = context.read<UserService>();
 
-    final user = await db.getUserById(userId);
-    if (user == null || user.role != 'admin') {
+    final isAdmin = await userService.isAdmin(userId);
+    if (!isAdmin) {
       return ResponseHelper.forbidden(message: 'Admin access required');
     }
 
@@ -59,7 +59,7 @@ Future<Response> _updateTile(
       );
     }).toList();
 
-    final gameService = GameService(db);
+    final gameService = context.read<GameService>();
     await gameService.updateTile(
       tileId: tileId,
       bossId: bossId!,

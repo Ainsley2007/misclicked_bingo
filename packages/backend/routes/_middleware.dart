@@ -1,78 +1,35 @@
-import 'package:backend/config.dart';
-import 'package:backend/helpers/jwt.dart';
+import 'package:backend/database.dart';
+import 'package:backend/services/activity_service.dart';
+import 'package:backend/services/auth_service.dart';
+import 'package:backend/services/boss_service.dart';
+import 'package:backend/services/game_service.dart';
+import 'package:backend/services/proofs_service.dart';
+import 'package:backend/services/teams_service.dart';
+import 'package:backend/services/tiles_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Handler middleware(Handler handler) {
-  return handler
-      .use(requestLogger())
-      .use(_corsMiddleware())
-      .use(_authMiddleware());
+  return handler.use(servicesProvider());
 }
 
-Middleware _corsMiddleware() {
+Middleware servicesProvider() {
   return (handler) {
     return (context) async {
-      final frontendOrigin = Config.frontendOrigin;
+      final db = context.read<AppDatabase>();
+      final proofsService = context.read<ProofsService>();
 
-      if (context.request.method == HttpMethod.options) {
-        return Response(
-          statusCode: 204,
-          headers: {
-            'Access-Control-Allow-Origin': frontendOrigin,
-            'Access-Control-Allow-Methods':
-                'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Max-Age': '86400',
-          },
-        );
-      }
-
-      final response = await handler(context);
-
-      return response.copyWith(
-        headers: {
-          ...response.headers,
-          'Access-Control-Allow-Origin': frontendOrigin,
-          'Access-Control-Allow-Credentials': 'true',
-        },
+      return handler(
+        context
+            .provide<GameService>(() => GameService(db))
+            .provide<TeamsService>(() => TeamsService(db))
+            .provide<TilesService>(() => TilesService(db))
+            .provide<UserService>(() => UserService(db))
+            .provide<AuthService>(() => AuthService(db))
+            .provide<BossService>(() => BossService(db))
+            .provide<ActivityService>(() => ActivityService(db))
+            .provide<ProofsService>(() => proofsService),
       );
     };
   };
-}
-
-Middleware _authMiddleware() {
-  return (handler) {
-    return (context) async {
-      final cookies = context.request.headers['cookie'];
-      if (cookies != null) {
-        final authToken = _extractCookie(cookies, 'auth_token');
-        if (authToken != null) {
-          final payload = JwtHelper.verify(authToken);
-          if (payload != null) {
-            final userId = payload['sub'] as String?;
-            if (userId != null) {
-              return handler(
-                context
-                    .provide<Map<String, dynamic>>(() => payload)
-                    .provide<String>(() => userId),
-              );
-            }
-          }
-        }
-      }
-      return handler(context);
-    };
-  };
-}
-
-String? _extractCookie(String cookies, String name) {
-  final cookieList = cookies.split(';');
-  for (final cookie in cookieList) {
-    final parts = cookie.trim().split('=');
-    if (parts.length == 2 && parts[0] == name) {
-      return parts[1];
-    }
-  }
-  return null;
 }

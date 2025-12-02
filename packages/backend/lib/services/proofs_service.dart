@@ -4,11 +4,11 @@ import 'package:shared_models/shared_models.dart';
 import 'package:uuid/uuid.dart';
 
 class ProofsService {
+
+  ProofsService(this._db, this._r2);
   final AppDatabase _db;
   final R2Service _r2;
   static const _uuid = Uuid();
-
-  ProofsService(this._db, this._r2);
 
   Future<Map<String, String>> getPresignedUploadUrl({
     required String gameId,

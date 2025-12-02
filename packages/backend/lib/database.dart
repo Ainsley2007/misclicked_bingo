@@ -191,10 +191,10 @@ class AppDatabase extends _$AppDatabase {
     required String name,
     required int teamSize,
     required int boardSize,
+    required DateTime createdAt,
     String gameMode = 'blackout',
     DateTime? startTime,
     DateTime? endTime,
-    required DateTime createdAt,
   }) async {
     await into(games).insert(
       GamesCompanion(
@@ -328,8 +328,8 @@ class AppDatabase extends _$AppDatabase {
 
     await (update(users)..where((t) => t.id.equals(userId))).write(
       UsersCompanion(
-        teamId: Value(null),
-        gameId: Value(null),
+        teamId: const Value(null),
+        gameId: const Value(null),
         role: Value(newRole),
       ),
     );
@@ -348,8 +348,8 @@ class AppDatabase extends _$AppDatabase {
       final newRole = member.role == 'admin' ? 'admin' : 'user';
       await (update(users)..where((t) => t.id.equals(member.id))).write(
         UsersCompanion(
-          teamId: Value(null),
-          gameId: Value(null),
+          teamId: const Value(null),
+          gameId: const Value(null),
           role: Value(newRole),
         ),
       );
@@ -409,8 +409,8 @@ class AppDatabase extends _$AppDatabase {
     required String id,
     required String gameId,
     required String bossId,
-    String? description,
     required int position,
+    String? description,
     bool isAnyUnique = false,
     bool isOrLogic = false,
     int? anyNCount,
@@ -553,6 +553,12 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteUser(String userId) async {
     await (delete(users)..where((t) => t.id.equals(userId))).go();
+  }
+
+  Future<void> promoteUserToAdmin(String userId) async {
+    await (update(users)..where((t) => t.id.equals(userId))).write(
+      const UsersCompanion(role: Value('admin')),
+    );
   }
 
   Future<void> setTeamBoardState({
@@ -708,9 +714,9 @@ class AppDatabase extends _$AppDatabase {
   Future<void> updateTile({
     required String tileId,
     required String bossId,
-    String? description,
     required bool isAnyUnique,
     required bool isOrLogic,
+    String? description,
     int? anyNCount,
   }) async {
     await (update(bingoTiles)..where((t) => t.id.equals(tileId))).write(

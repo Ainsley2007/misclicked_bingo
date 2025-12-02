@@ -1,6 +1,7 @@
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/game_service.dart';
 import 'package:backend/services/tiles_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:backend/validators/game_validator.dart';
 import 'package:dart_frog/dart_frog.dart';
 
@@ -22,31 +23,25 @@ Future<Response> _toggleTileCompletion(
 ) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
     final tilesService = context.read<TilesService>();
+    final userService = context.read<UserService>();
+    final gameService = context.read<GameService>();
 
-    final user = await db.getUserById(userId);
+    final user = await userService.getUserById(userId);
     if (user == null || user.teamId == null) {
       return ResponseHelper.forbidden(
         message: 'User must be part of a team',
       );
     }
 
-    final game = await db.getGameById(gameId);
+    final game = await gameService.getGameById(gameId);
     if (game == null) {
       return ResponseHelper.notFound(message: 'Game not found');
     }
 
     final nowUtc = DateTime.now().toUtc();
-    DateTime? startTime;
-    DateTime? endTime;
-
-    if (game.startTime != null) {
-      startTime = DateTime.tryParse(game.startTime!);
-    }
-    if (game.endTime != null) {
-      endTime = DateTime.tryParse(game.endTime!);
-    }
+    final startTime = game.startTime;
+    final endTime = game.endTime;
 
     final timingValidation = GameValidator.validateGameTiming(
       now: nowUtc,

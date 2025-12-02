@@ -61,6 +61,42 @@ All API responses follow a consistent format.
 - `RESOURCE_EXISTS` - Resource already exists
 - `INTERNAL_ERROR` - Internal server error
 
+## Architecture
+
+### Service Layer
+
+All business logic is encapsulated in services located in `/lib/services`:
+
+- **GameService** - Game CRUD operations, returns `Game` objects
+- **TeamsService** - Team management, returns `Team` objects
+- **UserService** - User operations, returns `AppUser` objects
+- **TilesService** - Tile completion and queries
+- **ProofsService** - Proof uploads and management
+- **BossService** - Boss data retrieval
+- **ActivityService** - Activity tracking and stats
+- **AuthService** - Discord OAuth and user authentication
+
+### Dependency Injection
+
+Services are automatically injected via Dart Frog middleware. All routes access services using:
+
+```dart
+final gameService = context.read<GameService>();
+final userService = context.read<UserService>();
+```
+
+### Data Models
+
+The API uses strongly-typed models from the `shared_models` package, shared between frontend and backend:
+
+- `Game` - Game configuration and metadata
+- `Team` - Team information
+- `AppUser` - User profile data
+- `BingoTile` - Tile definition with boss and unique items
+- `TileProof` - Proof submission data
+- `TileActivity` - Activity feed items
+- `ProofStats` - Statistics aggregation
+
 ## Authentication
 
 Authentication is handled via cookie-based JWT tokens. The `auth_token` cookie is automatically set after successful Discord OAuth login.

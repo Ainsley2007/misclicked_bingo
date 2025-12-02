@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/game_service.dart';
 import 'package:backend/validators/game_validator.dart';
@@ -17,15 +16,14 @@ Future<Response> onRequest(RequestContext context, String id) async {
 
 Future<Response> _getGame(RequestContext context, String id) async {
   try {
-    final db = context.read<AppDatabase>();
-    final gameService = GameService(db);
+    final gameService = context.read<GameService>();
     final game = await gameService.getGameById(id);
 
     if (game == null) {
       return ResponseHelper.notFound(message: 'Game not found');
     }
 
-    return ResponseHelper.success(data: game);
+    return ResponseHelper.success(data: game.toJson());
   } catch (e) {
     return ResponseHelper.internalError();
   }
@@ -33,8 +31,7 @@ Future<Response> _getGame(RequestContext context, String id) async {
 
 Future<Response> _updateGame(RequestContext context, String id) async {
   try {
-    final db = context.read<AppDatabase>();
-    final gameService = GameService(db);
+    final gameService = context.read<GameService>();
 
     final game = await gameService.getGameById(id);
     if (game == null) {
@@ -55,7 +52,7 @@ Future<Response> _updateGame(RequestContext context, String id) async {
     }
 
     final updatedGame = await gameService.updateGame(gameId: id, name: name);
-    return ResponseHelper.success(data: updatedGame);
+    return ResponseHelper.success(data: updatedGame!.toJson());
   } catch (e) {
     return ResponseHelper.internalError();
   }
@@ -63,8 +60,7 @@ Future<Response> _updateGame(RequestContext context, String id) async {
 
 Future<Response> _deleteGame(RequestContext context, String id) async {
   try {
-    final db = context.read<AppDatabase>();
-    final gameService = GameService(db);
+    final gameService = context.read<GameService>();
     await gameService.deleteGame(id);
 
     return ResponseHelper.noContent();

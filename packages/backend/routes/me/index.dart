@@ -1,5 +1,5 @@
-import 'package:backend/db.dart';
 import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -11,28 +11,14 @@ Future<Response> onRequest(RequestContext context) async {
       return ResponseHelper.unauthorized();
     }
 
-    final db = Db.instance;
-    final user = await (db.select(db.users)
-          ..where((u) => u.id.equals(userId)))
-        .getSingleOrNull();
+    final userService = context.read<UserService>();
+    final user = await userService.getUserById(userId);
 
     if (user == null) {
       return ResponseHelper.notFound(message: 'User not found');
     }
 
-    return ResponseHelper.success(
-      data: {
-        'id': user.id,
-        'discordId': user.discordId,
-        'globalName': user.globalName,
-        'username': user.username,
-        'email': user.email,
-        'avatar': user.avatar,
-        'role': user.role,
-        'teamId': user.teamId,
-        'gameId': user.gameId,
-      },
-    );
+    return ResponseHelper.success(data: user.toJson());
   } catch (e) {
     return ResponseHelper.unauthorized();
   }

@@ -1,107 +1,78 @@
-import 'dart:io';
-
-import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/teams_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
-import 'package:shared_models/shared_models.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
     HttpMethod.get => _getTeamMembers(context, id),
     HttpMethod.post => _addTeamMember(context, id),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
 Future<Response> _getTeamMembers(RequestContext context, String id) async {
   try {
-    final db = context.read<AppDatabase>();
-    final members = await db.getTeamMembers(id);
+    final teamsService = context.read<TeamsService>();
+    final members = await teamsService.getTeamMembers(id);
 
-    final userDtos = members.map((user) {
-      return AppUser(
-        id: user.id,
-        discordId: user.discordId,
-        globalName: user.globalName,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-        role: UserRole.values.byName(user.role),
-        teamId: user.teamId,
-        gameId: user.gameId,
-      );
-    }).toList();
-
-    return Response.json(
-      statusCode: HttpStatus.ok,
-      body: userDtos.map((u) => u.toJson()).toList(),
+    return ResponseHelper.success(
+      data: members.map((u) => u.toJson()).toList(),
     );
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to get team members: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
 
 Future<Response> _addTeamMember(RequestContext context, String id) async {
   try {
     final currentUserId = context.read<String>();
-    final db = context.read<AppDatabase>();
+    final teamsService = context.read<TeamsService>();
+    final userService = context.read<UserService>();
     final body = await context.request.json() as Map<String, dynamic>;
     final userIdToAdd = body['userId'] as String?;
 
     if (userIdToAdd == null) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'userId is required'},
-      );
+      return ResponseHelper.validationError(message: 'userId is required');
     }
 
-    final team = await db.getTeamById(id);
+    final team = await teamsService.getTeamById(id);
     if (team == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'Team not found'},
+      return ResponseHelper.notFound(message: 'Team not found');
+    }
+
+    final isCaptain = await teamsService.isTeamCaptain(
+      teamId: id,
+      userId: currentUserId,
+    );
+    if (!isCaptain) {
+      return ResponseHelper.forbidden(
+        message: 'Only team captain can add members',
       );
     }
 
-    if (team.captainUserId != currentUserId) {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'Only team captain can add members'},
-      );
-    }
-
-    // Check if user is already in a team (including being a captain)
-    final userToAdd = await db.getUserById(userIdToAdd);
+    final userToAdd = await userService.getUserById(userIdToAdd);
     if (userToAdd == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'User not found'},
-      );
+      return ResponseHelper.notFound(message: 'User not found');
     }
 
     if (userToAdd.teamId != null) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'User is already in a team'},
+      return ResponseHelper.error(
+        message: 'User is already in a team',
+        code: ErrorCode.alreadyInTeam,
       );
     }
-
-    await db.addUserToTeam(
+    
+    await teamsService.addMemberToTeam(
       userId: userIdToAdd,
       teamId: id,
       gameId: team.gameId,
     );
 
-    return Response.json(
-      statusCode: HttpStatus.ok,
-      body: {'message': 'Member added successfully'},
+    return ResponseHelper.success(
+      data: {'message': 'Member added successfully'},
     );
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to add team member: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }

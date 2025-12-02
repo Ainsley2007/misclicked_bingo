@@ -1,12 +1,14 @@
-import 'dart:io';
-
 import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/game_service.dart';
+import 'package:backend/services/teams_service.dart';
+import 'package:backend/services/tiles_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
     HttpMethod.get => _getPublicGameOverview(context, id),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
@@ -15,27 +17,22 @@ Future<Response> _getPublicGameOverview(
   String id,
 ) async {
   try {
-    final db = context.read<AppDatabase>();
-    final game = await db.getGameById(id);
+    final gameService = context.read<GameService>();
+    final teamsService = context.read<TeamsService>();
+    final tilesService = context.read<TilesService>();
+
+    final game = await gameService.getGameById(id);
     if (game == null) {
-      return Response.json(
-        statusCode: HttpStatus.notFound,
-        body: {'error': 'Game not found'},
-      );
+      return ResponseHelper.notFound(message: 'Game not found');
     }
 
-    final teams = await db.getTeamsByGameId(id);
-    final tiles = await db.getTilesByGameId(id);
+    final teams = await teamsService.getTeamsByGameId(id);
+    final tiles = await tilesService.getTilesByGameId(id);
 
     if (tiles.isEmpty) {
-      return Response.json(
-        body: {
-          'game': {
-            ...game.toJson(),
-            'gameMode': game.gameMode,
-            'startTime': game.startTime,
-            'endTime': game.endTime,
-          },
+      return ResponseHelper.success(
+        data: {
+          'game': game.toJson(),
           'tiles': <Map<String, dynamic>>[],
           'teams': <Map<String, dynamic>>[],
           'totalPoints': 0,
@@ -46,14 +43,14 @@ Future<Response> _getPublicGameOverview(
     final tileIds = tiles.map((t) => t.id).toList();
 
     final allTeamBoardStatesFutures = <Future<Map<String, String>>>[
-      for (final team in teams) db.getTeamBoardStates(team.id),
+      for (final team in teams) tilesService.getTeamBoardStates(team.id),
     ];
     final allTeamProofsFutures = <Future<List<TileProof>>>[
-      for (final team in teams) db.getProofsByTeam(team.id),
+      for (final team in teams) tilesService.getProofsByTeam(team.id),
     ];
     final futures = await Future.wait([
-      db.getAllBosses(),
-      db.getUniqueItemsByTileIds(tileIds),
+      tilesService.getAllBosses(),
+      tilesService.getUniqueItemsByTileIds(tileIds),
       Future.wait<Map<String, String>>(allTeamBoardStatesFutures),
       Future.wait<List<TileProof>>(allTeamProofsFutures),
     ]);
@@ -103,22 +100,20 @@ Future<Response> _getPublicGameOverview(
       };
     }).toList();
 
-    final teamsData = teams.asMap().entries.map((entry) {
+    final teamsResult = teams.asMap().entries.map((entry) {
       final team = entry.value;
       final teamBoardStates = allTeamBoardStates[entry.key];
       final teamProofs = allTeamProofs[entry.key];
 
-      // Build set of tiles with proofs for this team
       final tilesWithProofs = <String>{};
       for (final proof in teamProofs) {
         tilesWithProofs.add(proof.tileId);
       }
 
-      // Calculate team points (sum of completed tile points)
       var teamPoints = 0;
-      for (final entry in teamBoardStates.entries) {
-        if (entry.value == 'completed') {
-          teamPoints += tilePointsMap[entry.key] ?? 0;
+      for (final stateEntry in teamBoardStates.entries) {
+        if (stateEntry.value == 'completed') {
+          teamPoints += tilePointsMap[stateEntry.key] ?? 0;
         }
       }
 
@@ -134,24 +129,15 @@ Future<Response> _getPublicGameOverview(
       };
     }).toList();
 
-    return Response.json(
-      body: {
-        'game': {
-          ...game.toJson(),
-          'gameMode': game.gameMode,
-          'startTime': game.startTime,
-          'endTime': game.endTime,
-        },
+    return ResponseHelper.success(
+      data: {
+        'game': game.toJson(),
         'tiles': tilesData,
-        'teams': teamsData,
+        'teams': teamsResult,
         'totalPoints': totalPoints,
       },
     );
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch game overview: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }
-

@@ -25,7 +25,6 @@ class R2Service {
       endPoint: endpoint,
       accessKey: accessKey,
       secretKey: secretKey,
-      useSSL: true,
     );
   }
   late final Minio _minio;

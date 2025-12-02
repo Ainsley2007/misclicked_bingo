@@ -105,12 +105,12 @@ Future<void> main() async {
         .into(db.users)
         .insert(
           UsersCompanion.insert(
-            id: userData['id']! as String,
-            discordId: userData['discordId']! as String,
-            globalName: Value(userData['globalName'] as String?),
-            username: Value(userData['username'] as String?),
-            email: Value(userData['email'] as String?),
-            role: Value(userData['role']! as String),
+            id: userData['id']!,
+            discordId: userData['discordId']!,
+            globalName: Value(userData['globalName']),
+            username: Value(userData['username']),
+            email: Value(userData['email']),
+            role: Value(userData['role']!),
           ),
         );
     print(

@@ -63,7 +63,6 @@ Future<void> main() async {
       userId: member.id,
       teamId: teamId,
       gameId: game.id,
-      isCaptain: false,
     );
     print('✅ Added ${member.globalName} to team');
   }

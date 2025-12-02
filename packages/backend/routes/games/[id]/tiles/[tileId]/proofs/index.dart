@@ -1,7 +1,8 @@
-import 'dart:io';
-
-import 'package:backend/database.dart';
+import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/proofs_service.dart';
+import 'package:backend/services/teams_service.dart';
+import 'package:backend/services/tiles_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(
@@ -12,34 +13,29 @@ Future<Response> onRequest(
   return switch (context.request.method) {
     HttpMethod.get => _getProofs(context, tileId),
     HttpMethod.post => _createProof(context, tileId),
-    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+    _ => ResponseHelper.methodNotAllowed(),
   };
 }
 
 Future<Response> _getProofs(RequestContext context, String tileId) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
     final proofsService = context.read<ProofsService>();
+    final userService = context.read<UserService>();
+    final teamsService = context.read<TeamsService>();
 
-    final user = await db.getUserById(userId);
+    final user = await userService.getUserById(userId);
     if (user == null || user.teamId == null) {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'User must be part of a team'},
-      );
+      return ResponseHelper.forbidden(message: 'User must be part of a team');
     }
 
-    // Allow viewing proofs from any team in the same game (for overview screen)
     final teamIdParam = context.request.uri.queryParameters['teamId'];
     final teamId = teamIdParam ?? user.teamId!;
 
-    // Verify the requested team is in the same game
-    final requestedTeam = await db.getTeamById(teamId);
+    final requestedTeam = await teamsService.getTeamById(teamId);
     if (requestedTeam == null || requestedTeam.gameId != user.gameId) {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'Team not found or not in same game'},
+      return ResponseHelper.forbidden(
+        message: 'Team not found or not in same game',
       );
     }
 
@@ -48,37 +44,33 @@ Future<Response> _getProofs(RequestContext context, String tileId) async {
       teamId: teamId,
     );
 
-    return Response.json(body: proofs.map((p) => p.toJson()).toList());
-  } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to fetch proofs: $e'},
+    return ResponseHelper.success(
+      data: proofs.map((p) => p.toJson()).toList(),
     );
+  } catch (e) {
+    return ResponseHelper.internalError();
   }
 }
 
 Future<Response> _createProof(RequestContext context, String tileId) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
     final proofsService = context.read<ProofsService>();
+    final userService = context.read<UserService>();
+    final tilesService = context.read<TilesService>();
 
-    final user = await db.getUserById(userId);
+    final user = await userService.getUserById(userId);
     if (user == null || user.teamId == null) {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'User must be part of a team'},
-      );
+      return ResponseHelper.forbidden(message: 'User must be part of a team');
     }
 
-    final tileStatus = await db.getTeamBoardState(
+    final tileStatus = await tilesService.getTeamBoardState(
       teamId: user.teamId!,
       tileId: tileId,
     );
     if (tileStatus == 'completed') {
-      return Response.json(
-        statusCode: HttpStatus.forbidden,
-        body: {'error': 'Cannot add proof to completed tile'},
+      return ResponseHelper.forbidden(
+        message: 'Cannot add proof to completed tile',
       );
     }
 
@@ -86,9 +78,8 @@ Future<Response> _createProof(RequestContext context, String tileId) async {
     final imageUrl = body['imageUrl'] as String?;
 
     if (imageUrl == null) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Missing required field: imageUrl'},
+      return ResponseHelper.validationError(
+        message: 'Missing required field: imageUrl',
       );
     }
 
@@ -98,9 +89,8 @@ Future<Response> _createProof(RequestContext context, String tileId) async {
     );
 
     if (existingProofs.length >= 10) {
-      return Response.json(
-        statusCode: HttpStatus.badRequest,
-        body: {'error': 'Maximum of 10 proofs per tile'},
+      return ResponseHelper.validationError(
+        message: 'Maximum of 10 proofs per tile',
       );
     }
 
@@ -111,11 +101,8 @@ Future<Response> _createProof(RequestContext context, String tileId) async {
       uploadedByUserId: userId,
     );
 
-    return Response.json(statusCode: HttpStatus.created, body: proof.toJson());
+    return ResponseHelper.created(data: proof.toJson());
   } catch (e) {
-    return Response.json(
-      statusCode: HttpStatus.internalServerError,
-      body: {'error': 'Failed to create proof: $e'},
-    );
+    return ResponseHelper.internalError();
   }
 }

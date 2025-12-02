@@ -1,18 +1,16 @@
 import 'package:backend/database.dart';
 
 class TileCompletionResult {
+  TileCompletionResult.success(this.status) : success = true, error = null;
+  TileCompletionResult.failure(this.error) : success = false, status = null;
   final bool success;
   final String? error;
   final String? status;
-
-  TileCompletionResult.success(this.status) : success = true, error = null;
-  TileCompletionResult.failure(this.error) : success = false, status = null;
 }
 
 class TilesService {
-  final AppDatabase _db;
-
   TilesService(this._db);
+  final AppDatabase _db;
 
   Future<TileCompletionResult> completeTile({
     required String tileId,
@@ -49,8 +47,6 @@ class TilesService {
       teamId: teamId,
       tileId: tileId,
       status: 'incomplete',
-      completedByUserId: null,
-      completedAt: null,
     );
 
     return TileCompletionResult.success('incomplete');
@@ -72,5 +68,45 @@ class TilesService {
       return completeTile(tileId: tileId, teamId: teamId, userId: userId);
     }
   }
-}
 
+  Future<List<BingoTile>> getTilesByGameId(String gameId) async {
+    return _db.getTilesByGameId(gameId);
+  }
+
+  Future<String?> getTeamBoardState({
+    required String teamId,
+    required String tileId,
+  }) async {
+    return _db.getTeamBoardState(teamId: teamId, tileId: tileId);
+  }
+
+  Future<Map<String, String>> getTeamBoardStates(String teamId) async {
+    return _db.getTeamBoardStates(teamId);
+  }
+
+  Future<List<TileProof>> getProofsByTeam(String teamId) async {
+    return _db.getProofsByTeam(teamId);
+  }
+
+  Future<List<TileProof>> getProofsByTileAndTeam({
+    required String tileId,
+    required String teamId,
+  }) async {
+    return _db.getProofsByTileAndTeam(tileId: tileId, teamId: teamId);
+  }
+
+  Future<List<BossesData>> getAllBosses() async {
+    return _db.getAllBosses();
+  }
+
+  Future<List<TileUniqueItem>> getUniqueItemsByTileIds(
+    List<String> tileIds,
+  ) async {
+    return _db.getUniqueItemsByTileIds(tileIds);
+  }
+
+  Future<List<String>> getBossUniqueItemNames(String bossId) async {
+    final items = await _db.getUniqueItemsByBossId(bossId);
+    return items.map((item) => item.itemName).toList();
+  }
+}

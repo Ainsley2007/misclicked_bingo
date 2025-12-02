@@ -13,15 +13,13 @@ Future<void> main(List<String> args) async {
   final db = Db.instance;
 
   try {
-    User? user = await (db.select(
+    var user = await (db.select(
       db.users,
     )..where((u) => u.id.equals(identifier))).getSingleOrNull();
 
-    if (user == null) {
-      user = await (db.select(
+    user ??= await (db.select(
         db.users,
       )..where((u) => u.discordId.equals(identifier))).getSingleOrNull();
-    }
 
     if (user == null) {
       print('User not found: $identifier');

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/game_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(
@@ -23,10 +23,10 @@ Future<Response> _uncompleteTileForAllTeams(
 ) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
+    final userService = context.read<UserService>();
 
-    final user = await db.getUserById(userId);
-    if (user == null || user.role != 'admin') {
+    final isAdmin = await userService.isAdmin(userId);
+    if (!isAdmin) {
       return ResponseHelper.forbidden(message: 'Admin access required');
     }
 
@@ -34,7 +34,7 @@ Future<Response> _uncompleteTileForAllTeams(
     final data = jsonDecode(body) as Map<String, dynamic>;
     final deleteProofs = data['deleteProofs'] as bool? ?? false;
 
-    final gameService = GameService(db);
+    final gameService = context.read<GameService>();
     await gameService.uncompleteTileForAllTeams(
       gameId: gameId,
       tileId: tileId,

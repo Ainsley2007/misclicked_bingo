@@ -1,6 +1,6 @@
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/proofs_service.dart';
+import 'package:backend/services/user_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -13,10 +13,10 @@ Future<Response> onRequest(RequestContext context) async {
 Future<Response> _getUploadUrl(RequestContext context) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
     final proofsService = context.read<ProofsService>();
+    final userService = context.read<UserService>();
 
-    final user = await db.getUserById(userId);
+    final user = await userService.getUserById(userId);
     if (user == null || user.teamId == null) {
       return ResponseHelper.forbidden(
         message: 'User must be part of a team',

@@ -1,5 +1,5 @@
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/boss_service.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -11,21 +11,8 @@ Future<Response> onRequest(RequestContext context) async {
 
 Future<Response> _getBosses(RequestContext context) async {
   try {
-    final db = context.read<AppDatabase>();
-    final bosses = await db.getAllBosses();
-
-    final bossesWithItems = await Future.wait(
-      bosses.map((boss) async {
-        final uniqueItems = await db.getUniqueItemsByBossId(boss.id);
-        return {
-          'id': boss.id,
-          'name': boss.name,
-          'type': boss.type,
-          'iconUrl': boss.iconUrl,
-          'uniqueItems': uniqueItems.map((item) => item.itemName).toList(),
-        };
-      }),
-    );
+    final bossService = context.read<BossService>();
+    final bossesWithItems = await bossService.getAllBossesWithItems();
 
     return ResponseHelper.success(data: bossesWithItems);
   } catch (e) {

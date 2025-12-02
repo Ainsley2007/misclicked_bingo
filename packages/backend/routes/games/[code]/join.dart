@@ -1,5 +1,6 @@
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/game_service.dart';
+import 'package:backend/services/teams_service.dart';
 import 'package:backend/validators/auth_validator.dart';
 import 'package:backend/validators/team_validator.dart';
 import 'package:dart_frog/dart_frog.dart';
@@ -14,7 +15,6 @@ Future<Response> onRequest(RequestContext context, String code) async {
 Future<Response> _joinGame(RequestContext context, String code) async {
   try {
     final userId = context.read<String>();
-    final db = context.read<AppDatabase>();
     final body = await context.request.json() as Map<String, dynamic>;
     final teamName = body['teamName'] as String?;
 
@@ -34,29 +34,18 @@ Future<Response> _joinGame(RequestContext context, String code) async {
       );
     }
 
-    final game = await db.getGameByCode(code);
+    final gameService = context.read<GameService>();
+    final game = await gameService.getGameByCode(code);
     if (game == null) {
       return ResponseHelper.notFound(message: 'Game not found');
     }
 
-    await db.createTeam(
-      id: '',
+    final teamsService = context.read<TeamsService>();
+    final team = await teamsService.joinGameAndCreateTeam(
       gameId: game.id,
-      name: teamName!,
+      teamName: teamName!,
       captainUserId: userId,
     );
-
-    await db.addUserToTeam(
-      userId: userId,
-      teamId: '',
-      gameId: game.id,
-      isCaptain: true,
-    );
-
-    final user = await db.getUserById(userId);
-    final team = user?.teamId != null
-        ? await db.getTeamById(user!.teamId!)
-        : null;
 
     if (team == null) {
       return ResponseHelper.internalError(message: 'Failed to create team');

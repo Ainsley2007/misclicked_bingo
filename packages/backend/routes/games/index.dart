@@ -1,6 +1,5 @@
 import 'dart:developer' as developer;
 
-import 'package:backend/database.dart';
 import 'package:backend/helpers/response_helper.dart';
 import 'package:backend/services/game_service.dart';
 import 'package:backend/validators/game_validator.dart';
@@ -17,11 +16,10 @@ Future<Response> onRequest(RequestContext context) async {
 
 Future<Response> _getGames(RequestContext context) async {
   try {
-    final db = context.read<AppDatabase>();
-    final gameService = GameService(db);
+    final gameService = context.read<GameService>();
     final games = await gameService.getAllGames();
 
-    return ResponseHelper.success(data: games);
+    return ResponseHelper.success(data: games.map((g) => g.toJson()).toList());
   } catch (e) {
     return ResponseHelper.internalError();
   }
@@ -87,8 +85,7 @@ Future<Response> _createGame(RequestContext context) async {
           );
         }
 
-        final db = context.read<AppDatabase>();
-        final gameService = GameService(db);
+        final gameService = context.read<GameService>();
         final bossExists = await gameService.verifyBossExists(bossId!);
         if (!bossExists) {
           return ResponseHelper.notFound(
@@ -98,8 +95,7 @@ Future<Response> _createGame(RequestContext context) async {
       }
     }
 
-    final db = context.read<AppDatabase>();
-    final gameService = GameService(db);
+    final gameService = context.read<GameService>();
     final game = await gameService.createGame(
       name: name!,
       teamSize: teamSize,
@@ -110,7 +106,7 @@ Future<Response> _createGame(RequestContext context) async {
       tiles: tiles,
     );
 
-    return ResponseHelper.created(data: game);
+    return ResponseHelper.created(data: game.toJson());
   } catch (e, stackTrace) {
     developer.log(
       'Failed to create game',

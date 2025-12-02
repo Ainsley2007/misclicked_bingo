@@ -11,8 +11,15 @@ import 'package:frontend/features/lobby/logic/join_game_state.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:frontend/core/widgets/widgets.dart';
 
-class LobbyScreen extends StatelessWidget {
+class LobbyScreen extends StatefulWidget {
   const LobbyScreen({super.key});
+
+  @override
+  State<LobbyScreen> createState() => _LobbyScreenState();
+}
+
+class _LobbyScreenState extends State<LobbyScreen> {
+  bool _hasRedirected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +34,16 @@ class LobbyScreen extends StatelessWidget {
           );
         }
 
-        // Redirect users in a game to the game screen
-        if (user.gameId != null) {
+        // Redirect users in a game to the game screen (only once)
+        if (user.gameId != null && !_hasRedirected) {
+          _hasRedirected = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.go('/game/${user.gameId}');
+            if (!mounted) return;
+            final currentPath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+            // Only redirect if we're actually on the lobby page
+            if (currentPath == '/lobby') {
+              context.go('/game/${user.gameId}');
+            }
           });
           return const SizedBox.expand(
             child: Center(child: CircularProgressIndicator()),

@@ -29,7 +29,9 @@ class AppRouter {
         }
 
         final isGuestRoute = state.matchedLocation.startsWith('/guest');
-        if (status == AuthStatus.unauthenticated && !isLoginRoute && !isGuestRoute) {
+        if (status == AuthStatus.unauthenticated &&
+            !isLoginRoute &&
+            !isGuestRoute) {
           return '/login';
         }
 
@@ -145,7 +147,6 @@ class AppRouter {
 
 class _GoRouterRefreshStream extends ChangeNotifier {
   _GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
     _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
   }
 

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +46,9 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
   Widget build(BuildContext context) {
     return BlocListener<OverviewBloc, OverviewState>(
       listener: (context, state) async {
+        developer.log('OverviewScreen state changed: ${state.runtimeType}', name: 'overview');
         if (state is OverviewError) {
+          developer.log('OverviewError: ${state.message}', name: 'overview');
           await sl<AuthService>().checkAuth();
           if (context.mounted) {
             context.go('/lobby');

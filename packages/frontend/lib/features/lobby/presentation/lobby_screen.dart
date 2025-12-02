@@ -309,7 +309,10 @@ class _PlayerWaitingViewState extends State<_PlayerWaitingView> {
 
   void _onAuthStateChanged(AuthState state) {
     if (state.user?.teamId != null && mounted) {
-      context.go('/game/${state.user!.gameId}');
+      final currentPath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+      if (currentPath == '/lobby') {
+        context.go('/game/${state.user!.gameId}');
+      }
     }
   }
 

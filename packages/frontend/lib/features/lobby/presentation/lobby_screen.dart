@@ -178,7 +178,7 @@ class _JoinGameViewState extends State<_JoinGameView> {
             builder: (context, state) {
               return Column(
                 children: [
-                  TextField(
+                  BingoTextField(
                     controller: _codeController,
                     decoration: InputDecoration(
                       labelText: 'Game Code',
@@ -196,7 +196,7 @@ class _JoinGameViewState extends State<_JoinGameView> {
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  BingoTextField(
                     controller: _teamNameController,
                     decoration: const InputDecoration(
                       labelText: 'Team Name',

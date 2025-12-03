@@ -45,7 +45,7 @@ class _Step1GameNameState extends State<Step1GameName> {
               const SizedBox(height: 32),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
-                child: TextField(
+                child: BingoTextField(
                   controller: _controller,
                   decoration: InputDecoration(
                     hintText: 'e.g., Summer Bingo 2025',

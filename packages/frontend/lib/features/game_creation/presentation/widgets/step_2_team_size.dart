@@ -46,7 +46,7 @@ class _Step2TeamSizeState extends State<Step2TeamSize> {
               const SizedBox(height: 32),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
-                child: TextField(
+                child: BingoTextField(
                   controller: _controller,
                   decoration: InputDecoration(
                     hintText: 'Maximum team size (e.g., 5)',

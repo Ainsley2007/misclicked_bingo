@@ -613,7 +613,7 @@ class _GameEditDialogState extends State<_GameEditDialog> {
                 ],
               ),
               const SizedBox(height: 24),
-              TextField(
+              BingoTextField(
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Game Name',

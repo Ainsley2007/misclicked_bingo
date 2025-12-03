@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/core/widgets/widgets.dart';
 import 'package:shared_models/shared_models.dart';
 
 class UniqueItemsSelectionDialog extends StatefulWidget {
@@ -194,7 +195,7 @@ class _UniqueItemsSelectionDialogState
                             const SizedBox(width: 16),
                             SizedBox(
                               width: 100,
-                              child: TextField(
+                              child: BingoTextField(
                                 controller: _anyNCountController,
                                 decoration: const InputDecoration(
                                   hintText: 'Count',
@@ -250,7 +251,7 @@ class _UniqueItemsSelectionDialogState
                             secondary: isSelected
                                 ? SizedBox(
                                     width: 80,
-                                    child: TextField(
+                                    child: BingoTextField(
                                       decoration: const InputDecoration(
                                         labelText: 'Count',
                                         isDense: true,

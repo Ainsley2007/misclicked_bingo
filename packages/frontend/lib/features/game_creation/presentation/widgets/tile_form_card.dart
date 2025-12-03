@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/utils/debouncer.dart';
+import 'package:frontend/core/widgets/widgets.dart';
 import 'package:frontend/features/game_creation/presentation/widgets/unique_items_selection_dialog.dart';
 import 'package:shared_models/shared_models.dart';
 
@@ -327,7 +328,7 @@ class _TileFormCardState extends State<TileFormCard> {
             ],
             if (widget.isPointsMode) ...[
               const SizedBox(height: 16),
-              TextField(
+              BingoTextField(
                 controller: _pointsController,
                 decoration: InputDecoration(
                   labelText: 'Points *',
@@ -348,7 +349,7 @@ class _TileFormCardState extends State<TileFormCard> {
             ],
             const SizedBox(height: 16),
             if (_showDescription)
-              TextField(
+              BingoTextField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
                   hintText: 'Description (optional)',

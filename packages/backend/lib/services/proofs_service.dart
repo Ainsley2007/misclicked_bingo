@@ -4,7 +4,6 @@ import 'package:shared_models/shared_models.dart';
 import 'package:uuid/uuid.dart';
 
 class ProofsService {
-
   ProofsService(this._db, this._r2);
   final AppDatabase _db;
   final R2Service _r2;
@@ -20,7 +19,9 @@ class ProofsService {
       teamId: teamId,
       fileName: fileName,
     );
-    final uploadUrl = await _r2.generatePresignedUploadUrl(objectKey: objectKey);
+    final uploadUrl = await _r2.generatePresignedUploadUrl(
+      objectKey: objectKey,
+    );
     final publicUrl = _r2.getPublicUrl(objectKey);
 
     return {
@@ -65,7 +66,10 @@ class ProofsService {
     required String tileId,
     required String teamId,
   }) async {
-    final proofs = await _db.getProofsByTileAndTeam(tileId: tileId, teamId: teamId);
+    final proofs = await _db.getProofsByTileAndTeam(
+      tileId: tileId,
+      teamId: teamId,
+    );
     final userIds = proofs.map((p) => p.uploadedByUserId).toSet();
     final users = <String, User>{};
 
@@ -99,4 +103,3 @@ class ProofsService {
     await _db.deleteTileProof(proofId);
   }
 }
-

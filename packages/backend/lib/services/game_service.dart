@@ -1,13 +1,11 @@
 import 'dart:math';
+
+import 'package:backend/database.dart' as db;
 import 'package:backend/database.dart' hide Game;
 import 'package:shared_models/shared_models.dart';
 import 'package:uuid/uuid.dart';
 
-// Import Game from database as DbGame
-import 'package:backend/database.dart' as db;
-
 class GameService {
-
   GameService(this._db);
   final AppDatabase _db;
 
@@ -145,8 +143,12 @@ class GameService {
       teamSize: gameData.teamSize,
       boardSize: gameData.boardSize,
       gameMode: GameMode.fromString(gameData.gameMode),
-      startTime: gameData.startTime != null ? DateTime.parse(gameData.startTime!) : null,
-      endTime: gameData.endTime != null ? DateTime.parse(gameData.endTime!) : null,
+      startTime: gameData.startTime != null
+          ? DateTime.parse(gameData.startTime!)
+          : null,
+      endTime: gameData.endTime != null
+          ? DateTime.parse(gameData.endTime!)
+          : null,
       createdAt: DateTime.parse(gameData.createdAt),
     );
   }
@@ -209,7 +211,6 @@ class GameService {
 }
 
 class TileUniqueItemData {
-
   TileUniqueItemData({required this.itemName, required this.requiredCount});
   final String itemName;
   final int requiredCount;

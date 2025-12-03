@@ -13,7 +13,9 @@ Middleware authMiddleware() {
             final userId = payload['sub'] as String?;
             if (userId != null) {
               return handler(
-                context.provide<Map<String, dynamic>>(() => payload).provide<String>(() => userId),
+                context
+                    .provide<Map<String, dynamic>>(() => payload)
+                    .provide<String>(() => userId),
               );
             }
           }
@@ -34,4 +36,3 @@ String? _extractCookie(String cookies, String name) {
   }
   return null;
 }
-

@@ -1,9 +1,7 @@
 import 'package:backend/database.dart' hide Team;
+import 'package:backend/database.dart' as db;
 import 'package:shared_models/shared_models.dart';
 import 'package:uuid/uuid.dart';
-
-// Import Team from database as DbTeam
-import 'package:backend/database.dart' as db;
 
 class TeamsService {
   TeamsService(this._db);

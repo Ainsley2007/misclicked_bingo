@@ -50,4 +50,3 @@ Future<Response> _deleteProof(
     return ResponseHelper.internalError();
   }
 }
-

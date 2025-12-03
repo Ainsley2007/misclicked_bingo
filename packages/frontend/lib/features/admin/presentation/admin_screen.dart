@@ -676,7 +676,7 @@ class _GameEditDialogState extends State<_GameEditDialog> {
                           labelText: 'Select Tile',
                           prefixIcon: Icon(Icons.grid_3x3),
                         ),
-                        value: _selectedTileId,
+                        initialValue: _selectedTileId,
                         items: _tiles!.map((tile) {
                           final name =
                               tile.bossName ??

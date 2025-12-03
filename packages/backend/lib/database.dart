@@ -705,6 +705,35 @@ class AppDatabase extends _$AppDatabase {
     return counts;
   }
 
+  /// Get points contributed per user based on proofs they uploaded.
+  /// Points are attributed from tiles where the user uploaded at least one proof.
+  Future<Map<String, int>> getPointsContributedByUser(String gameId) async {
+    final proofs = await getProofsByGame(gameId);
+    final tilesData = await getTilesByGameId(gameId);
+    final tilePoints = {for (final t in tilesData) t.id: t.points};
+    
+    // Track which tiles each user has uploaded proofs for
+    final userTiles = <String, Set<String>>{};
+    for (final proof in proofs) {
+      final userId = proof.uploadedByUserId;
+      userTiles.putIfAbsent(userId, () => {}).add(proof.tileId);
+    }
+    
+    // Sum points for each user based on tiles they contributed to
+    final points = <String, int>{};
+    for (final entry in userTiles.entries) {
+      final userId = entry.key;
+      final tileIds = entry.value;
+      int totalPoints = 0;
+      for (final tileId in tileIds) {
+        totalPoints += tilePoints[tileId] ?? 0;
+      }
+      points[userId] = totalPoints;
+    }
+    
+    return points;
+  }
+
   Future<void> updateGameName(String gameId, String name) async {
     await (update(games)..where((t) => t.id.equals(gameId))).write(
       GamesCompanion(name: Value(name)),

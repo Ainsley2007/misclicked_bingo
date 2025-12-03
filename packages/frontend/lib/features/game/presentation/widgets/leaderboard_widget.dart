@@ -55,6 +55,16 @@ class LeaderboardWidget extends StatelessWidget {
         children: [
           _buildStatsOverview(context),
           const SizedBox(height: 16),
+          if (stats!.topPointsContributors.isNotEmpty) ...[
+            _LeaderboardCard(
+              title: 'Top Points Contributors',
+              icon: Icons.emoji_events,
+              users: stats!.topPointsContributors,
+              color: const Color(0xFFFFA000),
+              suffix: 'pts',
+            ),
+            const SizedBox(height: 12),
+          ],
           if (stats!.topProofUploaders.isNotEmpty) ...[
             _LeaderboardCard(
               title: 'Top Proof Uploaders',
@@ -78,9 +88,21 @@ class LeaderboardWidget extends StatelessWidget {
 
   Widget _buildStatsOverview(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final hasPoints = stats!.totalPoints > 0;
     
     return Row(
       children: [
+        if (hasPoints) ...[
+          Expanded(
+            child: _StatCard(
+              icon: Icons.emoji_events,
+              label: 'Points',
+              value: stats!.totalPoints.toString(),
+              color: const Color(0xFFFFA000),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
         Expanded(
           child: _StatCard(
             icon: Icons.upload_file,
@@ -171,12 +193,14 @@ class _LeaderboardCard extends StatelessWidget {
   final IconData icon;
   final List<UserStats> users;
   final Color color;
+  final String? suffix;
 
   const _LeaderboardCard({
     required this.title,
     required this.icon,
     required this.users,
     required this.color,
+    this.suffix,
   });
 
   @override
@@ -219,6 +243,7 @@ class _LeaderboardCard extends StatelessWidget {
               rank: entry.key + 1,
               user: entry.value,
               color: color,
+              suffix: suffix,
             )),
           ],
         ),
@@ -231,11 +256,13 @@ class _LeaderboardRow extends StatelessWidget {
   final int rank;
   final UserStats user;
   final Color color;
+  final String? suffix;
 
   const _LeaderboardRow({
     required this.rank,
     required this.user,
     required this.color,
+    this.suffix,
   });
 
   @override
@@ -316,7 +343,7 @@ class _LeaderboardRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              user.count.toString(),
+              suffix != null ? '${user.count} $suffix' : user.count.toString(),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,

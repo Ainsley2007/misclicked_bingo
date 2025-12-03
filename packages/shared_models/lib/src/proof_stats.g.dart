@@ -27,14 +27,22 @@ ProofStats _$ProofStatsFromJson(Map<String, dynamic> json) => ProofStats(
   topTileCompleters: (json['topTileCompleters'] as List<dynamic>)
       .map((e) => UserStats.fromJson(e as Map<String, dynamic>))
       .toList(),
+  topPointsContributors:
+      (json['topPointsContributors'] as List<dynamic>?)
+          ?.map((e) => UserStats.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   totalProofs: (json['totalProofs'] as num).toInt(),
   totalCompletions: (json['totalCompletions'] as num).toInt(),
+  totalPoints: (json['totalPoints'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$ProofStatsToJson(ProofStats instance) =>
     <String, dynamic>{
       'topProofUploaders': instance.topProofUploaders,
       'topTileCompleters': instance.topTileCompleters,
+      'topPointsContributors': instance.topPointsContributors,
       'totalProofs': instance.totalProofs,
       'totalCompletions': instance.totalCompletions,
+      'totalPoints': instance.totalPoints,
     };

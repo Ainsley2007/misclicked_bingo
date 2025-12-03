@@ -92,8 +92,13 @@ class ActivityService {
   Future<ProofStats> getStats({required String gameId}) async {
     final proofCounts = await _db.getProofCountsByUser(gameId);
     final completionCounts = await _db.getCompletionCountsByUser(gameId);
+    final pointsContributed = await _db.getPointsContributedByUser(gameId);
 
-    final allUserIds = {...proofCounts.keys, ...completionCounts.keys};
+    final allUserIds = {
+      ...proofCounts.keys,
+      ...completionCounts.keys,
+      ...pointsContributed.keys,
+    };
     final userCache = <String, User>{};
 
     for (final userId in allUserIds) {
@@ -121,14 +126,26 @@ class ActivityService {
       );
     }).toList()..sort((a, b) => b.count.compareTo(a.count));
 
+    final topPointsContributors = pointsContributed.entries.map((e) {
+      final user = userCache[e.key];
+      return UserStats(
+        userId: e.key,
+        username: user?.globalName ?? user?.username,
+        avatar: user?.avatar,
+        count: e.value,
+      );
+    }).toList()..sort((a, b) => b.count.compareTo(a.count));
+
     return ProofStats(
       topProofUploaders: topProofUploaders.take(10).toList(),
       topTileCompleters: topTileCompleters.take(10).toList(),
+      topPointsContributors: topPointsContributors.take(10).toList(),
       totalProofs: proofCounts.values.fold(0, (sum, count) => sum + count),
       totalCompletions: completionCounts.values.fold(
         0,
         (sum, count) => sum + count,
       ),
+      totalPoints: pointsContributed.values.fold(0, (sum, pts) => sum + pts),
     );
   }
 }

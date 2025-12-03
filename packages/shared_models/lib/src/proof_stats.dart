@@ -29,14 +29,18 @@ class UserStats extends Equatable {
 class ProofStats extends Equatable {
   final List<UserStats> topProofUploaders;
   final List<UserStats> topTileCompleters;
+  final List<UserStats> topPointsContributors;
   final int totalProofs;
   final int totalCompletions;
+  final int totalPoints;
 
   const ProofStats({
     required this.topProofUploaders,
     required this.topTileCompleters,
+    this.topPointsContributors = const [],
     required this.totalProofs,
     required this.totalCompletions,
+    this.totalPoints = 0,
   });
 
   factory ProofStats.fromJson(Map<String, dynamic> json) =>
@@ -44,6 +48,6 @@ class ProofStats extends Equatable {
   Map<String, dynamic> toJson() => _$ProofStatsToJson(this);
 
   @override
-  List<Object?> get props => [topProofUploaders, topTileCompleters, totalProofs, totalCompletions];
+  List<Object?> get props => [topProofUploaders, topTileCompleters, topPointsContributors, totalProofs, totalCompletions, totalPoints];
 }
 

@@ -121,7 +121,6 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
     final currentState = state;
     if (currentState is! ManageTeamsLoaded) return;
 
-    // Set users loading without triggering full page reload
     emit(currentState.copyWith(isUsersLoading: true));
 
     await execute(
@@ -193,7 +192,13 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
           );
         }
       },
-      onError: (message) => emit(ManageTeamsError(message)),
+      onError: (message) {
+        if (state is ManageTeamsLoaded) {
+          emit((state as ManageTeamsLoaded).copyWith(message: message));
+        } else {
+          emit(ManageTeamsError(message));
+        }
+      },
       context: 'manage_teams',
       defaultMessage: 'Failed to update color',
     );
@@ -237,7 +242,7 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
         final teamMembers = await _teamsRepository.getTeamMembers(
           state.teamId!,
         );
-        final allUsers = await _gamesRepository.getGameUsers(state.gameId!);
+        final allUsers = await _usersRepository.getUsers();
 
         final teamMemberIds = teamMembers.map((u) => u.id).toSet();
 
@@ -246,9 +251,10 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
 
         for (final user in allUsers) {
           if (teamMemberIds.contains(user.id)) continue;
-          if (user.teamId == null) {
+          if (user.gameId == null ||
+              (user.gameId == state.gameId && user.teamId == null)) {
             availableUsers.add(user);
-          } else {
+          } else if (user.gameId != state.gameId) {
             unavailableUsers.add(user);
           }
         }
@@ -266,7 +272,13 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
           ),
         );
       },
-      onError: (message) => emit(ManageTeamsError(message)),
+      onError: (message) {
+        if (state is ManageTeamsLoaded) {
+          emit((state as ManageTeamsLoaded).copyWith(message: message));
+        } else {
+          emit(ManageTeamsError(message));
+        }
+      },
       context: 'manage_teams',
       errorMessages: BlocErrorHandlerMixin.teamErrors,
       defaultMessage: 'Failed to add member',
@@ -294,7 +306,7 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
         final teamMembers = await _teamsRepository.getTeamMembers(
           state.teamId!,
         );
-        final allUsers = await _gamesRepository.getGameUsers(state.gameId!);
+        final allUsers = await _usersRepository.getUsers();
 
         final teamMemberIds = teamMembers.map((u) => u.id).toSet();
 
@@ -303,9 +315,10 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
 
         for (final user in allUsers) {
           if (teamMemberIds.contains(user.id)) continue;
-          if (user.teamId == null) {
+          if (user.gameId == null ||
+              (user.gameId == state.gameId && user.teamId == null)) {
             availableUsers.add(user);
-          } else {
+          } else if (user.gameId != state.gameId) {
             unavailableUsers.add(user);
           }
         }
@@ -323,7 +336,13 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
           ),
         );
       },
-      onError: (message) => emit(ManageTeamsError(message)),
+      onError: (message) {
+        if (state is ManageTeamsLoaded) {
+          emit((state as ManageTeamsLoaded).copyWith(message: message));
+        } else {
+          emit(ManageTeamsError(message));
+        }
+      },
       context: 'manage_teams',
       defaultMessage: 'Failed to remove member',
     );

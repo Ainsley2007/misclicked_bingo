@@ -105,12 +105,13 @@ class _TeamsApi implements TeamsApi {
   @override
   Future<void> addMember(
     String teamId,
-    String userId,
+    Map<String, String> body,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
     await _dio.fetch<void>(_setStreamType<void>(Options(
       method: 'POST',
       headers: _headers,
@@ -118,7 +119,7 @@ class _TeamsApi implements TeamsApi {
     )
         .compose(
           _dio.options,
-          '/teams/${teamId}/members/${userId}',
+          '/teams/${teamId}/members',
           queryParameters: queryParameters,
           data: _data,
         )

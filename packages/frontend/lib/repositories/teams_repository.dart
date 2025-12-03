@@ -8,7 +8,10 @@ class TeamsRepository {
 
   final TeamsApi _api;
 
-  Future<Team> updateTeamColor({required String teamId, required String color}) async {
+  Future<Team> updateTeamColor({
+    required String teamId,
+    required String color,
+  }) async {
     try {
       return await _api.updateTeam(teamId, {'color': color});
     } on DioException catch (e) {
@@ -32,15 +35,21 @@ class TeamsRepository {
     }
   }
 
-  Future<void> addMember({required String teamId, required String userId}) async {
+  Future<void> addMember({
+    required String teamId,
+    required String userId,
+  }) async {
     try {
-      await _api.addMember(teamId, userId);
+      await _api.addMember(teamId, {'userId': userId});
     } on DioException catch (e) {
       throw e.toApiException();
     }
   }
 
-  Future<void> removeMember({required String teamId, required String userId}) async {
+  Future<void> removeMember({
+    required String teamId,
+    required String userId,
+  }) async {
     try {
       await _api.removeMember(teamId, userId);
     } on DioException catch (e) {

@@ -56,13 +56,20 @@ Future<Response> _addTeamMember(RequestContext context, String id) async {
       return ResponseHelper.notFound(message: 'User not found');
     }
 
+    if (userToAdd.gameId != null && userToAdd.gameId != team.gameId) {
+      return ResponseHelper.error(
+        message: 'User is already in another game',
+        code: ErrorCode.alreadyInGame,
+      );
+    }
+
     if (userToAdd.teamId != null) {
       return ResponseHelper.error(
         message: 'User is already in a team',
         code: ErrorCode.alreadyInTeam,
       );
     }
-    
+
     await teamsService.addMemberToTeam(
       userId: userIdToAdd,
       teamId: id,

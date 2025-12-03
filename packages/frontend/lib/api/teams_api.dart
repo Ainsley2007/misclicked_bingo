@@ -9,7 +9,10 @@ abstract class TeamsApi {
   factory TeamsApi(Dio dio, {String? baseUrl}) = _TeamsApi;
 
   @PATCH('/teams/{id}')
-  Future<Team> updateTeam(@Path('id') String id, @Body() Map<String, dynamic> body);
+  Future<Team> updateTeam(
+    @Path('id') String id,
+    @Body() Map<String, dynamic> body,
+  );
 
   @DELETE('/teams/{id}')
   Future<void> deleteTeam(@Path('id') String id);
@@ -17,9 +20,15 @@ abstract class TeamsApi {
   @GET('/teams/{id}/members')
   Future<List<AppUser>> getTeamMembers(@Path('id') String teamId);
 
-  @POST('/teams/{id}/members/{userId}')
-  Future<void> addMember(@Path('id') String teamId, @Path('userId') String userId);
+  @POST('/teams/{id}/members')
+  Future<void> addMember(
+    @Path('id') String teamId,
+    @Body() Map<String, String> body,
+  );
 
   @DELETE('/teams/{id}/members/{userId}')
-  Future<void> removeMember(@Path('id') String teamId, @Path('userId') String userId);
+  Future<void> removeMember(
+    @Path('id') String teamId,
+    @Path('userId') String userId,
+  );
 }

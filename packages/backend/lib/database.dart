@@ -244,9 +244,21 @@ class AppDatabase extends _$AppDatabase {
 
     await (delete(teams)..where((t) => t.gameId.equals(id))).go();
 
-    await (update(users)..where((t) => t.gameId.equals(id))).write(
-      const UsersCompanion(gameId: Value(null), teamId: Value(null)),
-    );
+    // Get users in this game to check their roles
+    final usersInGame = await (select(
+      users,
+    )..where((t) => t.gameId.equals(id))).get();
+
+    for (final user in usersInGame) {
+      final newRole = user.role == 'admin' ? 'admin' : 'user';
+      await (update(users)..where((t) => t.id.equals(user.id))).write(
+        UsersCompanion(
+          gameId: const Value(null),
+          teamId: const Value(null),
+          role: Value(newRole),
+        ),
+      );
+    }
 
     await (delete(games)..where((t) => t.id.equals(id))).go();
   }
@@ -711,24 +723,24 @@ class AppDatabase extends _$AppDatabase {
     final proofs = await getProofsByGame(gameId);
     final tilesData = await getTilesByGameId(gameId);
     final completions = await getCompletedTilesByGame(gameId);
-    
+
     final tilePoints = {for (final t in tilesData) t.id: t.points};
-    
+
     // Build a set of completed (teamId, tileId) pairs
     final completedTiles = <(String, String)>{
       for (final c in completions) (c.teamId, c.tileId),
     };
-    
+
     // Track which completed tiles each user has uploaded proofs for
     final userTiles = <String, Set<String>>{};
     for (final proof in proofs) {
       // Only count if this tile is completed for the proof's team
       if (!completedTiles.contains((proof.teamId, proof.tileId))) continue;
-      
+
       final userId = proof.uploadedByUserId;
       userTiles.putIfAbsent(userId, () => {}).add(proof.tileId);
     }
-    
+
     // Sum points for each user based on completed tiles they contributed to
     final points = <String, int>{};
     for (final entry in userTiles.entries) {
@@ -740,7 +752,7 @@ class AppDatabase extends _$AppDatabase {
       }
       points[userId] = totalPoints;
     }
-    
+
     return points;
   }
 

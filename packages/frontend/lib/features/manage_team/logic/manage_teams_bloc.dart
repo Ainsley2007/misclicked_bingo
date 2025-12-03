@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:frontend/core/bloc/base_bloc.dart';
 import 'package:frontend/repositories/games_repository.dart';
 import 'package:frontend/repositories/teams_repository.dart';
+import 'package:frontend/repositories/users_repository.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_event.dart';
 import 'package:frontend/features/manage_team/logic/manage_teams_state.dart';
 import 'package:shared_models/shared_models.dart';
@@ -11,8 +12,10 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
   ManageTeamsBloc({
     required TeamsRepository teamsRepository,
     required GamesRepository gamesRepository,
+    required UsersRepository usersRepository,
   }) : _teamsRepository = teamsRepository,
        _gamesRepository = gamesRepository,
+       _usersRepository = usersRepository,
        super(const ManageTeamsInitial()) {
     on<ManageTeamsLoadRequested>(_onLoadRequested);
     on<ManageTeamsRefreshUsers>(_onRefreshUsers);
@@ -23,6 +26,7 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
 
   final TeamsRepository _teamsRepository;
   final GamesRepository _gamesRepository;
+  final UsersRepository _usersRepository;
 
   Future<void> _onLoadRequested(
     ManageTeamsLoadRequested event,
@@ -53,7 +57,7 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
         developer.log('Loaded team ${event.teamId}', name: 'manage_teams');
 
         try {
-          final allUsers = await _gamesRepository.getGameUsers(event.gameId);
+          final allUsers = await _usersRepository.getUsers();
           final teamMemberIds = teamMembers.map((u) => u.id).toSet();
 
           final availableUsers = <AppUser>[];
@@ -61,11 +65,15 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
 
           for (final user in allUsers) {
             if (teamMemberIds.contains(user.id)) continue;
-            if (user.teamId == null) {
+            // Available: users not in any game, or in this game but no team
+            if (user.gameId == null ||
+                (user.gameId == event.gameId && user.teamId == null)) {
               availableUsers.add(user);
-            } else {
+            } else if (user.gameId != event.gameId) {
+              // Unavailable: users in a different game
               unavailableUsers.add(user);
             }
+            // Users in this game but on another team are handled by the team members check
           }
 
           emit(
@@ -120,7 +128,7 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
       action: () async {
         final results = await Future.wait([
           _teamsRepository.getTeamMembers(currentState.teamId),
-          _gamesRepository.getGameUsers(currentState.gameId),
+          _usersRepository.getUsers(),
         ]);
 
         final teamMembers = results[0];
@@ -132,9 +140,10 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
 
         for (final user in allUsers) {
           if (teamMemberIds.contains(user.id)) continue;
-          if (user.teamId == null) {
+          if (user.gameId == null ||
+              (user.gameId == currentState.gameId && user.teamId == null)) {
             availableUsers.add(user);
-          } else {
+          } else if (user.gameId != currentState.gameId) {
             unavailableUsers.add(user);
           }
         }

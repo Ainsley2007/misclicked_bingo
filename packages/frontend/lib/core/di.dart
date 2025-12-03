@@ -53,7 +53,7 @@ void setupDi() {
   sl.registerFactory<JoinGameBloc>(() => JoinGameBloc(sl<GamesRepository>()));
   sl.registerFactory<GameBloc>(() => GameBloc(sl<GamesRepository>(), sl<BossesRepository>()));
   sl.registerFactory<OverviewBloc>(() => OverviewBloc(sl<GamesRepository>(), sl<BossesRepository>(), sl<ProofsRepository>()));
-  sl.registerFactory<ManageTeamsBloc>(() => ManageTeamsBloc(teamsRepository: sl<TeamsRepository>(), gamesRepository: sl<GamesRepository>()));
+  sl.registerFactory<ManageTeamsBloc>(() => ManageTeamsBloc(teamsRepository: sl<TeamsRepository>(), gamesRepository: sl<GamesRepository>(), usersRepository: sl<UsersRepository>()));
   sl.registerFactory<GameCreationBloc>(() => GameCreationBloc(sl<GamesRepository>(), sl<BossesRepository>()));
   sl.registerFactory<ProofsBloc>(() => ProofsBloc(sl<ProofsRepository>()));
   sl.registerFactory<GuestBloc>(() => GuestBloc(sl<GamesRepository>()));

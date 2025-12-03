@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/game/logic/proofs_bloc.dart';
 import 'package:frontend/features/game/logic/proofs_event.dart';
 import 'package:frontend/features/game/logic/proofs_state.dart';
+import 'package:frontend/theme/app_dimens.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:super_clipboard/super_clipboard.dart';
@@ -53,8 +54,9 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProofsBloc, ProofsState>(
       builder: (context, state) {
-        final canUpload = !widget.isCompleted && 
-            state.proofs.length < 10 && 
+        final canUpload =
+            !widget.isCompleted &&
+            state.proofs.length < 10 &&
             widget.isGameActive;
 
         return Focus(
@@ -68,10 +70,14 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(context, state),
-                const SizedBox(height: 12),
+                const SizedBox(
+                  height: AppDimens.paddingS + AppDimens.paddingXS,
+                ),
                 if (state.proofs.isNotEmpty) ...[
                   _buildProofGallery(context, state),
-                  const SizedBox(height: 12),
+                  const SizedBox(
+                    height: AppDimens.paddingS + AppDimens.paddingXS,
+                  ),
                 ],
                 if (canUpload) _buildDropZone(context, state),
                 if (!widget.isGameActive && !widget.isCompleted)
@@ -80,7 +86,7 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
                   _buildCompletedEmptyState(context),
                 if (state.status == ProofsStatus.error &&
                     state.error != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimens.paddingS),
                   Text(
                     state.error!,
                     style: TextStyle(
@@ -148,14 +154,17 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppDimens.paddingS),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingS,
+            vertical: 2,
+          ),
           decoration: BoxDecoration(
             color: state.proofs.isEmpty
                 ? Theme.of(context).colorScheme.errorContainer
                 : Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppDimens.borderRadiusL),
           ),
           child: Text(
             '${state.proofs.length}/10',
@@ -169,18 +178,21 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
           ),
         ),
         if (widget.isCompleted) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: AppDimens.paddingS),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingS,
+              vertical: 2,
+            ),
             decoration: BoxDecoration(
               color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppDimens.borderRadiusL),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.lock, size: 12, color: Color(0xFF4CAF50)),
-                SizedBox(width: 4),
+                SizedBox(width: AppDimens.paddingXS),
                 Text(
                   'Locked',
                   style: TextStyle(
@@ -205,7 +217,7 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
       children: [
         ...state.proofs.map(
           (proof) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
             child: _ProofRow(
               proof: proof,
               gameId: widget.gameId,
@@ -220,29 +232,34 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
 
   Widget _buildGameNotActiveState(BuildContext context) {
     final now = DateTime.now();
-    final hasNotStarted = widget.gameStartTime != null && now.isBefore(widget.gameStartTime!);
+    final hasNotStarted =
+        widget.gameStartTime != null && now.isBefore(widget.gameStartTime!);
     final message = hasNotStarted
         ? 'Proof uploads will be available when the game starts.'
         : 'The game has ended. Proof uploads are no longer available.';
     final icon = hasNotStarted ? Icons.schedule : Icons.lock_clock;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Row(
         children: [
           Icon(
             icon,
-            size: 20,
+            size: AppDimens.iconSizeM,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDimens.paddingS + AppDimens.paddingXS),
           Expanded(
             child: Text(
               message,
@@ -258,21 +275,26 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
 
   Widget _buildCompletedEmptyState(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         color: Theme.of(
           context,
         ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.info_outline,
-            size: 20,
+            size: AppDimens.iconSizeM,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDimens.paddingS + AppDimens.paddingXS),
           Expanded(
             child: Text(
               'No screenshots were uploaded for this tile.',
@@ -298,7 +320,7 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppDimens.paddingM),
         decoration: BoxDecoration(
           color: _isDragging
               ? Theme.of(
@@ -307,12 +329,14 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
               : Theme.of(
                   context,
                 ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
           border: Border.all(
             color: _isDragging
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).dividerColor,
-            width: _isDragging ? 2 : 1,
+                : Theme.of(
+                    context,
+                  ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: _isDragging ? 2 : AppDimens.borderWidth,
             strokeAlign: BorderSide.strokeAlignInside,
           ),
         ),
@@ -320,11 +344,11 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
           children: [
             if (isUploading) ...[
               const SizedBox(
-                width: 24,
-                height: 24,
+                width: AppDimens.paddingL,
+                height: AppDimens.paddingL,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimens.paddingS),
               Text(
                 state.uploadTotal > 1
                     ? 'Uploading ${state.uploadCurrent}/${state.uploadTotal}...'
@@ -334,23 +358,23 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
             ] else ...[
               Icon(
                 Icons.cloud_upload_outlined,
-                size: 32,
+                size: AppDimens.iconSizeXL,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimens.paddingS),
               Text(
                 'Drop, paste, or',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimens.paddingS),
               TextButton.icon(
                 onPressed: _pickFiles,
                 icon: const Icon(Icons.folder_open, size: 18),
                 label: const Text('Browse files'),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppDimens.paddingXS),
               Text(
                 'JPG, PNG, GIF, WebP • Max 5MB • Ctrl+V to paste',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -446,10 +470,10 @@ class _ProofRow extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(AppDimens.paddingS),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -458,16 +482,18 @@ class _ProofRow extends StatelessWidget {
         children: [
           InkWell(
             onTap: () => _openFullImage(context),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppDimens.borderRadiusS),
             child: Container(
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppDimens.borderRadiusS),
                 border: Border.all(color: colorScheme.outlineVariant),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(
+                  AppDimens.borderRadiusS - 1,
+                ),
                 child: Image.network(
                   proof.imageUrl,
                   fit: BoxFit.cover,
@@ -495,7 +521,7 @@ class _ProofRow extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDimens.paddingS + AppDimens.paddingXS),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,7 +533,7 @@ class _ProofRow extends StatelessWidget {
                       size: 14,
                       color: colorScheme.primary,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppDimens.paddingXS),
                     Expanded(
                       child: Text(
                         proof.uploadedByUsername ?? 'Unknown',
@@ -602,13 +628,13 @@ class _ProofRow extends StatelessWidget {
           children: [
             InteractiveViewer(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
                 child: Image.network(proof.imageUrl),
               ),
             ),
             Positioned(
-              top: 8,
-              right: 8,
+              top: AppDimens.paddingS,
+              right: AppDimens.paddingS,
               child: IconButton.filled(
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close),

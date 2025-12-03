@@ -6,6 +6,7 @@ import 'package:frontend/features/game/logic/proofs_bloc.dart';
 import 'package:frontend/features/game/logic/proofs_event.dart';
 import 'package:frontend/features/game/logic/proofs_state.dart';
 import 'package:frontend/features/game/presentation/widgets/proof_upload_section.dart';
+import 'package:frontend/theme/app_dimens.dart';
 import 'package:shared_models/shared_models.dart';
 
 class TileDetailsDialog extends StatelessWidget {
@@ -113,7 +114,9 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
       child: Dialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
+        ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 550, maxHeight: 800),
           child: Column(
@@ -123,7 +126,7 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                 child: Container(
                   color: Theme.of(context).colorScheme.surface,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(AppDimens.paddingL),
                     child: Column(
                       children: [
                         if (widget.tile.bossIconUrl != null) ...[
@@ -135,14 +138,14 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                             errorBuilder: (_, __, ___) =>
                                 const SizedBox.shrink(),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppDimens.paddingM),
                         ],
                         Container(
                           height: 2,
                           margin: const EdgeInsets.symmetric(horizontal: 60),
                           color: bossTypeColor,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppDimens.paddingL),
                         Text(
                           widget.tile.description ??
                               widget.tile.bossName ??
@@ -153,7 +156,7 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                         ),
                         if (widget.tile.bossName != null &&
                             widget.tile.description != null) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppDimens.paddingS),
                           Text(
                             widget.tile.bossName!,
                             style: Theme.of(context).textTheme.bodyMedium
@@ -165,9 +168,9 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                             textAlign: TextAlign.center,
                           ),
                         ],
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppDimens.paddingL),
                         _buildUniqueItemsSection(context),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppDimens.paddingL),
                         ProofUploadSection(
                           gameId: widget.gameId,
                           tileId: widget.tile.id,
@@ -212,29 +215,40 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                  horizontal: AppDimens.paddingL,
+                  vertical: AppDimens.paddingS + AppDimens.paddingXS,
                 ),
-                color: Theme.of(
-                  context,
-                ).colorScheme.errorContainer.withValues(alpha: 0.5),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withValues(alpha: 0.4),
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ),
                 child: Row(
                   children: [
                     Icon(
                       !_hasGameStarted
                           ? Icons.schedule_rounded
                           : Icons.timer_off_rounded,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.error,
+                      size: AppDimens.iconSizeM,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(
+                      width: AppDimens.paddingS + AppDimens.paddingXS,
+                    ),
                     Expanded(
                       child: Text(
                         !_hasGameStarted
                             ? 'Game has not started yet. You cannot complete tiles until it starts.'
                             : 'Game has ended. Tiles can no longer be completed.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -242,16 +256,20 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                 ),
               ),
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppDimens.paddingL),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainer,
                 border: Border(
-                  top: BorderSide(color: Theme.of(context).dividerColor),
+                  top: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                spacing: 12,
+                spacing: AppDimens.paddingS + AppDimens.paddingXS,
                 children: [
                   _buildButton(
                     context: context,
@@ -310,8 +328,13 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
           foregroundColor: onPressed != null
               ? colorScheme.onPrimary
               : colorScheme.onSurface.withValues(alpha: 0.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingL,
+            vertical: AppDimens.paddingS + 6,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.borderRadiusS),
+          ),
           elevation: 0,
         ),
         child: Text(
@@ -325,8 +348,13 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
       onPressed: onPressed,
       style: TextButton.styleFrom(
         foregroundColor: colorScheme.onSurface.withValues(alpha: 0.7),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingL - AppDimens.paddingXS,
+          vertical: AppDimens.paddingS + 6,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.borderRadiusS),
+        ),
       ),
       child: Text(
         label,
@@ -349,11 +377,15 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
     if (widget.tile.isAnyUnique) {
       final uniqueItems = widget.tile.possibleUniqueItems;
       return Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppDimens.paddingM),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: Theme.of(context).dividerColor),
+          borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
+          border: Border.all(
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,7 +397,7 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                 fontSize: 15,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimens.paddingS),
             Text(
               'Any unique item from ${widget.tile.bossName ?? "this boss"}\'s drop table:',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -374,7 +406,7 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                 ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.paddingM),
             if (uniqueItems == null || uniqueItems.isEmpty)
               Text(
                 'No unique items available',
@@ -385,12 +417,12 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
             else
               ...uniqueItems.map(
                 (itemName) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        margin: const EdgeInsets.only(top: 8),
+                        margin: const EdgeInsets.only(top: AppDimens.paddingS),
                         width: 4,
                         height: 4,
                         decoration: BoxDecoration(
@@ -398,7 +430,9 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(
+                        width: AppDimens.paddingS + AppDimens.paddingXS,
+                      ),
                       Expanded(
                         child: Text(
                           itemName,
@@ -420,11 +454,15 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.circular(AppDimens.borderRadiusM),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,15 +478,15 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
               fontSize: 15,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDimens.paddingM),
           ...widget.tile.uniqueItems.map(
             (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 8),
+                    margin: const EdgeInsets.only(top: AppDimens.paddingS),
                     width: 4,
                     height: 4,
                     decoration: BoxDecoration(
@@ -456,7 +494,9 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                       shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(
+                    width: AppDimens.paddingS + AppDimens.paddingXS,
+                  ),
                   Expanded(
                     child: Text(
                       item.itemName,
@@ -469,12 +509,14 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                   if (item.requiredCount > 1)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: AppDimens.paddingS,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(3),
+                        borderRadius: BorderRadius.circular(
+                          AppDimens.borderRadiusS,
+                        ),
                         border: Border.all(
                           color: Theme.of(
                             context,

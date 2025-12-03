@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/services/auth_service.dart';
@@ -19,18 +18,11 @@ class AppRouter {
   static GoRouter router(AuthService authService) {
     return GoRouter(
       initialLocation: '/lobby',
-      // Temporarily disabled to debug navigation issue
-      // refreshListenable: _GoRouterRefreshStream(authService.authStream),
-      debugLogDiagnostics: true,
+      refreshListenable: _GoRouterRefreshStream(authService.authStream),
       redirect: (context, state) {
         final status = authService.currentState.status;
         final user = authService.currentState.user;
         final isLoginRoute = state.matchedLocation == '/login';
-
-        developer.log(
-          'Router redirect: matchedLocation=${state.matchedLocation}, status=$status, gameId=${user?.gameId}',
-          name: 'router',
-        );
 
         if (status == AuthStatus.unknown) {
           return null;
@@ -95,7 +87,7 @@ class AppRouter {
               },
             ),
             GoRoute(
-              path: '/game/:gameId/overview',
+              path: '/overview/:gameId',
               pageBuilder: (context, state) {
                 final gameId = state.pathParameters['gameId']!;
                 return _noTransitionPage(

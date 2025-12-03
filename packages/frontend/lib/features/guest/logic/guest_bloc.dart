@@ -14,7 +14,10 @@ class GuestBloc extends BaseBloc<GuestEvent, GuestState> {
 
   final GamesRepository _repository;
 
-  Future<void> _onGamesLoadRequested(GuestGamesLoadRequested event, Emitter<GuestState> emit) async {
+  Future<void> _onGamesLoadRequested(
+    GuestGamesLoadRequested event,
+    Emitter<GuestState> emit,
+  ) async {
     emit(const GuestLoading());
     await executeWithResult(
       action: () => _repository.getPublicGames(),
@@ -28,25 +31,55 @@ class GuestBloc extends BaseBloc<GuestEvent, GuestState> {
     );
   }
 
-  Future<void> _onGameOverviewLoadRequested(GuestGameOverviewLoadRequested event, Emitter<GuestState> emit) async {
+  Future<void> _onGameOverviewLoadRequested(
+    GuestGameOverviewLoadRequested event,
+    Emitter<GuestState> emit,
+  ) async {
     emit(const GuestLoading());
     await executeWithResult(
       action: () => _repository.getPublicOverview(event.gameId),
       onSuccess: (overview) async {
-        final teams = overview.leaderboard.map((entry) {
-          return GuestTeamOverview(id: entry.teamId, name: entry.teamName, color: entry.teamColor ?? '#4CAF50', boardStates: {});
+        final teams = overview.teams.map((team) {
+          return GuestTeamOverview(
+            id: team.id,
+            name: team.name,
+            color: team.color,
+            boardStates: team.boardStates,
+          );
         }).toList();
 
-        var loadedState = GuestGameOverviewLoaded(game: overview.game, tiles: overview.tiles, teams: teams);
+        var loadedState = GuestGameOverviewLoaded(
+          game: overview.game,
+          tiles: overview.tiles,
+          teams: teams,
+        );
         emit(loadedState);
-        developer.log('Loaded public overview for game ${overview.game.id}', name: 'guest');
+        developer.log(
+          'Loaded public overview for game ${overview.game.id}',
+          name: 'guest',
+        );
 
         try {
-          final results = await Future.wait([_repository.getPublicActivity(event.gameId, limit: 20), _repository.getPublicStats(event.gameId)]);
+          final results = await Future.wait([
+            _repository.getPublicActivity(event.gameId, limit: 20),
+            _repository.getPublicStats(event.gameId),
+          ]);
 
-          emit(GuestGameOverviewLoaded(game: overview.game, tiles: overview.tiles, teams: teams, activities: results[0] as List<TileActivity>, stats: results[1] as ProofStats));
+          emit(
+            GuestGameOverviewLoaded(
+              game: overview.game,
+              tiles: overview.tiles,
+              teams: teams,
+              activities: results[0] as List<TileActivity>,
+              stats: results[1] as ProofStats,
+            ),
+          );
         } catch (e) {
-          developer.log('Failed to load activity/stats', name: 'guest', error: e);
+          developer.log(
+            'Failed to load activity/stats',
+            name: 'guest',
+            error: e,
+          );
         }
       },
       onError: (message) => emit(GuestError(message)),

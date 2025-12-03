@@ -1,9 +1,6 @@
-import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di.dart';
-import 'package:frontend/core/services/auth_service.dart';
 import 'package:frontend/features/game/logic/overview_bloc.dart';
 import 'package:frontend/features/game/logic/overview_event.dart';
 import 'package:frontend/features/game/logic/overview_state.dart';
@@ -44,148 +41,162 @@ class _OverviewScreenContentState extends State<_OverviewScreenContent> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<OverviewBloc, OverviewState>(
-      listener: (context, state) async {
-        developer.log('OverviewScreen state changed: ${state.runtimeType}', name: 'overview');
-        if (state is OverviewError) {
-          developer.log('OverviewError: ${state.message}', name: 'overview');
-          await sl<AuthService>().checkAuth();
-          if (context.mounted) {
-            context.go('/lobby');
-          }
+    return BlocBuilder<OverviewBloc, OverviewState>(
+      builder: (context, state) {
+        if (state is OverviewInitial || state is OverviewLoading) {
+          return const SizedBox.expand(
+            child: Center(child: CircularProgressIndicator()),
+          );
         }
-      },
-      child: BlocBuilder<OverviewBloc, OverviewState>(
-        builder: (context, state) {
-          if (state is OverviewInitial ||
-              state is OverviewLoading ||
-              state is OverviewError) {
-            return const SizedBox.expand(
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
 
-          final loadedState = state as OverviewLoaded;
-          final game = loadedState.game;
-          final tiles = loadedState.tiles;
-          final teams = loadedState.teams;
-
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final screenWidth = constraints.maxWidth;
-              final showSidebar = screenWidth > 800;
-              const sidebarWidth = 360.0;
-
-              // Calculate board area width
-              final boardAreaWidth = showSidebar
-                  ? screenWidth -
-                        sidebarWidth -
-                        72 // 72 = padding
-                  : screenWidth - 48;
-
-              const targetBoardWidth = 300.0;
-              final crossAxisCount = (boardAreaWidth / targetBoardWidth)
-                  .floor()
-                  .clamp(1, 5);
-
-              return Row(
+        if (state is OverviewError) {
+          return SizedBox.expand(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                game.name,
-                                style: Theme.of(context).textTheme.titleLarge,
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading overview:',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    state.message,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final loadedState = state as OverviewLoaded;
+        final game = loadedState.game;
+        final tiles = loadedState.tiles;
+        final teams = loadedState.teams;
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth;
+            final showSidebar = screenWidth > 800;
+            const sidebarWidth = 360.0;
+
+            // Calculate board area width
+            final boardAreaWidth = showSidebar
+                ? screenWidth -
+                      sidebarWidth -
+                      72 // 72 = padding
+                : screenWidth - 48;
+
+            const targetBoardWidth = 300.0;
+            final crossAxisCount = (boardAreaWidth / targetBoardWidth)
+                .floor()
+                .clamp(1, 5);
+
+            return Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              game.name,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            if (game.startTime != null ||
+                                game.endTime != null) ...[
+                              const SizedBox(width: 12),
+                              GameCountdown(
+                                startTime: game.startTime,
+                                endTime: game.endTime,
                               ),
-                              if (game.startTime != null || game.endTime != null) ...[
-                                const SizedBox(width: 12),
-                                GameCountdown(
-                                  startTime: game.startTime,
-                                  endTime: game.endTime,
-                                ),
-                              ],
                             ],
-                          ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: Center(
-                              child: GridView.builder(
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: crossAxisCount,
-                                      crossAxisSpacing: 12,
-                                      mainAxisSpacing: 12,
-                                      childAspectRatio: 0.85,
-                                    ),
-                                itemCount: teams.length,
-                                itemBuilder: (context, index) {
-                                  final team = teams[index];
-                                  return _TeamBoardSection(
-                                    team: team,
-                                    tiles: tiles,
-                                    boardSize: game.boardSize,
-                                    isPointsMode:
-                                        game.gameMode == GameMode.points,
-                                    totalPoints: loadedState.totalPoints,
-                                    onTileTap: (tile, isCompleted) {
-                                      if (isCompleted) {
-                                        setState(() {
-                                          _selectedTile = tile;
-                                          _selectedTeamId = team.id;
-                                          _selectedTeamName = team.name;
-                                        });
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: Center(
+                            child: GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 0.85,
+                                  ),
+                              itemCount: teams.length,
+                              itemBuilder: (context, index) {
+                                final team = teams[index];
+                                return _TeamBoardSection(
+                                  team: team,
+                                  tiles: tiles,
+                                  boardSize: game.boardSize,
+                                  isPointsMode:
+                                      game.gameMode == GameMode.points,
+                                  totalPoints: loadedState.totalPoints,
+                                  onTileTap: (tile, isCompleted) {
+                                    if (isCompleted) {
+                                      setState(() {
+                                        _selectedTile = tile;
+                                        _selectedTeamId = team.id;
+                                        _selectedTeamName = team.name;
+                                      });
+                                    }
+                                  },
+                                );
+                              },
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (showSidebar)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: SizedBox(
+                      width: sidebarWidth,
+                      child: _SlidingSidebarPanel(
+                        showProofs: _selectedTile != null,
+                        activityPanel: _ActivitySidebarCard(
+                          activities: loadedState.activities,
+                          stats: loadedState.stats,
+                        ),
+                        proofsPanel: _selectedTile != null
+                            ? _ProofsSidebarCard(
+                                key: ValueKey(
+                                  '${_selectedTile!.id}_$_selectedTeamId',
+                                ),
+                                tile: _selectedTile!,
+                                gameId: widget.gameId,
+                                teamId: _selectedTeamId,
+                                teamName: _selectedTeamName,
+                                onClose: () => setState(() {
+                                  _selectedTile = null;
+                                  _selectedTeamId = null;
+                                  _selectedTeamName = null;
+                                }),
+                              )
+                            : null,
                       ),
                     ),
                   ),
-                  if (showSidebar)
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: SizedBox(
-                        width: sidebarWidth,
-                        child: _SlidingSidebarPanel(
-                          showProofs: _selectedTile != null,
-                          activityPanel: _ActivitySidebarCard(
-                            activities: loadedState.activities,
-                            stats: loadedState.stats,
-                          ),
-                          proofsPanel: _selectedTile != null
-                              ? _ProofsSidebarCard(
-                                  key: ValueKey(
-                                    '${_selectedTile!.id}_$_selectedTeamId',
-                                  ),
-                                  tile: _selectedTile!,
-                                  gameId: widget.gameId,
-                                  teamId: _selectedTeamId,
-                                  teamName: _selectedTeamName,
-                                  onClose: () => setState(() {
-                                    _selectedTile = null;
-                                    _selectedTeamId = null;
-                                    _selectedTeamName = null;
-                                  }),
-                                )
-                              : null,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          );
-        },
-      ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

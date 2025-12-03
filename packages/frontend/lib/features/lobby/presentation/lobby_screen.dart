@@ -11,15 +11,8 @@ import 'package:frontend/features/lobby/logic/join_game_state.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:frontend/core/widgets/widgets.dart';
 
-class LobbyScreen extends StatefulWidget {
+class LobbyScreen extends StatelessWidget {
   const LobbyScreen({super.key});
-
-  @override
-  State<LobbyScreen> createState() => _LobbyScreenState();
-}
-
-class _LobbyScreenState extends State<LobbyScreen> {
-  bool _hasRedirected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +27,10 @@ class _LobbyScreenState extends State<LobbyScreen> {
           );
         }
 
-        // Redirect users in a game to the game screen (only once)
-        if (user.gameId != null && !_hasRedirected) {
-          _hasRedirected = true;
+        // Redirect users in a game to the game screen
+        if (user.gameId != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            final currentPath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
-            // Only redirect if we're actually on the lobby page
-            if (currentPath == '/lobby') {
+            if (context.mounted) {
               context.go('/game/${user.gameId}');
             }
           });
@@ -297,7 +286,9 @@ class _PlayerWaitingViewState extends State<_PlayerWaitingView> {
   void initState() {
     super.initState();
     _startPolling();
-    _authSubscription = sl<AuthService>().authStream.listen(_onAuthStateChanged);
+    _authSubscription = sl<AuthService>().authStream.listen(
+      _onAuthStateChanged,
+    );
   }
 
   @override
@@ -309,10 +300,7 @@ class _PlayerWaitingViewState extends State<_PlayerWaitingView> {
 
   void _onAuthStateChanged(AuthState state) {
     if (state.user?.teamId != null && mounted) {
-      final currentPath = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
-      if (currentPath == '/lobby') {
-        context.go('/game/${state.user!.gameId}');
-      }
+      context.go('/game/${state.user!.gameId}');
     }
   }
 

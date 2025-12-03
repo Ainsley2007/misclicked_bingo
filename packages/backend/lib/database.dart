@@ -705,21 +705,31 @@ class AppDatabase extends _$AppDatabase {
     return counts;
   }
 
-  /// Get points contributed per user based on proofs they uploaded.
-  /// Points are attributed from tiles where the user uploaded at least one proof.
+  /// Get points contributed per user based on proofs they uploaded for completed tiles.
+  /// Points are only attributed from tiles that have been marked as completed.
   Future<Map<String, int>> getPointsContributedByUser(String gameId) async {
     final proofs = await getProofsByGame(gameId);
     final tilesData = await getTilesByGameId(gameId);
+    final completions = await getCompletedTilesByGame(gameId);
+    
     final tilePoints = {for (final t in tilesData) t.id: t.points};
     
-    // Track which tiles each user has uploaded proofs for
+    // Build a set of completed (teamId, tileId) pairs
+    final completedTiles = <(String, String)>{
+      for (final c in completions) (c.teamId, c.tileId),
+    };
+    
+    // Track which completed tiles each user has uploaded proofs for
     final userTiles = <String, Set<String>>{};
     for (final proof in proofs) {
+      // Only count if this tile is completed for the proof's team
+      if (!completedTiles.contains((proof.teamId, proof.tileId))) continue;
+      
       final userId = proof.uploadedByUserId;
       userTiles.putIfAbsent(userId, () => {}).add(proof.tileId);
     }
     
-    // Sum points for each user based on tiles they contributed to
+    // Sum points for each user based on completed tiles they contributed to
     final points = <String, int>{};
     for (final entry in userTiles.entries) {
       final userId = entry.key;

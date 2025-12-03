@@ -16,13 +16,24 @@ class ProofUploadSection extends StatefulWidget {
   final String gameId;
   final String tileId;
   final bool isCompleted;
+  final DateTime? gameStartTime;
+  final DateTime? gameEndTime;
 
   const ProofUploadSection({
     required this.gameId,
     required this.tileId,
     this.isCompleted = false,
+    this.gameStartTime,
+    this.gameEndTime,
     super.key,
   });
+
+  bool get isGameActive {
+    final now = DateTime.now();
+    if (gameStartTime != null && now.isBefore(gameStartTime!)) return false;
+    if (gameEndTime != null && now.isAfter(gameEndTime!)) return false;
+    return true;
+  }
 
   @override
   State<ProofUploadSection> createState() => _ProofUploadSectionState();
@@ -42,7 +53,9 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProofsBloc, ProofsState>(
       builder: (context, state) {
-        final canUpload = !widget.isCompleted && state.proofs.length < 10;
+        final canUpload = !widget.isCompleted && 
+            state.proofs.length < 10 && 
+            widget.isGameActive;
 
         return Focus(
           focusNode: _focusNode,
@@ -61,6 +74,8 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
                   const SizedBox(height: 12),
                 ],
                 if (canUpload) _buildDropZone(context, state),
+                if (!widget.isGameActive && !widget.isCompleted)
+                  _buildGameNotActiveState(context),
                 if (widget.isCompleted && state.proofs.isEmpty)
                   _buildCompletedEmptyState(context),
                 if (state.status == ProofsStatus.error &&
@@ -200,6 +215,44 @@ class _ProofUploadSectionState extends State<ProofUploadSection> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildGameNotActiveState(BuildContext context) {
+    final now = DateTime.now();
+    final hasNotStarted = widget.gameStartTime != null && now.isBefore(widget.gameStartTime!);
+    final message = hasNotStarted
+        ? 'Proof uploads will be available when the game starts.'
+        : 'The game has ended. Proof uploads are no longer available.';
+    final icon = hasNotStarted ? Icons.schedule : Icons.lock_clock;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

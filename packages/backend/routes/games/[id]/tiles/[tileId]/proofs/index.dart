@@ -1,4 +1,5 @@
 import 'package:backend/helpers/response_helper.dart';
+import 'package:backend/services/game_service.dart';
 import 'package:backend/services/proofs_service.dart';
 import 'package:backend/services/teams_service.dart';
 import 'package:backend/services/tiles_service.dart';
@@ -58,10 +59,31 @@ Future<Response> _createProof(RequestContext context, String tileId) async {
     final proofsService = context.read<ProofsService>();
     final userService = context.read<UserService>();
     final tilesService = context.read<TilesService>();
+    final gameService = context.read<GameService>();
 
     final user = await userService.getUserById(userId);
     if (user == null || user.teamId == null) {
       return ResponseHelper.forbidden(message: 'User must be part of a team');
+    }
+
+    // Check if game has started and not ended
+    if (user.gameId != null) {
+      final game = await gameService.getGameById(user.gameId!);
+      if (game != null) {
+        final now = DateTime.now();
+        if (game.startTime != null && now.isBefore(game.startTime!)) {
+          return ResponseHelper.error(
+            message: 'Game has not started yet',
+            code: ErrorCode.gameNotStarted,
+          );
+        }
+        if (game.endTime != null && now.isAfter(game.endTime!)) {
+          return ResponseHelper.error(
+            message: 'Game has ended',
+            code: ErrorCode.gameEnded,
+          );
+        }
+      }
     }
 
     final tileStatus = await tilesService.getTeamBoardState(

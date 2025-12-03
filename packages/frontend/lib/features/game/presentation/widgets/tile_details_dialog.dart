@@ -172,6 +172,8 @@ class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
                           gameId: widget.gameId,
                           tileId: widget.tile.id,
                           isCompleted: widget.tile.isCompleted,
+                          gameStartTime: widget.gameStartTime,
+                          gameEndTime: widget.gameEndTime,
                         ),
                       ],
                     ),

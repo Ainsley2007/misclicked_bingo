@@ -26,8 +26,7 @@ Middleware corsHeaders() {
 
 Map<String, String> _corsHeaders(String origin) {
   const allowedOrigins = [
-    'https://misclicked.world',
-    'https://www.misclicked.world',
+    'https://osrs-bingo-fe.globeapp.dev',
     'http://localhost:3000',
     'http://localhost:8080',
   ];

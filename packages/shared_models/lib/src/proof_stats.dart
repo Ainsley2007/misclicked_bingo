@@ -31,7 +31,7 @@ class UserStats extends Equatable {
   List<Object?> get props => [userId, count];
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ProofStats extends Equatable {
   final List<UserStats> topProofUploaders;
   final List<UserStats> topTileCompleters;
@@ -54,6 +54,12 @@ class ProofStats extends Equatable {
   Map<String, dynamic> toJson() => _$ProofStatsToJson(this);
 
   @override
-  List<Object?> get props => [topProofUploaders, topTileCompleters, topPointsContributors, totalProofs, totalCompletions, totalPoints];
+  List<Object?> get props => [
+    topProofUploaders,
+    topTileCompleters,
+    topPointsContributors,
+    totalProofs,
+    totalCompletions,
+    totalPoints,
+  ];
 }
-

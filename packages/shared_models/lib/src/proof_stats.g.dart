@@ -41,9 +41,15 @@ ProofStats _$ProofStatsFromJson(Map<String, dynamic> json) => ProofStats(
 
 Map<String, dynamic> _$ProofStatsToJson(ProofStats instance) =>
     <String, dynamic>{
-      'topProofUploaders': instance.topProofUploaders,
-      'topTileCompleters': instance.topTileCompleters,
-      'topPointsContributors': instance.topPointsContributors,
+      'topProofUploaders': instance.topProofUploaders
+          .map((e) => e.toJson())
+          .toList(),
+      'topTileCompleters': instance.topTileCompleters
+          .map((e) => e.toJson())
+          .toList(),
+      'topPointsContributors': instance.topPointsContributors
+          .map((e) => e.toJson())
+          .toList(),
       'totalProofs': instance.totalProofs,
       'totalCompletions': instance.totalCompletions,
       'totalPoints': instance.totalPoints,

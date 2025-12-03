@@ -40,14 +40,13 @@ class OverviewTileCard extends StatelessWidget {
                   color: const Color(0xFF4CAF50).withValues(alpha: 0.20),
                 ),
               ),
-            // Proof indicator (amber border for tiles with proofs but not completed)
             if (hasProofs && !isCompleted)
               Positioned.fill(
                 child: Container(
                   margin: EdgeInsets.all(borderPadding * 0.5),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: const Color(0xFFFFA000),
+                      color: const Color(0xFFFFA000).withValues(alpha: 0.5),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(2),
@@ -55,7 +54,7 @@ class OverviewTileCard extends StatelessWidget {
                 ),
               ),
             _OverviewTileContent(tile: tile),
-            // Small camera icon for tiles with proofs
+            // Pending indicator for tiles with proofs but not completed
             if (hasProofs && !isCompleted)
               Positioned(
                 bottom: borderPadding * 0.5,
@@ -67,7 +66,7 @@ class OverviewTileCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(2),
                   ),
                   child: const Icon(
-                    Icons.camera_alt_rounded,
+                    Icons.edit_rounded,
                     size: 8,
                     color: Colors.white,
                   ),

@@ -5,15 +5,20 @@ import 'package:frontend/features/game/logic/game_event.dart';
 import 'package:frontend/features/game/logic/game_state.dart';
 
 class GameBloc extends BaseBloc<GameEvent, GameState> {
-  GameBloc(this._repository, this._bossRepository) : super(const GameInitial()) {
+  GameBloc(this._repository, this._bossRepository)
+    : super(const GameInitial()) {
     on<GameLoadRequested>(_onGameLoadRequested);
     onDroppable<TileCompletionToggled>(_onTileCompletionToggled);
+    on<TileProofsUpdated>(_onTileProofsUpdated);
   }
 
   final GamesRepository _repository;
   final BossesRepository _bossRepository;
 
-  Future<void> _onGameLoadRequested(GameLoadRequested event, Emitter<GameState> emit) async {
+  Future<void> _onGameLoadRequested(
+    GameLoadRequested event,
+    Emitter<GameState> emit,
+  ) async {
     emit(const GameLoading());
     await execute(
       action: () async {
@@ -41,13 +46,19 @@ class GameBloc extends BaseBloc<GameEvent, GameState> {
     );
   }
 
-  Future<void> _onTileCompletionToggled(TileCompletionToggled event, Emitter<GameState> emit) async {
+  Future<void> _onTileCompletionToggled(
+    TileCompletionToggled event,
+    Emitter<GameState> emit,
+  ) async {
     final state = this.state;
     if (state is! GameLoaded) return;
 
     await execute(
       action: () async {
-        await _repository.toggleTileCompletion(gameId: event.gameId, tileId: event.tileId);
+        await _repository.toggleTileCompletion(
+          gameId: event.gameId,
+          tileId: event.tileId,
+        );
 
         final updatedTiles = state.tiles.map((tile) {
           if (tile.id == event.tileId) {
@@ -60,8 +71,25 @@ class GameBloc extends BaseBloc<GameEvent, GameState> {
       },
       onError: (message) => emit(state.copyWith(actionError: message)),
       context: 'game',
-      errorMessages: {...BlocErrorHandlerMixin.gameErrors, 'NOT_IN_TEAM': 'You must be in a team to complete tiles'},
+      errorMessages: {
+        ...BlocErrorHandlerMixin.gameErrors,
+        'NOT_IN_TEAM': 'You must be in a team to complete tiles',
+      },
       defaultMessage: 'Failed to toggle completion',
     );
+  }
+
+  void _onTileProofsUpdated(TileProofsUpdated event, Emitter<GameState> emit) {
+    final state = this.state;
+    if (state is! GameLoaded) return;
+
+    final updatedTiles = state.tiles.map((tile) {
+      if (tile.id == event.tileId) {
+        return tile.copyWith(hasProofs: event.hasProofs);
+      }
+      return tile;
+    }).toList();
+
+    emit(state.copyWith(tiles: updatedTiles, clearError: true));
   }
 }

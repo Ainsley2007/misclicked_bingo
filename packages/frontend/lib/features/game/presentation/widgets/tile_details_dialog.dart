@@ -13,6 +13,7 @@ class TileDetailsDialog extends StatelessWidget {
     required this.tile,
     required this.gameId,
     required this.onToggleCompletion,
+    this.onProofsChanged,
     this.gameStartTime,
     this.gameEndTime,
     super.key,
@@ -21,21 +22,27 @@ class TileDetailsDialog extends StatelessWidget {
   final BingoTile tile;
   final String gameId;
   final void Function(bool canComplete) onToggleCompletion;
+  final void Function(bool hasProofs)? onProofsChanged;
   final DateTime? gameStartTime;
   final DateTime? gameEndTime;
 
   @override
   Widget build(BuildContext context) {
     final authService = sl<AuthService>();
-    final isAdmin = authService.currentUser?.role == UserRole.admin;
-    
+    final user = authService.currentUser;
+    final canUndoCompletion =
+        user?.role == UserRole.admin || user?.role == UserRole.captain;
+
     return BlocProvider(
-      create: (_) => sl<ProofsBloc>()..add(ProofsLoadRequested(gameId: gameId, tileId: tile.id)),
+      create: (_) =>
+          sl<ProofsBloc>()
+            ..add(ProofsLoadRequested(gameId: gameId, tileId: tile.id)),
       child: _TileDetailsDialogContent(
         tile: tile,
         gameId: gameId,
         onToggleCompletion: onToggleCompletion,
-        isAdmin: isAdmin,
+        onProofsChanged: onProofsChanged,
+        canUndoCompletion: canUndoCompletion,
         gameStartTime: gameStartTime,
         gameEndTime: gameEndTime,
       ),
@@ -43,12 +50,13 @@ class TileDetailsDialog extends StatelessWidget {
   }
 }
 
-class _TileDetailsDialogContent extends StatelessWidget {
+class _TileDetailsDialogContent extends StatefulWidget {
   const _TileDetailsDialogContent({
     required this.tile,
     required this.gameId,
     required this.onToggleCompletion,
-    required this.isAdmin,
+    required this.canUndoCompletion,
+    this.onProofsChanged,
     this.gameStartTime,
     this.gameEndTime,
   });
@@ -56,20 +64,43 @@ class _TileDetailsDialogContent extends StatelessWidget {
   final BingoTile tile;
   final String gameId;
   final void Function(bool canComplete) onToggleCompletion;
-  final bool isAdmin;
+  final void Function(bool hasProofs)? onProofsChanged;
+  final bool canUndoCompletion;
   final DateTime? gameStartTime;
   final DateTime? gameEndTime;
 
-  bool get _hasGameStarted => gameStartTime == null || DateTime.now().isAfter(gameStartTime!);
-  bool get _hasGameEnded => gameEndTime != null && DateTime.now().isAfter(gameEndTime!);
+  @override
+  State<_TileDetailsDialogContent> createState() =>
+      _TileDetailsDialogContentState();
+}
+
+class _TileDetailsDialogContentState extends State<_TileDetailsDialogContent> {
+  bool? _currentHasProofs;
+
+  bool get _hasGameStarted =>
+      widget.gameStartTime == null ||
+      DateTime.now().isAfter(widget.gameStartTime!);
+  bool get _hasGameEnded =>
+      widget.gameEndTime != null && DateTime.now().isAfter(widget.gameEndTime!);
   bool get _canModifyTile => _hasGameStarted && !_hasGameEnded;
+
+  void _handleClose() {
+    if (_currentHasProofs != null &&
+        _currentHasProofs != widget.tile.hasProofs) {
+      widget.onProofsChanged?.call(_currentHasProofs!);
+    }
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bossTypeColor = _getBossTypeColor(tile.bossType);
+    final bossTypeColor = _getBossTypeColor(widget.tile.bossType);
 
     return BlocListener<ProofsBloc, ProofsState>(
       listener: (context, state) {
+        if (state.status == ProofsStatus.loaded) {
+          _currentHasProofs = state.proofs.isNotEmpty;
+        }
         if (state.status == ProofsStatus.error && state.error != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -95,13 +126,14 @@ class _TileDetailsDialogContent extends StatelessWidget {
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        if (tile.bossIconUrl != null) ...[
+                        if (widget.tile.bossIconUrl != null) ...[
                           Image.network(
-                            tile.bossIconUrl!,
+                            widget.tile.bossIconUrl!,
                             fit: BoxFit.contain,
                             width: 96,
                             height: 96,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                            errorBuilder: (_, __, ___) =>
+                                const SizedBox.shrink(),
                           ),
                           const SizedBox(height: 16),
                         ],
@@ -112,17 +144,24 @@ class _TileDetailsDialogContent extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          tile.description ?? tile.bossName ?? 'Unknown Boss',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                          widget.tile.description ??
+                              widget.tile.bossName ??
+                              'Unknown Boss',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
-                        if (tile.bossName != null && tile.description != null) ...[
+                        if (widget.tile.bossName != null &&
+                            widget.tile.description != null) ...[
                           const SizedBox(height: 8),
                           Text(
-                            tile.bossName!,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                            widget.tile.bossName!,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -130,9 +169,9 @@ class _TileDetailsDialogContent extends StatelessWidget {
                         _buildUniqueItemsSection(context),
                         const SizedBox(height: 24),
                         ProofUploadSection(
-                          gameId: gameId,
-                          tileId: tile.id,
-                          isCompleted: tile.isCompleted,
+                          gameId: widget.gameId,
+                          tileId: widget.tile.id,
+                          isCompleted: widget.tile.isCompleted,
                         ),
                       ],
                     ),
@@ -151,7 +190,9 @@ class _TileDetailsDialogContent extends StatelessWidget {
     return BlocBuilder<ProofsBloc, ProofsState>(
       builder: (context, state) {
         final canComplete = state.canComplete && _canModifyTile;
-        final isLoading = state.status == ProofsStatus.loading || state.status == ProofsStatus.uploading;
+        final isLoading =
+            state.status == ProofsStatus.loading ||
+            state.status == ProofsStatus.uploading;
 
         String? disabledReason;
         if (!_hasGameStarted) {
@@ -168,12 +209,19 @@ class _TileDetailsDialogContent extends StatelessWidget {
             if (!_canModifyTile)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.5),
                 child: Row(
                   children: [
                     Icon(
-                      !_hasGameStarted ? Icons.schedule_rounded : Icons.timer_off_rounded,
+                      !_hasGameStarted
+                          ? Icons.schedule_rounded
+                          : Icons.timer_off_rounded,
                       size: 20,
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -195,7 +243,9 @@ class _TileDetailsDialogContent extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainer,
-                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+                border: Border(
+                  top: BorderSide(color: Theme.of(context).dividerColor),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -204,27 +254,29 @@ class _TileDetailsDialogContent extends StatelessWidget {
                   _buildButton(
                     context: context,
                     label: 'Close',
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: _handleClose,
                     isPrimary: false,
                   ),
-                  if (tile.isCompleted && isAdmin && _canModifyTile)
+                  if (widget.tile.isCompleted &&
+                      widget.canUndoCompletion &&
+                      _canModifyTile)
                     _buildButton(
                       context: context,
                       label: 'Undo Completion',
                       onPressed: () {
-                        onToggleCompletion(true);
-                        Navigator.of(context).pop();
+                        widget.onToggleCompletion(true);
+                        _handleClose();
                       },
                       isPrimary: false,
                     ),
-                  if (!tile.isCompleted)
+                  if (!widget.tile.isCompleted)
                     _buildButton(
                       context: context,
                       label: disabledReason ?? 'Mark Complete',
                       onPressed: canComplete && !isLoading
                           ? () {
-                              onToggleCompletion(true);
-                              Navigator.of(context).pop();
+                              widget.onToggleCompletion(true);
+                              _handleClose();
                             }
                           : null,
                       isPrimary: true,
@@ -250,13 +302,20 @@ class _TileDetailsDialogContent extends StatelessWidget {
       return ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: onPressed != null ? colorScheme.primary : colorScheme.surfaceContainerHighest,
-          foregroundColor: onPressed != null ? colorScheme.onPrimary : colorScheme.onSurface.withValues(alpha: 0.5),
+          backgroundColor: onPressed != null
+              ? colorScheme.primary
+              : colorScheme.surfaceContainerHighest,
+          foregroundColor: onPressed != null
+              ? colorScheme.onPrimary
+              : colorScheme.onSurface.withValues(alpha: 0.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           elevation: 0,
         ),
-        child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
       );
     }
 
@@ -267,7 +326,10 @@ class _TileDetailsDialogContent extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      ),
     );
   }
 
@@ -282,8 +344,8 @@ class _TileDetailsDialogContent extends StatelessWidget {
   }
 
   Widget _buildUniqueItemsSection(BuildContext context) {
-    if (tile.isAnyUnique) {
-      final uniqueItems = tile.possibleUniqueItems;
+    if (widget.tile.isAnyUnique) {
+      final uniqueItems = widget.tile.possibleUniqueItems;
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -296,13 +358,18 @@ class _TileDetailsDialogContent extends StatelessWidget {
           children: [
             Text(
               'Any unique',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 15),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Any unique item from ${tile.bossName ?? "this boss"}\'s drop table:',
+              'Any unique item from ${widget.tile.bossName ?? "this boss"}\'s drop table:',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 16),
@@ -333,7 +400,8 @@ class _TileDetailsDialogContent extends StatelessWidget {
                       Expanded(
                         child: Text(
                           itemName,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontSize: 14, height: 1.5),
                         ),
                       ),
                     ],
@@ -345,7 +413,7 @@ class _TileDetailsDialogContent extends StatelessWidget {
       );
     }
 
-    if (tile.uniqueItems.isEmpty) {
+    if (widget.tile.uniqueItems.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -360,13 +428,18 @@ class _TileDetailsDialogContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            tile.isOrLogic
-                ? (tile.anyNCount != null && tile.anyNCount! > 1 ? 'Any ${tile.anyNCount} of:' : 'Any of:')
+            widget.tile.isOrLogic
+                ? (widget.tile.anyNCount != null && widget.tile.anyNCount! > 1
+                      ? 'Any ${widget.tile.anyNCount} of:'
+                      : 'Any of:')
                 : 'All of:',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 15),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
           ),
           const SizedBox(height: 16),
-          ...tile.uniqueItems.map(
+          ...widget.tile.uniqueItems.map(
             (item) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Row(
@@ -385,23 +458,33 @@ class _TileDetailsDialogContent extends StatelessWidget {
                   Expanded(
                     child: Text(
                       item.itemName,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
                     ),
                   ),
                   if (item.requiredCount > 1)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(3),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Text(
                         'x${item.requiredCount}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w700,
                           fontSize: 11,
                         ),

@@ -34,6 +34,7 @@ class _TileFormCardState extends State<TileFormCard> {
   bool _isAnyUnique = false;
   bool _isOrLogic = false;
   int? _anyNCount;
+  bool _showDescription = false;
 
   @override
   void initState() {
@@ -47,6 +48,7 @@ class _TileFormCardState extends State<TileFormCard> {
     _isAnyUnique = widget.data.isAnyUnique;
     _isOrLogic = widget.data.isOrLogic;
     _anyNCount = widget.data.anyNCount;
+    _showDescription = widget.data.description?.isNotEmpty ?? false;
     _loadInitialData();
   }
 
@@ -323,26 +325,16 @@ class _TileFormCardState extends State<TileFormCard> {
                 ),
               ],
             ],
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                hintText: 'Description (optional)',
-                prefixIcon: Icon(Icons.description_rounded),
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-              onChanged: (_) => _notifyUpdate(),
-            ),
             if (widget.isPointsMode) ...[
               const SizedBox(height: 16),
               TextField(
                 controller: _pointsController,
                 decoration: InputDecoration(
-                  hintText: 'Points',
+                  labelText: 'Points *',
                   prefixIcon: const Icon(Icons.emoji_events_rounded),
                   border: const OutlineInputBorder(),
-                  errorText: widget.isPointsMode &&
+                  errorText:
+                      _pointsController.text.isNotEmpty &&
                           (int.tryParse(_pointsController.text) ?? 0) <= 0
                       ? 'Points must be greater than 0'
                       : null,
@@ -354,6 +346,45 @@ class _TileFormCardState extends State<TileFormCard> {
                 },
               ),
             ],
+            const SizedBox(height: 16),
+            if (_showDescription)
+              TextField(
+                controller: _descriptionController,
+                decoration: InputDecoration(
+                  hintText: 'Description (optional)',
+                  prefixIcon: const Icon(Icons.description_rounded),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _descriptionController.clear();
+                        _showDescription = false;
+                      });
+                      _notifyUpdate();
+                    },
+                    tooltip: 'Remove description',
+                  ),
+                ),
+                maxLines: 2,
+                onChanged: (_) => _notifyUpdate(),
+                autofocus: true,
+              )
+            else
+              TextButton.icon(
+                onPressed: () => setState(() => _showDescription = true),
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: const Text('Add description'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant,
+                ),
+              ),
           ],
         ),
       ),

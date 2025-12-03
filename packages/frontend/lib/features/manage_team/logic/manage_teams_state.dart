@@ -88,6 +88,32 @@ final class ManageTeamsLoaded extends ManageTeamsState {
   List<AppUser> get unavailableUsers => _unavailableUsers;
   @override
   bool get isUsersLoading => _isUsersLoading;
+
+  ManageTeamsLoaded copyWith({
+    String? teamId,
+    String? gameId,
+    String? teamName,
+    String? teamColor,
+    int? teamSize,
+    List<AppUser>? teamMembers,
+    List<AppUser>? availableUsers,
+    List<AppUser>? unavailableUsers,
+    String? message,
+    bool? isUsersLoading,
+  }) {
+    return ManageTeamsLoaded(
+      teamId: teamId ?? _teamId,
+      gameId: gameId ?? _gameId,
+      teamName: teamName ?? _teamName,
+      teamColor: teamColor ?? _teamColor,
+      teamSize: teamSize ?? _teamSize,
+      teamMembers: teamMembers ?? _teamMembers,
+      availableUsers: availableUsers ?? _availableUsers,
+      unavailableUsers: unavailableUsers ?? _unavailableUsers,
+      message: message ?? this.message,
+      isUsersLoading: isUsersLoading ?? _isUsersLoading,
+    );
+  }
 }
 
 @immutable

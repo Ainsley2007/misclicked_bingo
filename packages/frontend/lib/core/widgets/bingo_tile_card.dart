@@ -6,7 +6,13 @@ import 'package:shared_models/shared_models.dart';
 const double _tileBorderRatio = 11.5 / 296.0;
 
 class BingoTileCard extends StatelessWidget {
-  const BingoTileCard({required this.tile, required this.isCompleted, required this.onTap, this.showPoints = false, super.key});
+  const BingoTileCard({
+    required this.tile,
+    required this.isCompleted,
+    required this.onTap,
+    this.showPoints = false,
+    super.key,
+  });
 
   final BingoTile tile;
   final bool isCompleted;
@@ -26,14 +32,26 @@ class BingoTileCard extends StatelessWidget {
 
           return Stack(
             children: [
-              Image.asset('assets/image/tile.png', fit: BoxFit.cover, width: double.infinity, height: double.infinity),
-              if (isCompleted) TileCompletionOverlay(borderPadding: borderPadding, color: appColors.completedOverlay),
+              Image.asset(
+                'assets/image/tile.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+              if (isCompleted)
+                TileCompletionOverlay(
+                  borderPadding: borderPadding,
+                  color: appColors.completedOverlay,
+                ),
               if (tile.hasProofs && !isCompleted)
                 Positioned.fill(
                   child: Container(
                     margin: EdgeInsets.all(borderPadding * 0.5),
                     decoration: BoxDecoration(
-                      border: Border.all(color: appColors.proofIndicator, width: 3),
+                      border: Border.all(
+                        color: appColors.proofIndicator.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -43,7 +61,10 @@ class BingoTileCard extends StatelessWidget {
                 Positioned(
                   top: borderPadding * 0.5,
                   right: borderPadding * 0.5,
-                  child: _PointsBadge(points: tile.points, color: appColors.warning),
+                  child: _PointsBadge(
+                    points: tile.points,
+                    color: appColors.warning,
+                  ),
                 ),
               if (tile.hasProofs && !isCompleted)
                 Positioned(
@@ -60,7 +81,11 @@ class BingoTileCard extends StatelessWidget {
 }
 
 class TileCompletionOverlay extends StatelessWidget {
-  const TileCompletionOverlay({required this.borderPadding, required this.color, super.key});
+  const TileCompletionOverlay({
+    required this.borderPadding,
+    required this.color,
+    super.key,
+  });
 
   final double borderPadding;
   final Color color;
@@ -85,13 +110,27 @@ class _PointsBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [color.withValues(alpha: 0.8), color], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+          colors: [color.withValues(alpha: 0.8), color],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(4),
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 3, offset: const Offset(0, 1))],
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Text(
         '$points',
-        style: const TextStyle(color: Color(0xFF5D4037), fontSize: 10, fontWeight: FontWeight.w800),
+        style: const TextStyle(
+          color: Color(0xFF5D4037),
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -106,8 +145,11 @@ class _ProofIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
-      child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
     );
   }
 }
@@ -142,7 +184,8 @@ class _BingoTileContent extends StatelessWidget {
                   fit: BoxFit.contain,
                   width: iconSize,
                   height: iconSize,
-                  placeholder: (context, url) => SizedBox(width: iconSize, height: iconSize),
+                  placeholder: (context, url) =>
+                      SizedBox(width: iconSize, height: iconSize),
                   errorWidget: (context, url, error) => const SizedBox.shrink(),
                 ),
                 SizedBox(height: spacing),
@@ -152,7 +195,13 @@ class _BingoTileContent extends StatelessWidget {
                 margin: EdgeInsets.symmetric(horizontal: lineMargin),
                 color: bossTypeColor,
               ),
-              Flexible(child: _buildUniqueItemsSection(context, fontSize, smallFontSize)),
+              Flexible(
+                child: _buildUniqueItemsSection(
+                  context,
+                  fontSize,
+                  smallFontSize,
+                ),
+              ),
             ],
           ),
         );
@@ -170,12 +219,20 @@ class _BingoTileContent extends StatelessWidget {
     };
   }
 
-  Widget _buildUniqueItemsSection(BuildContext context, double fontSize, double smallFontSize) {
+  Widget _buildUniqueItemsSection(
+    BuildContext context,
+    double fontSize,
+    double smallFontSize,
+  ) {
     if (tile.isAnyUnique) {
       return Center(
         child: Text(
           'Any unique',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600, fontSize: fontSize),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: fontSize,
+          ),
           textAlign: TextAlign.center,
         ),
       );
@@ -186,11 +243,17 @@ class _BingoTileContent extends StatelessWidget {
 
     if (tile.uniqueItems.length == 1) {
       final item = tile.uniqueItems.first;
-      final text = item.requiredCount > 1 ? '${item.requiredCount}x ${item.itemName}' : item.itemName;
+      final text = item.requiredCount > 1
+          ? '${item.requiredCount}x ${item.itemName}'
+          : item.itemName;
       return Center(
         child: Text(
           text,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600, fontSize: fontSize),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: fontSize,
+          ),
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -199,13 +262,19 @@ class _BingoTileContent extends StatelessWidget {
     }
 
     final items = tile.uniqueItems.map((item) {
-      return item.requiredCount > 1 ? '${item.requiredCount}x ${item.itemName}' : item.itemName;
+      return item.requiredCount > 1
+          ? '${item.requiredCount}x ${item.itemName}'
+          : item.itemName;
     }).toList();
 
     final hasMore = items.length > 4;
     final displayItems = items.take(hasMore ? 3 : 4).toList();
 
-    final headerText = tile.isOrLogic ? (tile.anyNCount != null && tile.anyNCount! > 1 ? 'Any ${tile.anyNCount} of:' : 'Any of:') : 'All of:';
+    final headerText = tile.isOrLogic
+        ? (tile.anyNCount != null && tile.anyNCount! > 1
+              ? 'Any ${tile.anyNCount} of:'
+              : 'Any of:')
+        : 'All of:';
 
     return Center(
       child: Column(
@@ -215,14 +284,22 @@ class _BingoTileContent extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 2),
             child: Text(
               headerText,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: smallFontSize),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+                fontSize: smallFontSize,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
           ...displayItems.map(
             (itemText) => Text(
               itemText,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600, fontSize: smallFontSize),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: smallFontSize,
+              ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -231,7 +308,11 @@ class _BingoTileContent extends StatelessWidget {
           if (hasMore)
             Text(
               '+${items.length - 3} more',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white54, fontWeight: FontWeight.w600, fontSize: smallFontSize),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white54,
+                fontWeight: FontWeight.w600,
+                fontSize: smallFontSize,
+              ),
               textAlign: TextAlign.center,
             ),
         ],

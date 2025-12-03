@@ -119,8 +119,9 @@ class _BingoBoardSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final completedTiles = tiles.where((tile) => tile.isCompleted).length;
     final totalTiles = tiles.length;
-    final completedPoints =
-        tiles.where((t) => t.isCompleted).fold<int>(0, (sum, t) => sum + t.points);
+    final completedPoints = tiles
+        .where((t) => t.isCompleted)
+        .fold<int>(0, (sum, t) => sum + t.points);
     final totalPoints = tiles.fold<int>(0, (sum, t) => sum + t.points);
 
     return Center(
@@ -138,13 +139,14 @@ class _BingoBoardSection extends StatelessWidget {
               boardSize;
           final tileSizeFromHeight =
               (maxBoardHeight - (boardSize - 1) * spacing) / boardSize;
-          
+
           // Use the smaller of the two to ensure it fits
           final calculatedTileSize = tileSizeFromWidth < tileSizeFromHeight
               ? tileSizeFromWidth
               : tileSizeFromHeight;
           final tileSize = calculatedTileSize.clamp(minTileSize, maxTileSize);
-          final boardWidth = (tileSize * boardSize) + ((boardSize - 1) * spacing);
+          final boardWidth =
+              (tileSize * boardSize) + ((boardSize - 1) * spacing);
 
           return Padding(
             padding: const EdgeInsets.all(20),
@@ -162,18 +164,22 @@ class _BingoBoardSection extends StatelessWidget {
                         children: [
                           Text(
                             'Board',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.3,
-                            ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.3,
+                                ),
                           ),
-                          if (game.startTime != null || game.endTime != null) ...[
+                          if (game.startTime != null ||
+                              game.endTime != null) ...[
                             const SizedBox(width: 12),
                             GameCountdown(
                               startTime: game.startTime,
                               endTime: game.endTime,
                               onGameStarted: () {
-                                context.read<GameBloc>().add(GameLoadRequested(gameId));
+                                context.read<GameBloc>().add(
+                                  GameLoadRequested(gameId),
+                                );
                               },
                             ),
                           ],
@@ -232,6 +238,14 @@ class _BingoBoardSection extends StatelessWidget {
                                         TileCompletionToggled(
                                           gameId: gameId,
                                           tileId: tile.id,
+                                        ),
+                                      );
+                                    },
+                                    onProofsChanged: (hasProofs) {
+                                      bloc.add(
+                                        TileProofsUpdated(
+                                          tileId: tile.id,
+                                          hasProofs: hasProofs,
                                         ),
                                       );
                                     },

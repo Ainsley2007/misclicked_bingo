@@ -32,34 +32,37 @@ class Step2GameMode extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _GameModeCard(
-                        title: 'Blackout',
-                        description:
-                            'First team to complete ALL tiles wins. No time limit.',
-                        icon: Icons.grid_on_rounded,
-                        isSelected: state.gameMode == GameMode.blackout,
-                        onTap: () => context
-                            .read<GameCreationBloc>()
-                            .add(const GameModeChanged(GameMode.blackout)),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _GameModeCard(
+                          title: 'Blackout',
+                          description:
+                              'First team to complete ALL tiles wins. No time limit.',
+                          icon: Icons.grid_on_rounded,
+                          isSelected: state.gameMode == GameMode.blackout,
+                          onTap: () => context.read<GameCreationBloc>().add(
+                            const GameModeChanged(GameMode.blackout),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _GameModeCard(
-                        title: 'Points',
-                        description:
-                            'Each tile has points. Team with most points wins when time ends.',
-                        icon: Icons.emoji_events_rounded,
-                        isSelected: state.gameMode == GameMode.points,
-                        onTap: () => context
-                            .read<GameCreationBloc>()
-                            .add(const GameModeChanged(GameMode.points)),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _GameModeCard(
+                          title: 'Points',
+                          description:
+                              'Each tile has points. Team with most points wins when time ends.',
+                          icon: Icons.emoji_events_rounded,
+                          isSelected: state.gameMode == GameMode.points,
+                          onTap: () => context.read<GameCreationBloc>().add(
+                            const GameModeChanged(GameMode.points),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 32),
                 const Divider(),
@@ -128,9 +131,7 @@ class _GameModeCard extends StatelessWidget {
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? colorScheme.primary
-                    : colorScheme.onSurface,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
@@ -161,9 +162,9 @@ class _TimeScheduleSection extends StatelessWidget {
       children: [
         Text(
           'Schedule (Optional)',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Text(
@@ -179,9 +180,9 @@ class _TimeScheduleSection extends StatelessWidget {
           icon: Icons.play_circle_outline_rounded,
           time: startTime,
           onSelect: () => _selectDateTime(context, isStart: true),
-          onClear: () => context
-              .read<GameCreationBloc>()
-              .add(const StartTimeChanged(null)),
+          onClear: () => context.read<GameCreationBloc>().add(
+            const StartTimeChanged(null),
+          ),
           hint: 'Game starts immediately',
         ),
         const SizedBox(height: 16),
@@ -191,12 +192,13 @@ class _TimeScheduleSection extends StatelessWidget {
           icon: Icons.stop_circle_outlined,
           time: endTime,
           onSelect: () => _selectDateTime(context, isStart: false),
-          onClear: () => context
-              .read<GameCreationBloc>()
-              .add(const EndTimeChanged(null)),
+          onClear: () =>
+              context.read<GameCreationBloc>().add(const EndTimeChanged(null)),
           hint: 'No end time (manual)',
         ),
-        if (startTime != null && endTime != null && endTime!.isBefore(startTime!))
+        if (startTime != null &&
+            endTime != null &&
+            endTime!.isBefore(startTime!))
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: Row(
@@ -220,7 +222,10 @@ class _TimeScheduleSection extends StatelessWidget {
     );
   }
 
-  Future<void> _selectDateTime(BuildContext context, {required bool isStart}) async {
+  Future<void> _selectDateTime(
+    BuildContext context, {
+    required bool isStart,
+  }) async {
     final now = DateTime.now();
     final currentTime = isStart ? startTime : endTime;
     final initialDate = currentTime ?? now.add(Duration(days: isStart ? 0 : 7));
@@ -276,8 +281,18 @@ class _TimePickerRow extends StatelessWidget {
 
   String _formatDateTime(DateTime dt) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
     final amPm = dt.hour < 12 ? 'AM' : 'PM';
@@ -317,7 +332,9 @@ class _TimePickerRow extends StatelessWidget {
                   color: time != null
                       ? colorScheme.onSurface
                       : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                  fontWeight: time != null ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight: time != null
+                      ? FontWeight.w500
+                      : FontWeight.normal,
                 ),
               ),
             ],
@@ -333,9 +350,7 @@ class _TimePickerRow extends StatelessWidget {
             onPressed: onClear,
             icon: const Icon(Icons.clear_rounded),
             tooltip: 'Clear',
-            style: IconButton.styleFrom(
-              foregroundColor: colorScheme.error,
-            ),
+            style: IconButton.styleFrom(foregroundColor: colorScheme.error),
           ),
         ],
       ],
@@ -354,9 +369,9 @@ class _NavigationButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         OutlinedButton.icon(
-          onPressed: () => context
-              .read<GameCreationBloc>()
-              .add(const PreviousStepRequested()),
+          onPressed: () => context.read<GameCreationBloc>().add(
+            const PreviousStepRequested(),
+          ),
           icon: const Icon(Icons.arrow_back_rounded),
           label: const Text('Back'),
         ),
@@ -370,4 +385,3 @@ class _NavigationButtons extends StatelessWidget {
     );
   }
 }
-

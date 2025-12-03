@@ -8,11 +8,14 @@ import 'package:frontend/features/manage_team/logic/manage_teams_state.dart';
 import 'package:shared_models/shared_models.dart';
 
 class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
-  ManageTeamsBloc({required TeamsRepository teamsRepository, required GamesRepository gamesRepository})
-    : _teamsRepository = teamsRepository,
-      _gamesRepository = gamesRepository,
-      super(const ManageTeamsInitial()) {
+  ManageTeamsBloc({
+    required TeamsRepository teamsRepository,
+    required GamesRepository gamesRepository,
+  }) : _teamsRepository = teamsRepository,
+       _gamesRepository = gamesRepository,
+       super(const ManageTeamsInitial()) {
     on<ManageTeamsLoadRequested>(_onLoadRequested);
+    on<ManageTeamsRefreshUsers>(_onRefreshUsers);
     onDroppable<ManageTeamsAddMember>(_onAddMember);
     onDroppable<ManageTeamsRemoveMember>(_onRemoveMember);
     onDroppable<ManageTeamsUpdateColor>(_onUpdateColor);
@@ -21,7 +24,10 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
   final TeamsRepository _teamsRepository;
   final GamesRepository _gamesRepository;
 
-  Future<void> _onLoadRequested(ManageTeamsLoadRequested event, Emitter<ManageTeamsState> emit) async {
+  Future<void> _onLoadRequested(
+    ManageTeamsLoadRequested event,
+    Emitter<ManageTeamsState> emit,
+  ) async {
     emit(ManageTeamsLoading(teamId: event.teamId, gameId: event.gameId));
     await execute(
       action: () async {
@@ -100,12 +106,67 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
     );
   }
 
-  Future<void> _onUpdateColor(ManageTeamsUpdateColor event, Emitter<ManageTeamsState> emit) async {
+  Future<void> _onRefreshUsers(
+    ManageTeamsRefreshUsers event,
+    Emitter<ManageTeamsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ManageTeamsLoaded) return;
+
+    // Set users loading without triggering full page reload
+    emit(currentState.copyWith(isUsersLoading: true));
+
+    await execute(
+      action: () async {
+        final results = await Future.wait([
+          _teamsRepository.getTeamMembers(currentState.teamId),
+          _gamesRepository.getGameUsers(currentState.gameId),
+        ]);
+
+        final teamMembers = results[0];
+        final allUsers = results[1];
+        final teamMemberIds = teamMembers.map((u) => u.id).toSet();
+
+        final availableUsers = <AppUser>[];
+        final unavailableUsers = <AppUser>[];
+
+        for (final user in allUsers) {
+          if (teamMemberIds.contains(user.id)) continue;
+          if (user.teamId == null) {
+            availableUsers.add(user);
+          } else {
+            unavailableUsers.add(user);
+          }
+        }
+
+        emit(
+          currentState.copyWith(
+            teamMembers: teamMembers,
+            availableUsers: availableUsers,
+            unavailableUsers: unavailableUsers,
+            isUsersLoading: false,
+          ),
+        );
+      },
+      onError: (message) =>
+          emit(currentState.copyWith(isUsersLoading: false, message: message)),
+      context: 'manage_teams',
+      defaultMessage: 'Failed to refresh users',
+    );
+  }
+
+  Future<void> _onUpdateColor(
+    ManageTeamsUpdateColor event,
+    Emitter<ManageTeamsState> emit,
+  ) async {
     if (state.teamId == null) return;
 
     await execute(
       action: () async {
-        await _teamsRepository.updateTeamColor(teamId: state.teamId!, color: event.color);
+        await _teamsRepository.updateTeamColor(
+          teamId: state.teamId!,
+          color: event.color,
+        );
 
         if (state is ManageTeamsLoaded) {
           final loaded = state as ManageTeamsLoaded;
@@ -129,8 +190,14 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
     );
   }
 
-  Future<void> _onAddMember(ManageTeamsAddMember event, Emitter<ManageTeamsState> emit) async {
-    if (state.teamId == null || state.gameId == null || state.teamName == null || state.teamSize == null) {
+  Future<void> _onAddMember(
+    ManageTeamsAddMember event,
+    Emitter<ManageTeamsState> emit,
+  ) async {
+    if (state.teamId == null ||
+        state.gameId == null ||
+        state.teamName == null ||
+        state.teamSize == null) {
       return;
     }
 
@@ -153,9 +220,14 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
 
     await execute(
       action: () async {
-        await _teamsRepository.addMember(teamId: state.teamId!, userId: event.userId);
+        await _teamsRepository.addMember(
+          teamId: state.teamId!,
+          userId: event.userId,
+        );
 
-        final teamMembers = await _teamsRepository.getTeamMembers(state.teamId!);
+        final teamMembers = await _teamsRepository.getTeamMembers(
+          state.teamId!,
+        );
         final allUsers = await _gamesRepository.getGameUsers(state.gameId!);
 
         final teamMemberIds = teamMembers.map((u) => u.id).toSet();
@@ -192,16 +264,27 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
     );
   }
 
-  Future<void> _onRemoveMember(ManageTeamsRemoveMember event, Emitter<ManageTeamsState> emit) async {
-    if (state.teamId == null || state.gameId == null || state.teamName == null || state.teamSize == null) {
+  Future<void> _onRemoveMember(
+    ManageTeamsRemoveMember event,
+    Emitter<ManageTeamsState> emit,
+  ) async {
+    if (state.teamId == null ||
+        state.gameId == null ||
+        state.teamName == null ||
+        state.teamSize == null) {
       return;
     }
 
     await execute(
       action: () async {
-        await _teamsRepository.removeMember(teamId: state.teamId!, userId: event.userId);
+        await _teamsRepository.removeMember(
+          teamId: state.teamId!,
+          userId: event.userId,
+        );
 
-        final teamMembers = await _teamsRepository.getTeamMembers(state.teamId!);
+        final teamMembers = await _teamsRepository.getTeamMembers(
+          state.teamId!,
+        );
         final allUsers = await _gamesRepository.getGameUsers(state.gameId!);
 
         final teamMemberIds = teamMembers.map((u) => u.id).toSet();

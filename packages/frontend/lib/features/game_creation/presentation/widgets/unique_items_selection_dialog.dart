@@ -140,6 +140,9 @@ class _UniqueItemsSelectionDialogState
                       ),
                       value: _isAnyUnique,
                       onChanged: (value) => _onAnyUniqueChanged(value ?? false),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     if (!_isAnyUnique) ...[
                       const SizedBox(height: 16),
@@ -241,6 +244,9 @@ class _UniqueItemsSelectionDialogState
                             onChanged: (selected) {
                               _onItemToggled(itemName, selected ?? false);
                             },
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             secondary: isSelected
                                 ? SizedBox(
                                     width: 80,

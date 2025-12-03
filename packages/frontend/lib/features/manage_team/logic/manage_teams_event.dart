@@ -26,3 +26,7 @@ final class ManageTeamsUpdateColor extends ManageTeamsEvent {
 
   final String color;
 }
+
+final class ManageTeamsRefreshUsers extends ManageTeamsEvent {
+  const ManageTeamsRefreshUsers();
+}

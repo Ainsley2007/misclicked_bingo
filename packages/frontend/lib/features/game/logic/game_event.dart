@@ -9,11 +9,15 @@ final class GameLoadRequested extends GameEvent {
 }
 
 final class TileCompletionToggled extends GameEvent {
-  const TileCompletionToggled({
-    required this.gameId,
-    required this.tileId,
-  });
+  const TileCompletionToggled({required this.gameId, required this.tileId});
 
   final String gameId;
   final String tileId;
+}
+
+final class TileProofsUpdated extends GameEvent {
+  const TileProofsUpdated({required this.tileId, required this.hasProofs});
+
+  final String tileId;
+  final bool hasProofs;
 }

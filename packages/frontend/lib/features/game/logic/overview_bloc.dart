@@ -57,6 +57,7 @@ class OverviewBloc extends BaseBloc<OverviewEvent, OverviewState> {
           tiles: enrichedTiles,
           teams: teams,
           totalPoints: overview.totalPoints,
+          isSidebarLoading: true,
         );
         emit(loadedState);
         developer.log(
@@ -73,13 +74,18 @@ class OverviewBloc extends BaseBloc<OverviewEvent, OverviewState> {
           final activities = results[0] as List<TileActivity>;
           final stats = results[1] as ProofStats;
 
-          emit(loadedState.copyWith(activities: activities, stats: stats));
+          emit(loadedState.copyWith(
+            activities: activities,
+            stats: stats,
+            isSidebarLoading: false,
+          ));
         } catch (e) {
           developer.log(
             'Failed to load activity/stats',
             name: 'overview',
             error: e,
           );
+          emit(loadedState.copyWith(isSidebarLoading: false));
         }
       },
       onError: (message) => emit(OverviewError(message)),

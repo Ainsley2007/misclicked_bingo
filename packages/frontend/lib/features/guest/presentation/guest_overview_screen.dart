@@ -213,6 +213,7 @@ class _GuestOverviewContentState extends State<_GuestOverviewContent> {
                             : _ActivitySidebarCard(
                                 activities: loadedState.activities,
                                 stats: loadedState.stats,
+                                isLoading: loadedState.isSidebarLoading,
                               ),
                       ),
                     ),
@@ -229,8 +230,13 @@ class _GuestOverviewContentState extends State<_GuestOverviewContent> {
 class _ActivitySidebarCard extends StatefulWidget {
   final List<TileActivity> activities;
   final ProofStats? stats;
+  final bool isLoading;
 
-  const _ActivitySidebarCard({required this.activities, this.stats});
+  const _ActivitySidebarCard({
+    required this.activities,
+    this.stats,
+    this.isLoading = false,
+  });
 
   @override
   State<_ActivitySidebarCard> createState() => _ActivitySidebarCardState();
@@ -285,13 +291,15 @@ class _ActivitySidebarCardState extends State<_ActivitySidebarCard>
             ),
           ),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                ActivityFeed(activities: widget.activities),
-                LeaderboardWidget(stats: widget.stats),
-              ],
-            ),
+            child: widget.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      ActivityFeed(activities: widget.activities),
+                      LeaderboardWidget(stats: widget.stats),
+                    ],
+                  ),
           ),
         ],
       ),

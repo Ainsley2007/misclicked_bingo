@@ -52,6 +52,7 @@ class GuestBloc extends BaseBloc<GuestEvent, GuestState> {
           game: overview.game,
           tiles: overview.tiles,
           teams: teams,
+          isSidebarLoading: true,
         );
         emit(loadedState);
         developer.log(
@@ -72,6 +73,7 @@ class GuestBloc extends BaseBloc<GuestEvent, GuestState> {
               teams: teams,
               activities: results[0] as List<TileActivity>,
               stats: results[1] as ProofStats,
+              isSidebarLoading: false,
             ),
           );
         } catch (e) {
@@ -79,6 +81,14 @@ class GuestBloc extends BaseBloc<GuestEvent, GuestState> {
             'Failed to load activity/stats',
             name: 'guest',
             error: e,
+          );
+          emit(
+            GuestGameOverviewLoaded(
+              game: overview.game,
+              tiles: overview.tiles,
+              teams: teams,
+              isSidebarLoading: false,
+            ),
           );
         }
       },

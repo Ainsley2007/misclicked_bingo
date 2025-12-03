@@ -31,6 +31,7 @@ final class GuestGameOverviewLoaded extends GuestState {
     required this.teams,
     this.activities = const [],
     this.stats,
+    this.isSidebarLoading = true,
   });
 
   final Game game;
@@ -38,6 +39,7 @@ final class GuestGameOverviewLoaded extends GuestState {
   final List<GuestTeamOverview> teams;
   final List<TileActivity> activities;
   final ProofStats? stats;
+  final bool isSidebarLoading;
 }
 
 @immutable

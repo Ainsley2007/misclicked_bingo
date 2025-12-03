@@ -117,6 +117,14 @@ class _ManageTeamsView extends StatelessWidget {
                             child: AvailableUsersSection(
                               availableUsers: state.availableUsers,
                               unavailableUsers: state.unavailableUsers,
+                              isLoading: state.isUsersLoading,
+                              onRefresh: () =>
+                                  context.read<ManageTeamsBloc>().add(
+                                    ManageTeamsLoadRequested(
+                                      teamId: teamId,
+                                      gameId: state.gameId ?? '',
+                                    ),
+                                  ),
                             ),
                           ),
                         ],
@@ -135,6 +143,14 @@ class _ManageTeamsView extends StatelessWidget {
                           AvailableUsersSection(
                             availableUsers: state.availableUsers,
                             unavailableUsers: state.unavailableUsers,
+                            isLoading: state.isUsersLoading,
+                            onRefresh: () =>
+                                context.read<ManageTeamsBloc>().add(
+                                  ManageTeamsLoadRequested(
+                                    teamId: teamId,
+                                    gameId: state.gameId ?? '',
+                                  ),
+                                ),
                           ),
                         ],
                       );

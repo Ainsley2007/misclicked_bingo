@@ -25,6 +25,7 @@ final class OverviewLoaded extends OverviewState {
     this.totalPoints = 0,
     this.activities = const [],
     this.stats,
+    this.isSidebarLoading = true,
   });
 
   final Game game;
@@ -33,6 +34,7 @@ final class OverviewLoaded extends OverviewState {
   final int totalPoints;
   final List<TileActivity> activities;
   final ProofStats? stats;
+  final bool isSidebarLoading;
 
   OverviewLoaded copyWith({
     Game? game,
@@ -41,6 +43,7 @@ final class OverviewLoaded extends OverviewState {
     int? totalPoints,
     List<TileActivity>? activities,
     ProofStats? stats,
+    bool? isSidebarLoading,
   }) {
     return OverviewLoaded(
       game: game ?? this.game,
@@ -49,6 +52,7 @@ final class OverviewLoaded extends OverviewState {
       totalPoints: totalPoints ?? this.totalPoints,
       activities: activities ?? this.activities,
       stats: stats ?? this.stats,
+      isSidebarLoading: isSidebarLoading ?? this.isSidebarLoading,
     );
   }
 }

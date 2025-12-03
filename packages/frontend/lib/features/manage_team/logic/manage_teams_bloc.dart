@@ -25,39 +25,74 @@ class ManageTeamsBloc extends BaseBloc<ManageTeamsEvent, ManageTeamsState> {
     emit(ManageTeamsLoading(teamId: event.teamId, gameId: event.gameId));
     await execute(
       action: () async {
-        final teamMembers = await _teamsRepository.getTeamMembers(event.teamId);
-        final game = await _gamesRepository.getGame(event.gameId);
-        final allUsers = await _gamesRepository.getGameUsers(event.gameId);
-
-        final teamMemberIds = teamMembers.map((u) => u.id).toSet();
-
-        final availableUsers = <AppUser>[];
-        final unavailableUsers = <AppUser>[];
-
-        for (final user in allUsers) {
-          if (teamMemberIds.contains(user.id)) continue;
-          if (user.teamId == null) {
-            availableUsers.add(user);
-          } else {
-            unavailableUsers.add(user);
-          }
-        }
+        final results = await Future.wait([
+          _teamsRepository.getTeamMembers(event.teamId),
+          _gamesRepository.getGame(event.gameId),
+        ]);
+        final teamMembers = results[0] as List<AppUser>;
+        final game = results[1] as Game;
 
         final teamName = teamMembers.isNotEmpty ? 'Team' : 'Team';
 
-        emit(
-          ManageTeamsLoaded(
-            teamId: event.teamId,
-            gameId: event.gameId,
-            teamName: teamName,
-            teamColor: '#4CAF50',
-            teamSize: game.teamSize,
-            teamMembers: teamMembers,
-            availableUsers: availableUsers,
-            unavailableUsers: unavailableUsers,
-          ),
+        var loadedState = ManageTeamsLoaded(
+          teamId: event.teamId,
+          gameId: event.gameId,
+          teamName: teamName,
+          teamColor: '#4CAF50',
+          teamSize: game.teamSize,
+          teamMembers: teamMembers,
+          isUsersLoading: true,
         );
+        emit(loadedState);
         developer.log('Loaded team ${event.teamId}', name: 'manage_teams');
+
+        try {
+          final allUsers = await _gamesRepository.getGameUsers(event.gameId);
+          final teamMemberIds = teamMembers.map((u) => u.id).toSet();
+
+          final availableUsers = <AppUser>[];
+          final unavailableUsers = <AppUser>[];
+
+          for (final user in allUsers) {
+            if (teamMemberIds.contains(user.id)) continue;
+            if (user.teamId == null) {
+              availableUsers.add(user);
+            } else {
+              unavailableUsers.add(user);
+            }
+          }
+
+          emit(
+            ManageTeamsLoaded(
+              teamId: event.teamId,
+              gameId: event.gameId,
+              teamName: teamName,
+              teamColor: '#4CAF50',
+              teamSize: game.teamSize,
+              teamMembers: teamMembers,
+              availableUsers: availableUsers,
+              unavailableUsers: unavailableUsers,
+              isUsersLoading: false,
+            ),
+          );
+        } catch (e) {
+          developer.log(
+            'Failed to load game users',
+            name: 'manage_teams',
+            error: e,
+          );
+          emit(
+            ManageTeamsLoaded(
+              teamId: event.teamId,
+              gameId: event.gameId,
+              teamName: teamName,
+              teamColor: '#4CAF50',
+              teamSize: game.teamSize,
+              teamMembers: teamMembers,
+              isUsersLoading: false,
+            ),
+          );
+        }
       },
       onError: (message) => emit(ManageTeamsError(message)),
       context: 'manage_teams',

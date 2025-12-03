@@ -13,6 +13,7 @@ sealed class ManageTeamsState {
   List<AppUser> get teamMembers => const [];
   List<AppUser> get availableUsers => const [];
   List<AppUser> get unavailableUsers => const [];
+  bool get isUsersLoading => false;
 }
 
 @immutable
@@ -44,9 +45,10 @@ final class ManageTeamsLoaded extends ManageTeamsState {
     required String teamColor,
     required int teamSize,
     required List<AppUser> teamMembers,
-    required List<AppUser> availableUsers,
+    List<AppUser> availableUsers = const [],
     List<AppUser>? unavailableUsers,
     this.message,
+    bool isUsersLoading = false,
   }) : _teamId = teamId,
        _gameId = gameId,
        _teamName = teamName,
@@ -54,7 +56,8 @@ final class ManageTeamsLoaded extends ManageTeamsState {
        _teamSize = teamSize,
        _teamMembers = teamMembers,
        _availableUsers = availableUsers,
-       _unavailableUsers = unavailableUsers ?? const [];
+       _unavailableUsers = unavailableUsers ?? const [],
+       _isUsersLoading = isUsersLoading;
 
   final String _teamId;
   final String _gameId;
@@ -64,6 +67,7 @@ final class ManageTeamsLoaded extends ManageTeamsState {
   final List<AppUser> _teamMembers;
   final List<AppUser> _availableUsers;
   final List<AppUser> _unavailableUsers;
+  final bool _isUsersLoading;
   final String? message;
 
   @override
@@ -82,6 +86,8 @@ final class ManageTeamsLoaded extends ManageTeamsState {
   List<AppUser> get availableUsers => _availableUsers;
   @override
   List<AppUser> get unavailableUsers => _unavailableUsers;
+  @override
+  bool get isUsersLoading => _isUsersLoading;
 }
 
 @immutable

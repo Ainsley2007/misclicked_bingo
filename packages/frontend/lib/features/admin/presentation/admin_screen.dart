@@ -229,9 +229,24 @@ class _UsersSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UsersBloc, UsersState>(
       builder: (context, state) {
+        final isLoading = state is UsersLoading;
         return SectionCard(
           icon: Icons.people_rounded,
           title: 'Manage Users',
+          trailing: IconButton(
+            icon: isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh_rounded, size: 20),
+            tooltip: 'Refresh users',
+            onPressed: isLoading
+                ? null
+                : () =>
+                      context.read<UsersBloc>().add(const UsersLoadRequested()),
+          ),
           child: _buildContent(context, state),
         );
       },
@@ -663,8 +678,9 @@ class _GameEditDialogState extends State<_GameEditDialog> {
                         ),
                         value: _selectedTileId,
                         items: _tiles!.map((tile) {
-                          final name = tile.bossName ?? 
-                              tile.description ?? 
+                          final name =
+                              tile.bossName ??
+                              tile.description ??
                               'Tile ${tile.position}';
                           return DropdownMenuItem(
                             value: tile.id,

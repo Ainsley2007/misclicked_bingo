@@ -137,14 +137,6 @@ class GamesRepository {
     }
   }
 
-  Future<Game> getPublicGame(String gameId) async {
-    try {
-      return await _api.getPublicGame(gameId);
-    } on DioException catch (e) {
-      throw e.toApiException();
-    }
-  }
-
   Future<GameOverview> getPublicOverview(String gameId) async {
     try {
       return await _api.getPublicOverview(gameId);

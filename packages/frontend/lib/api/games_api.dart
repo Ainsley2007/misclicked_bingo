@@ -74,9 +74,6 @@ abstract class GamesApi {
   Future<List<Game>> getPublicGames();
 
   @GET('/public/games/{id}')
-  Future<Game> getPublicGame(@Path('id') String id);
-
-  @GET('/public/games/{id}/overview')
   Future<GameOverview> getPublicOverview(@Path('id') String gameId);
 
   @GET('/public/games/{id}/activity')

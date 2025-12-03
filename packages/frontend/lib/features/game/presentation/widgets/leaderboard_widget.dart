@@ -298,12 +298,10 @@ class _LeaderboardRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          if (user.avatar != null) ...[
+          if (user.avatarUrl != null) ...[
             CircleAvatar(
               radius: 14,
-              backgroundImage: NetworkImage(
-                'https://cdn.discordapp.com/avatars/${user.userId}/${user.avatar}.png?size=64',
-              ),
+              backgroundImage: NetworkImage(user.avatarUrl!),
               onBackgroundImageError: (_, __) {},
             ),
             const SizedBox(width: 10),

@@ -6,16 +6,22 @@ part 'proof_stats.g.dart';
 @JsonSerializable()
 class UserStats extends Equatable {
   final String userId;
+  final String? discordId;
   final String? username;
   final String? avatar;
   final int count;
 
   const UserStats({
     required this.userId,
+    this.discordId,
     this.username,
     this.avatar,
     required this.count,
   });
+
+  String? get avatarUrl => avatar != null && discordId != null
+      ? 'https://cdn.discordapp.com/avatars/$discordId/$avatar.png?size=64'
+      : null;
 
   factory UserStats.fromJson(Map<String, dynamic> json) =>
       _$UserStatsFromJson(json);

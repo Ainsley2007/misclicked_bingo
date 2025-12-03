@@ -8,6 +8,7 @@ part of 'proof_stats.dart';
 
 UserStats _$UserStatsFromJson(Map<String, dynamic> json) => UserStats(
   userId: json['userId'] as String,
+  discordId: json['discordId'] as String?,
   username: json['username'] as String?,
   avatar: json['avatar'] as String?,
   count: (json['count'] as num).toInt(),
@@ -15,6 +16,7 @@ UserStats _$UserStatsFromJson(Map<String, dynamic> json) => UserStats(
 
 Map<String, dynamic> _$UserStatsToJson(UserStats instance) => <String, dynamic>{
   'userId': instance.userId,
+  'discordId': instance.discordId,
   'username': instance.username,
   'avatar': instance.avatar,
   'count': instance.count,

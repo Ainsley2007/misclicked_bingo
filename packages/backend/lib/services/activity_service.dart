@@ -110,6 +110,7 @@ class ActivityService {
       final user = userCache[e.key];
       return UserStats(
         userId: e.key,
+        discordId: user?.discordId,
         username: user?.globalName ?? user?.username,
         avatar: user?.avatar,
         count: e.value,
@@ -120,6 +121,7 @@ class ActivityService {
       final user = userCache[e.key];
       return UserStats(
         userId: e.key,
+        discordId: user?.discordId,
         username: user?.globalName ?? user?.username,
         avatar: user?.avatar,
         count: e.value,
@@ -130,6 +132,7 @@ class ActivityService {
       final user = userCache[e.key];
       return UserStats(
         userId: e.key,
+        discordId: user?.discordId,
         username: user?.globalName ?? user?.username,
         avatar: user?.avatar,
         count: e.value,

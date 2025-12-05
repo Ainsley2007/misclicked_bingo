@@ -130,7 +130,6 @@ class TeamsService {
       discordId: user.discordId,
       globalName: user.globalName,
       username: user.username,
-      email: user.email,
       avatar: user.avatar,
       role: UserRole.values.byName(user.role),
       teamId: user.teamId,

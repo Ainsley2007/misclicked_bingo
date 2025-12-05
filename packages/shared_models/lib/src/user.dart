@@ -11,17 +11,28 @@ class AppUser extends Equatable {
   final String discordId;
   final String? globalName;
   final String? username;
-  final String? email;
   final String? avatar;
   final UserRole role;
   final String? teamId;
   final String? gameId;
 
-  const AppUser({required this.id, required this.discordId, this.globalName, this.username, this.email, this.avatar, this.role = UserRole.user, this.teamId, this.gameId});
+  const AppUser({
+    required this.id,
+    required this.discordId,
+    this.globalName,
+    this.username,
+    this.avatar,
+    this.role = UserRole.user,
+    this.teamId,
+    this.gameId,
+  });
 
-  String? get avatarUrl => avatar != null ? 'https://cdn.discordapp.com/avatars/$discordId/$avatar.png?size=128' : null;
+  String? get avatarUrl => avatar != null
+      ? 'https://cdn.discordapp.com/avatars/$discordId/$avatar.png?size=128'
+      : null;
 
-  factory AppUser.fromJson(Map<String, dynamic> json) => _$AppUserFromJson(json);
+  factory AppUser.fromJson(Map<String, dynamic> json) =>
+      _$AppUserFromJson(json);
   Map<String, dynamic> toJson() => _$AppUserToJson(this);
 
   @override

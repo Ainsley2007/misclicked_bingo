@@ -15,7 +15,7 @@ Response onRequest(RequestContext context) {
   final authUrl = Uri.https('discord.com', '/api/oauth2/authorize', {
     'client_id': clientId,
     'response_type': 'code',
-    'scope': 'identify email',
+    'scope': 'identify',
     'redirect_uri': redirectUri,
     'prompt': 'none',
   });

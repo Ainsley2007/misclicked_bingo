@@ -73,7 +73,6 @@ class AuthService {
         UsersCompanion(
           globalName: Value(discordUser['global_name'] as String?),
           username: Value(discordUser['username'] as String?),
-          email: Value(discordUser['email'] as String?),
           avatar: Value(discordUser['avatar'] as String?),
         ),
       );
@@ -89,7 +88,6 @@ class AuthService {
             discordId: discordId,
             globalName: Value(discordUser['global_name'] as String?),
             username: Value(discordUser['username'] as String?),
-            email: Value(discordUser['email'] as String?),
             avatar: Value(discordUser['avatar'] as String?),
             role: const Value('user'),
           ),

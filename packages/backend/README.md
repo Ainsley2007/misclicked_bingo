@@ -114,6 +114,7 @@ Most routes require authentication. The middleware automatically reads the JWT f
 Initiates Discord OAuth flow by redirecting to Discord authorization page.
 
 **Response:**
+
 - `302` Redirect to Discord OAuth
 
 ---
@@ -123,12 +124,15 @@ Initiates Discord OAuth flow by redirecting to Discord authorization page.
 Handles Discord OAuth callback and sets authentication cookie.
 
 **Query Parameters:**
+
 - `code` (string, required) - Authorization code from Discord
 
 **Response:**
+
 - `302` Redirect to frontend with auth cookie set
 
 **Errors:**
+
 - `400` Missing authorization code
 - `500` Authentication failed
 
@@ -139,6 +143,7 @@ Handles Discord OAuth callback and sets authentication cookie.
 Logs out user by clearing authentication cookie.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -159,6 +164,7 @@ Get current authenticated user information.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -167,7 +173,6 @@ Get current authenticated user information.
     "discordId": "discord-id",
     "globalName": "Display Name",
     "username": "username",
-    "email": "email@example.com",
     "avatar": "avatar-hash",
     "role": "user",
     "teamId": "team-uuid",
@@ -177,6 +182,7 @@ Get current authenticated user information.
 ```
 
 **Errors:**
+
 - `401` Unauthorized
 - `404` User not found
 
@@ -191,6 +197,7 @@ List all games.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -219,6 +226,7 @@ Create a new game.
 **Authentication:** Required (Admin)
 
 **Request Body:**
+
 ```json
 {
   "name": "Game Name",
@@ -247,6 +255,7 @@ Create a new game.
 ```
 
 **Response:** `201 Created`
+
 ```json
 {
   "success": true,
@@ -260,6 +269,7 @@ Create a new game.
 ```
 
 **Errors:**
+
 - `400` Validation error (invalid game configuration)
 
 ---
@@ -271,6 +281,7 @@ Get game details by ID.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -289,6 +300,7 @@ Get game details by ID.
 ```
 
 **Errors:**
+
 - `404` Game not found
 
 ---
@@ -300,6 +312,7 @@ Update game details.
 **Authentication:** Required (Admin)
 
 **Request Body:**
+
 ```json
 {
   "name": "Updated Game Name"
@@ -307,6 +320,7 @@ Update game details.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -319,6 +333,7 @@ Update game details.
 ```
 
 **Errors:**
+
 - `404` Game not found
 - `400` Validation error
 
@@ -341,6 +356,7 @@ Join a game by game code and create a team.
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
   "teamName": "Team Name"
@@ -348,6 +364,7 @@ Join a game by game code and create a team.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -359,6 +376,7 @@ Join a game by game code and create a team.
 ```
 
 **Errors:**
+
 - `400` Invalid game code or team name
 - `404` Game not found
 
@@ -371,9 +389,11 @@ Get recent activity for a game.
 **Authentication:** Required
 
 **Query Parameters:**
+
 - `limit` (number, optional) - Maximum number of activities to return (default: 50)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -406,6 +426,7 @@ Get game statistics.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -436,6 +457,7 @@ Update a tile.
 **Authentication:** Required (Admin)
 
 **Request Body:**
+
 ```json
 {
   "bossId": "boss-uuid",
@@ -453,6 +475,7 @@ Update a tile.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -463,6 +486,7 @@ Update a tile.
 ```
 
 **Errors:**
+
 - `403` Admin access required
 - `400` Validation error
 
@@ -475,6 +499,7 @@ Toggle tile completion status.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -485,6 +510,7 @@ Toggle tile completion status.
 ```
 
 **Errors:**
+
 - `403` User must be in a team, game not started, or game ended
 - `404` Game not found
 - `400` Missing required proofs
@@ -498,6 +524,7 @@ Uncomplete a tile for all teams.
 **Authentication:** Required (Admin)
 
 **Request Body:**
+
 ```json
 {
   "deleteProofs": false
@@ -505,6 +532,7 @@ Uncomplete a tile for all teams.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -515,6 +543,7 @@ Uncomplete a tile for all teams.
 ```
 
 **Errors:**
+
 - `403` Admin access required
 
 ---
@@ -528,6 +557,7 @@ Update team details.
 **Authentication:** Required (Team Captain)
 
 **Request Body:**
+
 ```json
 {
   "color": "#FF0000"
@@ -535,6 +565,7 @@ Update team details.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -550,6 +581,7 @@ Update team details.
 ```
 
 **Errors:**
+
 - `404` Team not found
 - `403` Only team captain can update
 - `400` Invalid color format
@@ -565,6 +597,7 @@ Disband a team.
 **Response:** `204 No Content`
 
 **Errors:**
+
 - `404` Team not found
 - `403` Only team captain can disband
 
@@ -579,6 +612,7 @@ Get all bosses with their unique items.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -605,6 +639,7 @@ Get a presigned URL for uploading proof images.
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
   "gameId": "game-uuid",
@@ -613,6 +648,7 @@ Get a presigned URL for uploading proof images.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -625,6 +661,7 @@ Get a presigned URL for uploading proof images.
 ```
 
 **Errors:**
+
 - `403` User must be in a team
 - `400` Missing required fields
 

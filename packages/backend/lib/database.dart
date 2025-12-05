@@ -15,7 +15,6 @@ class Users extends Table {
   TextColumn get discordId => text().unique()();
   TextColumn get globalName => text().nullable()();
   TextColumn get username => text().nullable()();
-  TextColumn get email => text().nullable()();
   TextColumn get avatar => text().nullable()();
   TextColumn get role => text().withDefault(const Constant('user'))();
   TextColumn get teamId => text().nullable()();
@@ -143,7 +142,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   static QueryExecutor _openConnection() {
     final dbPath = Config.dbPath;
@@ -164,6 +163,32 @@ class AppDatabase extends _$AppDatabase {
         'CREATE INDEX IF NOT EXISTS idx_teams_game_id ON teams(game_id)',
       );
       await seedBosses();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        await customStatement('''
+          CREATE TABLE users_new (
+            id TEXT NOT NULL PRIMARY KEY,
+            discord_id TEXT NOT NULL UNIQUE,
+            global_name TEXT,
+            username TEXT,
+            avatar TEXT,
+            role TEXT NOT NULL DEFAULT 'user',
+            team_id TEXT,
+            game_id TEXT
+          )
+        ''');
+        await customStatement('''
+          INSERT INTO users_new (id, discord_id, global_name, username, avatar, role, team_id, game_id)
+          SELECT id, discord_id, global_name, username, avatar, role, team_id, game_id
+          FROM users
+        ''');
+        await customStatement('DROP TABLE users');
+        await customStatement('ALTER TABLE users_new RENAME TO users');
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id)',
+        );
+      }
     },
   );
 

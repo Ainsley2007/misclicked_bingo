@@ -44,7 +44,9 @@
   "paths": {
     "/auth/discord/login": {
       "get": {
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Initiate Discord OAuth login",
         "description": "Redirects to Discord OAuth2 authorization page",
         "responses": {
@@ -74,7 +76,9 @@
     },
     "/auth/discord/callback": {
       "get": {
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Discord OAuth callback",
         "description": "Handles Discord OAuth callback and sets authentication cookie",
         "parameters": [
@@ -131,7 +135,9 @@
     },
     "/auth/logout": {
       "get": {
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Logout user",
         "description": "Clears authentication cookie",
         "responses": {
@@ -156,7 +162,9 @@
     },
     "/me": {
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get current user",
         "description": "Returns the authenticated user's information",
         "security": [
@@ -200,7 +208,9 @@
     },
     "/users": {
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get all users",
         "description": "Returns a list of all users",
         "security": [
@@ -235,7 +245,9 @@
         }
       },
       "delete": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Delete a user",
         "description": "Deletes a user by ID",
         "security": [
@@ -249,7 +261,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["userId"],
+                "required": [
+                  "userId"
+                ],
                 "properties": {
                   "userId": {
                     "type": "string",
@@ -289,7 +303,9 @@
     },
     "/games": {
       "get": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Get all games",
         "description": "Returns a list of all games",
         "security": [
@@ -324,7 +340,9 @@
         }
       },
       "post": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Create a new game",
         "description": "Creates a new bingo game with tiles",
         "security": [
@@ -378,7 +396,9 @@
     },
     "/games/{id}": {
       "get": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Get game by ID",
         "description": "Returns a specific game by its ID",
         "security": [
@@ -431,7 +451,9 @@
         }
       },
       "delete": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Delete a game",
         "description": "Deletes a game by ID",
         "security": [
@@ -469,7 +491,9 @@
     },
     "/games/{code}/join": {
       "post": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Join a game by code",
         "description": "Creates a team and joins a game using the game code",
         "security": [
@@ -495,7 +519,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["teamName"],
+                "required": [
+                  "teamName"
+                ],
                 "properties": {
                   "teamName": {
                     "type": "string",
@@ -560,7 +586,9 @@
     },
     "/games/{id}/tiles": {
       "get": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Get game tiles",
         "description": "Returns all tiles for a game with completion status",
         "security": [
@@ -608,7 +636,9 @@
     },
     "/games/{id}/tiles/{tileId}/complete": {
       "put": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Toggle tile completion",
         "description": "Toggles the completion status of a tile for the user's team",
         "security": [
@@ -646,7 +676,10 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["completed", "incomplete"],
+                      "enum": [
+                        "completed",
+                        "incomplete"
+                      ],
                       "description": "New completion status"
                     }
                   }
@@ -679,7 +712,9 @@
     },
     "/games/{id}/users": {
       "get": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Get game users",
         "description": "Returns all users in a game",
         "security": [
@@ -727,7 +762,9 @@
     },
     "/games/{id}/overview": {
       "get": {
-        "tags": ["Games"],
+        "tags": [
+          "Games"
+        ],
         "summary": "Get game overview",
         "description": "Returns comprehensive game overview with teams and tiles",
         "security": [
@@ -782,7 +819,9 @@
     },
     "/teams/{id}": {
       "get": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Get team by ID",
         "description": "Returns team information",
         "security": [
@@ -835,7 +874,9 @@
         }
       },
       "delete": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Disband team",
         "description": "Deletes a team (captain only)",
         "security": [
@@ -906,7 +947,9 @@
     },
     "/teams/{id}/info": {
       "get": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Get team info",
         "description": "Returns team information (alias for GET /teams/{id})",
         "security": [
@@ -961,7 +1004,9 @@
     },
     "/teams/{id}/members": {
       "get": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Get team members",
         "description": "Returns all members of a team",
         "security": [
@@ -1007,7 +1052,9 @@
         }
       },
       "post": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Add team member",
         "description": "Adds a user to a team (captain only)",
         "security": [
@@ -1032,7 +1079,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["userId"],
+                "required": [
+                  "userId"
+                ],
                 "properties": {
                   "userId": {
                     "type": "string",
@@ -1105,7 +1154,9 @@
     },
     "/teams/{id}/members/{userId}": {
       "delete": {
-        "tags": ["Teams"],
+        "tags": [
+          "Teams"
+        ],
         "summary": "Remove team member",
         "description": "Removes a user from a team (captain only)",
         "security": [
@@ -1195,7 +1246,9 @@
     },
     "/bosses": {
       "get": {
-        "tags": ["Bosses"],
+        "tags": [
+          "Bosses"
+        ],
         "summary": "Get all bosses",
         "description": "Returns a list of all bosses with their unique items",
         "security": [
@@ -1232,7 +1285,9 @@
     },
     "/admin/bosses": {
       "post": {
-        "tags": ["Admin"],
+        "tags": [
+          "Admin"
+        ],
         "summary": "Create a new boss",
         "description": "Creates a new boss with unique items (admin only)",
         "security": [
@@ -1306,7 +1361,9 @@
     },
     "/admin/promote/{userId}": {
       "post": {
-        "tags": ["Admin"],
+        "tags": [
+          "Admin"
+        ],
         "summary": "Promote user to admin",
         "description": "Promotes a user to admin role (admin only)",
         "security": [
@@ -1391,7 +1448,9 @@
             "description": "Error message"
           }
         },
-        "required": ["error"]
+        "required": [
+          "error"
+        ]
       },
       "User": {
         "type": "object",
@@ -1415,11 +1474,6 @@
             "nullable": true,
             "description": "Discord username"
           },
-          "email": {
-            "type": "string",
-            "nullable": true,
-            "description": "User email"
-          },
           "avatar": {
             "type": "string",
             "nullable": true,
@@ -1427,7 +1481,11 @@
           },
           "role": {
             "type": "string",
-            "enum": ["user", "captain", "admin"],
+            "enum": [
+              "user",
+              "captain",
+              "admin"
+            ],
             "description": "User role"
           },
           "teamId": {
@@ -1443,7 +1501,11 @@
             "description": "Game ID the user is in"
           }
         },
-        "required": ["id", "discordId", "role"]
+        "required": [
+          "id",
+          "discordId",
+          "role"
+        ]
       },
       "Game": {
         "type": "object",
@@ -1471,7 +1533,12 @@
           },
           "boardSize": {
             "type": "integer",
-            "enum": [2, 3, 4, 5],
+            "enum": [
+              2,
+              3,
+              4,
+              5
+            ],
             "default": 3,
             "description": "Bingo board size (NxN)"
           },
@@ -1481,11 +1548,21 @@
             "description": "Game creation timestamp"
           }
         },
-        "required": ["id", "code", "name", "teamSize", "boardSize", "createdAt"]
+        "required": [
+          "id",
+          "code",
+          "name",
+          "teamSize",
+          "boardSize",
+          "createdAt"
+        ]
       },
       "CreateGameRequest": {
         "type": "object",
-        "required": ["name", "tiles"],
+        "required": [
+          "name",
+          "tiles"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -1500,7 +1577,12 @@
           },
           "boardSize": {
             "type": "integer",
-            "enum": [2, 3, 4, 5],
+            "enum": [
+              2,
+              3,
+              4,
+              5
+            ],
             "default": 3,
             "description": "Bingo board size (NxN). Must match number of tiles."
           },
@@ -1515,7 +1597,9 @@
       },
       "CreateTileRequest": {
         "type": "object",
-        "required": ["bossId"],
+        "required": [
+          "bossId"
+        ],
         "properties": {
           "bossId": {
             "type": "string",
@@ -1552,7 +1636,9 @@
       },
       "UniqueItemRequest": {
         "type": "object",
-        "required": ["itemName"],
+        "required": [
+          "itemName"
+        ],
         "properties": {
           "itemName": {
             "type": "string",
@@ -1632,7 +1718,16 @@
             "description": "List of unique items for this tile"
           }
         },
-        "required": ["id", "gameId", "bossId", "position", "isAnyUnique", "isOrLogic", "isCompleted", "uniqueItems"]
+        "required": [
+          "id",
+          "gameId",
+          "bossId",
+          "position",
+          "isAnyUnique",
+          "isOrLogic",
+          "isCompleted",
+          "uniqueItems"
+        ]
       },
       "UniqueItem": {
         "type": "object",
@@ -1646,7 +1741,10 @@
             "description": "Number of this item required"
           }
         },
-        "required": ["itemName", "requiredCount"]
+        "required": [
+          "itemName",
+          "requiredCount"
+        ]
       },
       "Team": {
         "type": "object",
@@ -1671,7 +1769,12 @@
             "description": "Team captain user ID"
           }
         },
-        "required": ["id", "gameId", "name", "captainUserId"]
+        "required": [
+          "id",
+          "gameId",
+          "name",
+          "captainUserId"
+        ]
       },
       "GameOverview": {
         "type": "object",
@@ -1694,7 +1797,11 @@
             "description": "All teams in the game with their board completion states"
           }
         },
-        "required": ["game", "tiles", "teams"]
+        "required": [
+          "game",
+          "tiles",
+          "teams"
+        ]
       },
       "TeamWithBoardStates": {
         "type": "object",
@@ -1722,12 +1829,21 @@
             "type": "object",
             "additionalProperties": {
               "type": "string",
-              "enum": ["completed", "incomplete"]
+              "enum": [
+                "completed",
+                "incomplete"
+              ]
             },
             "description": "Map of tile ID to completion status"
           }
         },
-        "required": ["id", "name", "gameId", "captainUserId", "boardStates"]
+        "required": [
+          "id",
+          "name",
+          "gameId",
+          "captainUserId",
+          "boardStates"
+        ]
       },
       "Boss": {
         "type": "object",
@@ -1756,11 +1872,22 @@
             "description": "List of unique item names for this boss"
           }
         },
-        "required": ["id", "name", "type", "iconUrl", "uniqueItems"]
+        "required": [
+          "id",
+          "name",
+          "type",
+          "iconUrl",
+          "uniqueItems"
+        ]
       },
       "CreateBossRequest": {
         "type": "object",
-        "required": ["name", "type", "iconUrl", "uniqueItems"],
+        "required": [
+          "name",
+          "type",
+          "iconUrl",
+          "uniqueItems"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -1787,5 +1914,3 @@
     }
   }
 }
-
-
